@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../game/game_settings.dart';
+
 class AppStrings {
   AppStrings(this.locale);
 
@@ -33,6 +35,16 @@ class AppStrings {
       'restartBody': 'The current board will be cleared.',
       'cancel': 'Cancel',
       'restart': 'Restart',
+      'onePlayer': 'Single Player',
+      'twoPlayer': 'Two Players',
+      'chooseDifficulty': 'Choose difficulty',
+      'easy': 'Easy',
+      'normal': 'Normal',
+      'hard': 'Hard',
+      'back': 'Back',
+      'startGame': 'Start',
+      'modeTwoPlayer': '2 Players',
+      'modeSinglePlayer': '1 Player · {difficulty}',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -53,6 +65,16 @@ class AppStrings {
       'restartBody': 'Mevcut tahta temizlenecek.',
       'cancel': 'Vazgeç',
       'restart': 'Yeniden başlat',
+      'onePlayer': 'Tek Oyuncu',
+      'twoPlayer': 'İki Oyuncu',
+      'chooseDifficulty': 'Zorluk seçin',
+      'easy': 'Kolay',
+      'normal': 'Normal',
+      'hard': 'Zor',
+      'back': 'Geri',
+      'startGame': 'Başla',
+      'modeTwoPlayer': '2 Oyuncu',
+      'modeSinglePlayer': '1 Oyuncu · {difficulty}',
     },
   };
 
@@ -71,6 +93,15 @@ class AppStrings {
   String get restartBody => _get('restartBody');
   String get cancel => _get('cancel');
   String get restart => _get('restart');
+  String get onePlayer => _get('onePlayer');
+  String get twoPlayer => _get('twoPlayer');
+  String get chooseDifficulty => _get('chooseDifficulty');
+  String get easy => _get('easy');
+  String get normal => _get('normal');
+  String get hard => _get('hard');
+  String get back => _get('back');
+  String get startGame => _get('startGame');
+  String get modeTwoPlayer => _get('modeTwoPlayer');
 
   String playerName(String player) => player == 'black' ? black : white;
 
@@ -84,6 +115,21 @@ class AppStrings {
 
   String winner(String player) {
     return _get('winner').replaceAll('{player}', playerName(player));
+  }
+
+  String modeSinglePlayer(String difficulty) {
+    return _get('modeSinglePlayer').replaceAll('{difficulty}', difficulty);
+  }
+
+  String difficultyLabel(Difficulty difficulty) {
+    switch (difficulty) {
+      case Difficulty.easy:
+        return easy;
+      case Difficulty.normal:
+        return normal;
+      case Difficulty.hard:
+        return hard;
+    }
   }
 
   String _get(String key) {

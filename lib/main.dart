@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'game/game_settings.dart';
 import 'game/reversi_game.dart';
 import 'l10n/app_strings.dart';
+import 'screens/main_menu_screen.dart';
 import 'services/analytics_service.dart';
 
 Future<void> main() async {
@@ -75,9 +77,22 @@ class _ReversiAppState extends State<ReversiApp> {
         scaffoldBackgroundColor: const Color(0xFF3A2419),
         fontFamily: 'Roboto',
       ),
-      home: ReversiHomePage(
-        analytics: widget.analytics,
-        onLocaleChanged: _setLocale,
+      home: Builder(
+        builder: (context) => MainMenuScreen(
+          onLocaleChanged: _setLocale,
+          onStartGame: (mode, difficulty) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ReversiHomePage(
+                  analytics: widget.analytics,
+                  onLocaleChanged: _setLocale,
+                  mode: mode,
+                  difficulty: difficulty,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -88,10 +103,14 @@ class ReversiHomePage extends StatefulWidget {
     super.key,
     required this.analytics,
     required this.onLocaleChanged,
+    required this.mode,
+    required this.difficulty,
   });
 
   final AnalyticsService analytics;
   final ValueChanged<Locale> onLocaleChanged;
+  final GameMode mode;
+  final Difficulty? difficulty;
 
   @override
   State<ReversiHomePage> createState() => _ReversiHomePageState();
@@ -209,6 +228,8 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
           child: Column(
             children: [
               _TopBar(
+                mode: widget.mode,
+                difficulty: widget.difficulty,
                 onNewGame: _confirmRestart,
                 onLocaleChanged: widget.onLocaleChanged,
               ),
@@ -260,29 +281,55 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
 
 class _TopBar extends StatelessWidget {
   const _TopBar({
+    required this.mode,
+    required this.difficulty,
     required this.onNewGame,
     required this.onLocaleChanged,
   });
 
+  final GameMode mode;
+  final Difficulty? difficulty;
   final VoidCallback onNewGame;
   final ValueChanged<Locale> onLocaleChanged;
 
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final modeLabel = mode == GameMode.twoPlayer
+        ? strings.modeTwoPlayer
+        : strings.modeSinglePlayer(strings.difficultyLabel(difficulty!));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 12, 12, 10),
       child: Row(
         children: [
+          IconButton(
+            tooltip: strings.back,
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back, color: Color(0xFFFFF1D0)),
+          ),
           Expanded(
-            child: Text(
-              strings.appTitle,
-              style: const TextStyle(
-                color: Color(0xFFFFF1D0),
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  strings.appTitle,
+                  style: const TextStyle(
+                    color: Color(0xFFFFF1D0),
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  modeLabel,
+                  style: const TextStyle(
+                    color: Color(0xFFE9D8B8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
           PopupMenuButton<Locale>(
