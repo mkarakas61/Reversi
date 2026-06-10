@@ -9,10 +9,18 @@ class AnalyticsService {
 
   bool get isEnabled => _analytics != null;
 
-  Future<void> logGameStarted({required String locale}) async {
+  Future<void> logGameStarted({
+    required String locale,
+    String? mode,
+    String? difficulty,
+  }) async {
     await _analytics?.logEvent(
       name: 'game_started',
-      parameters: {'locale': locale},
+      parameters: {
+        'locale': locale,
+        if (mode != null) 'mode': mode,
+        if (difficulty != null) 'difficulty': difficulty,
+      },
     );
   }
 

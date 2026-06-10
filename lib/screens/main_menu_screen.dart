@@ -1,17 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../game/game_settings.dart';
 import '../l10n/app_strings.dart';
+import '../services/game_storage.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
     super.key,
     required this.onLocaleChanged,
     required this.onStartGame,
+    required this.onContinueGame,
   });
 
   final ValueChanged<Locale> onLocaleChanged;
-  final void Function(GameMode mode, Difficulty? difficulty) onStartGame;
+  final Future<void> Function(GameMode mode, Difficulty? difficulty)
+      onStartGame;
+  final Future<void> Function(SavedGame saved) onContinueGame;
 
   @override
   State<MainMenuScreen> createState() => _MainMenuScreenState();
@@ -19,6 +25,41 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   bool _showDifficulty = false;
+  final GameStorage _storage = GameStorage();
+  SavedGame? _savedGame;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_refreshSavedGame());
+  }
+
+  Future<void> _refreshSavedGame() async {
+    final saved = await _storage.load();
+    if (mounted) {
+      setState(() => _savedGame = saved);
+    }
+  }
+
+  Future<void> _start(GameMode mode, Difficulty? difficulty) async {
+    await widget.onStartGame(mode, difficulty);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _showDifficulty = false);
+    await _refreshSavedGame();
+  }
+
+  Future<void> _continueSaved() async {
+    final saved = _savedGame;
+    if (saved == null) {
+      return;
+    }
+    await widget.onContinueGame(saved);
+    if (mounted) {
+      await _refreshSavedGame();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +87,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     onSelected: widget.onLocaleChanged,
                     itemBuilder: (context) => const [
                       PopupMenuItem(value: Locale('tr'), child: Text('Türkçe')),
-                      PopupMenuItem(value: Locale('en'), child: Text('English')),
+                      PopupMenuItem(
+                          value: Locale('en'), child: Text('English')),
                     ],
                   ),
                 ),
@@ -67,16 +109,26 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       ),
                       const SizedBox(height: 48),
                       if (!_showDifficulty) ...[
+                        if (_savedGame != null) ...[
+                          _MenuButton(
+                            label: strings.continueGame,
+                            icon: Icons.play_arrow,
+                            onPressed: () => unawaited(_continueSaved()),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         _MenuButton(
                           label: strings.onePlayer,
                           icon: Icons.person,
-                          onPressed: () => setState(() => _showDifficulty = true),
+                          onPressed: () =>
+                              setState(() => _showDifficulty = true),
                         ),
                         const SizedBox(height: 16),
                         _MenuButton(
                           label: strings.twoPlayer,
                           icon: Icons.people,
-                          onPressed: () => widget.onStartGame(GameMode.twoPlayer, null),
+                          onPressed: () =>
+                              unawaited(_start(GameMode.twoPlayer, null)),
                         ),
                       ] else ...[
                         Text(
@@ -91,33 +143,32 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         _MenuButton(
                           label: strings.easy,
                           icon: Icons.sentiment_satisfied,
-                          onPressed: () => widget.onStartGame(
-                            GameMode.singlePlayer,
-                            Difficulty.easy,
+                          onPressed: () => unawaited(
+                            _start(GameMode.singlePlayer, Difficulty.easy),
                           ),
                         ),
                         const SizedBox(height: 16),
                         _MenuButton(
                           label: strings.normal,
                           icon: Icons.sentiment_neutral,
-                          onPressed: () => widget.onStartGame(
-                            GameMode.singlePlayer,
-                            Difficulty.normal,
+                          onPressed: () => unawaited(
+                            _start(GameMode.singlePlayer, Difficulty.normal),
                           ),
                         ),
                         const SizedBox(height: 16),
                         _MenuButton(
                           label: strings.hard,
                           icon: Icons.sentiment_very_dissatisfied,
-                          onPressed: () => widget.onStartGame(
-                            GameMode.singlePlayer,
-                            Difficulty.hard,
+                          onPressed: () => unawaited(
+                            _start(GameMode.singlePlayer, Difficulty.hard),
                           ),
                         ),
                         const SizedBox(height: 24),
                         TextButton.icon(
-                          onPressed: () => setState(() => _showDifficulty = false),
-                          icon: const Icon(Icons.arrow_back, color: Color(0xFFE9D8B8)),
+                          onPressed: () =>
+                              setState(() => _showDifficulty = false),
+                          icon: const Icon(Icons.arrow_back,
+                              color: Color(0xFFE9D8B8)),
                           label: Text(
                             strings.back,
                             style: const TextStyle(color: Color(0xFFE9D8B8)),

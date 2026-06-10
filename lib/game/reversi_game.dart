@@ -15,6 +15,9 @@ class Position {
 
   @override
   int get hashCode => Object.hash(row, col);
+
+  @override
+  String toString() => 'Position($row, $col)';
 }
 
 class MoveResult {
@@ -55,6 +58,20 @@ class ReversiGame {
       currentPlayer: Disc.black,
       phase: GamePhase.playing,
       lastMove: null,
+      lastPassPlayer: null,
+    );
+  }
+
+  factory ReversiGame.restore({
+    required List<List<Disc?>> board,
+    required Disc currentPlayer,
+    Position? lastMove,
+  }) {
+    return ReversiGame._(
+      board: board.map((row) => List<Disc?>.of(row)).toList(),
+      currentPlayer: currentPlayer,
+      phase: GamePhase.playing,
+      lastMove: lastMove,
       lastPassPlayer: null,
     );
   }
@@ -105,6 +122,8 @@ class ReversiGame {
 
   bool get hasValidMove => validMoves.isNotEmpty;
 
+  Set<Position> validMovesFor(Disc player) => _validMovesFor(board, player);
+
   Disc? get winner {
     if (phase != GamePhase.gameOver) {
       return null;
@@ -118,7 +137,8 @@ class ReversiGame {
   }
 
   bool get isDraw {
-    return phase == GamePhase.gameOver && scoreFor(Disc.black) == scoreFor(Disc.white);
+    return phase == GamePhase.gameOver &&
+        scoreFor(Disc.black) == scoreFor(Disc.white);
   }
 
   ReversiGame copyWith({
@@ -135,9 +155,8 @@ class ReversiGame {
       currentPlayer: currentPlayer ?? this.currentPlayer,
       phase: phase ?? this.phase,
       lastMove: clearLastMove ? null : lastMove ?? this.lastMove,
-      lastPassPlayer: clearLastPassPlayer
-          ? null
-          : lastPassPlayer ?? this.lastPassPlayer,
+      lastPassPlayer:
+          clearLastPassPlayer ? null : lastPassPlayer ?? this.lastPassPlayer,
     );
   }
 
@@ -267,7 +286,9 @@ class ReversiGame {
         col += colStep;
       }
 
-      if (line.isNotEmpty && _isOnBoard(row, col) && board[row][col] == player) {
+      if (line.isNotEmpty &&
+          _isOnBoard(row, col) &&
+          board[row][col] == player) {
         allFlips.addAll(line);
       }
     }

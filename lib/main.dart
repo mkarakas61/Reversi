@@ -1,14 +1,20 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'game/ai_player.dart';
 import 'game/game_settings.dart';
 import 'game/reversi_game.dart';
 import 'l10n/app_strings.dart';
 import 'screens/main_menu_screen.dart';
 import 'services/analytics_service.dart';
+import 'services/game_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,13 +87,26 @@ class _ReversiAppState extends State<ReversiApp> {
         builder: (context) => MainMenuScreen(
           onLocaleChanged: _setLocale,
           onStartGame: (mode, difficulty) {
-            Navigator.of(context).push(
+            return Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => ReversiHomePage(
                   analytics: widget.analytics,
                   onLocaleChanged: _setLocale,
                   mode: mode,
                   difficulty: difficulty,
+                ),
+              ),
+            );
+          },
+          onContinueGame: (saved) {
+            return Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ReversiHomePage(
+                  analytics: widget.analytics,
+                  onLocaleChanged: _setLocale,
+                  mode: saved.mode,
+                  difficulty: saved.difficulty,
+                  initialGame: saved.game,
                 ),
               ),
             );
@@ -105,25 +124,42 @@ class ReversiHomePage extends StatefulWidget {
     required this.onLocaleChanged,
     required this.mode,
     required this.difficulty,
+    this.initialGame,
   });
 
   final AnalyticsService analytics;
   final ValueChanged<Locale> onLocaleChanged;
   final GameMode mode;
   final Difficulty? difficulty;
+  final ReversiGame? initialGame;
 
   @override
   State<ReversiHomePage> createState() => _ReversiHomePageState();
 }
 
 class _ReversiHomePageState extends State<ReversiHomePage> {
+  static const Disc _humanDisc = Disc.black;
+  static const Disc _aiDisc = Disc.white;
+
   late ReversiGame _game;
   bool _loggedInitialGame = false;
+  bool _aiThinking = false;
+  int _aiGeneration = 0;
+  final GameStorage _storage = GameStorage();
+  final Random _random = Random();
+
+  bool get _isSinglePlayer => widget.mode == GameMode.singlePlayer;
 
   @override
   void initState() {
     super.initState();
-    _game = ReversiGame.newGame();
+    _game = widget.initialGame ?? ReversiGame.newGame();
+    if (_isSinglePlayer) {
+      // A restored game may have been saved while it was the AI's turn.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_runAiTurn());
+      });
+    }
   }
 
   @override
@@ -133,11 +169,17 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
       _loggedInitialGame = true;
       widget.analytics.logGameStarted(
         locale: Localizations.localeOf(context).languageCode,
+        mode: widget.mode.name,
+        difficulty: widget.difficulty?.name,
       );
     }
   }
 
   void _play(Position position) {
+    if (_isSinglePlayer && (_aiThinking || _game.currentPlayer != _humanDisc)) {
+      return;
+    }
+
     final strings = AppStrings.of(context);
     final beforePlayer = _game.currentPlayer;
     final move = _game.play(position);
@@ -166,6 +208,69 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
         whiteScore: _game.scoreFor(Disc.white),
         winner: _game.winner,
       );
+      unawaited(_storage.clear());
+    } else {
+      unawaited(_storage.save(_game, widget.mode, widget.difficulty));
+      if (_isSinglePlayer) {
+        unawaited(_runAiTurn());
+      }
+    }
+  }
+
+  Future<void> _runAiTurn() async {
+    if (!_isSinglePlayer) {
+      return;
+    }
+    final generation = _aiGeneration;
+    while (mounted &&
+        generation == _aiGeneration &&
+        _game.phase == GamePhase.playing &&
+        _game.currentPlayer == _aiDisc) {
+      if (!_aiThinking) {
+        setState(() => _aiThinking = true);
+      }
+      await Future<void>.delayed(
+        Duration(milliseconds: 400 + _random.nextInt(300)),
+      );
+      if (!mounted || generation != _aiGeneration) {
+        return;
+      }
+      final position = await compute(
+        _aiMoveTask,
+        _AiMoveRequest(_game, widget.difficulty!),
+      );
+      if (!mounted || generation != _aiGeneration) {
+        return;
+      }
+      final move = _game.play(position);
+      if (!move.result.isValid) {
+        break;
+      }
+      setState(() => _game = move.game);
+      widget.analytics.logMove(
+        player: _aiDisc,
+        position: position,
+        flippedCount: move.result.flipped.length,
+      );
+
+      if (move.result.passOccurred) {
+        _showMessage(AppStrings.of(context).forcedPass(_humanDisc.name));
+        widget.analytics.logPass(player: _humanDisc);
+      }
+
+      if (move.result.gameOver) {
+        widget.analytics.logGameEnded(
+          blackScore: _game.scoreFor(Disc.black),
+          whiteScore: _game.scoreFor(Disc.white),
+          winner: _game.winner,
+        );
+        unawaited(_storage.clear());
+      } else {
+        unawaited(_storage.save(_game, widget.mode, widget.difficulty));
+      }
+    }
+    if (mounted && generation == _aiGeneration && _aiThinking) {
+      setState(() => _aiThinking = false);
     }
   }
 
@@ -195,10 +300,44 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
       if (!mounted) {
         return;
       }
-      setState(() => _game = ReversiGame.newGame());
+      _aiGeneration++;
+      setState(() {
+        _game = ReversiGame.newGame();
+        _aiThinking = false;
+      });
+      unawaited(_storage.clear());
       widget.analytics.logGameStarted(
         locale: Localizations.localeOf(context).languageCode,
+        mode: widget.mode.name,
+        difficulty: widget.difficulty?.name,
       );
+    }
+  }
+
+  Future<void> _confirmLeave() async {
+    final strings = AppStrings.of(context);
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(strings.leaveTitle),
+          content: Text(strings.leaveBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(strings.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(strings.leave),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLeave == true && mounted) {
+      Navigator.of(context).pop();
     }
   }
 
@@ -215,63 +354,73 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
     final blackScore = _game.scoreFor(Disc.black);
     final whiteScore = _game.scoreFor(Disc.white);
 
-    return Scaffold(
-      body: SafeArea(
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF4A2D1D), Color(0xFF251711)],
+    return PopScope(
+      canPop: _game.phase == GamePhase.gameOver || _game.lastMove == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+        unawaited(_confirmLeave());
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF4A2D1D), Color(0xFF251711)],
+              ),
             ),
-          ),
-          child: Column(
-            children: [
-              _TopBar(
-                mode: widget.mode,
-                difficulty: widget.difficulty,
-                onNewGame: _confirmRestart,
-                onLocaleChanged: widget.onLocaleChanged,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: _StatusPanel(
-                  game: _game,
-                  blackScore: blackScore,
-                  whiteScore: whiteScore,
+            child: Column(
+              children: [
+                _TopBar(
+                  mode: widget.mode,
+                  difficulty: widget.difficulty,
+                  onNewGame: _confirmRestart,
+                  onLocaleChanged: widget.onLocaleChanged,
                 ),
-              ),
-              const SizedBox(height: 18),
-              Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: ReversiBoard(
-                      board: _game.board,
-                      validMoves: validMoves,
-                      lastMove: _game.lastMove,
-                      onCellTap: _play,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: _StatusPanel(
+                    game: _game,
+                    blackScore: blackScore,
+                    whiteScore: whiteScore,
+                    aiThinking: _aiThinking,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Expanded(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: ReversiBoard(
+                        board: _game.board,
+                        validMoves: validMoves,
+                        lastMove: _game.lastMove,
+                        onCellTap: _play,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (_game.phase == GamePhase.gameOver)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                  child: _GameOverBanner(game: _game),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                  child: Text(
-                    '${strings.validMoveHint}: ${validMoves.length}',
-                    style: const TextStyle(
-                      color: Color(0xFFE9D8B8),
-                      fontWeight: FontWeight.w600,
+                if (_game.phase == GamePhase.gameOver)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    child: _GameOverBanner(game: _game),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    child: Text(
+                      '${strings.validMoveHint}: ${validMoves.length}',
+                      style: const TextStyle(
+                        color: Color(0xFFE9D8B8),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -305,7 +454,7 @@ class _TopBar extends StatelessWidget {
         children: [
           IconButton(
             tooltip: strings.back,
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).maybePop(),
             icon: const Icon(Icons.arrow_back, color: Color(0xFFFFF1D0)),
           ),
           Expanded(
@@ -357,11 +506,13 @@ class _StatusPanel extends StatelessWidget {
     required this.game,
     required this.blackScore,
     required this.whiteScore,
+    required this.aiThinking,
   });
 
   final ReversiGame game;
   final int blackScore;
   final int whiteScore;
+  final bool aiThinking;
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +520,9 @@ class _StatusPanel extends StatelessWidget {
     final currentPlayerName = game.currentPlayer.name;
     final title = game.phase == GamePhase.gameOver
         ? strings.gameOver
-        : strings.turn(currentPlayerName);
+        : aiThinking
+            ? strings.aiThinking
+            : strings.turn(currentPlayerName);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -386,6 +539,17 @@ class _StatusPanel extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (aiThinking) ...[
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: Color(0xFF2A1710),
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
           Expanded(
             child: Text(
               title,
@@ -617,6 +781,19 @@ class _DiscView extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AiMoveRequest {
+  const _AiMoveRequest(this.game, this.difficulty);
+
+  final ReversiGame game;
+  final Difficulty difficulty;
+}
+
+// Runs in a background isolate via compute() so the deeper hard-mode
+// searches never block the UI thread.
+Position _aiMoveTask(_AiMoveRequest request) {
+  return ReversiAi(difficulty: request.difficulty).chooseMove(request.game);
 }
 
 class _GameOverBanner extends StatelessWidget {

@@ -13,7 +13,8 @@ class AppStrings {
     return Localizations.of<AppStrings>(context, AppStrings)!;
   }
 
-  static const LocalizationsDelegate<AppStrings> delegate = _AppStringsDelegate();
+  static const LocalizationsDelegate<AppStrings> delegate =
+      _AppStringsDelegate();
 
   static const _values = {
     'en': {
@@ -24,7 +25,8 @@ class AppStrings {
       'white': 'White',
       'turn': '{player} to move',
       'score': 'Score',
-      'invalidMove': 'Choose a highlighted square to capture at least one disc.',
+      'invalidMove':
+          'Choose a highlighted square to capture at least one disc.',
       'forcedPass': '{player} has no legal move and passes.',
       'gameOver': 'Game over',
       'winner': '{player} wins',
@@ -45,6 +47,11 @@ class AppStrings {
       'startGame': 'Start',
       'modeTwoPlayer': '2 Players',
       'modeSinglePlayer': '1 Player · {difficulty}',
+      'aiThinking': 'Computer is thinking…',
+      'leaveTitle': 'Leave game?',
+      'leaveBody': 'You can continue this game later from the menu.',
+      'leave': 'Leave',
+      'continueGame': 'Continue',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -54,7 +61,8 @@ class AppStrings {
       'white': 'Beyaz',
       'turn': 'Sıra {player}',
       'score': 'Skor',
-      'invalidMove': 'En az bir taşı çevirmek için işaretli karelerden birini seçin.',
+      'invalidMove':
+          'En az bir taşı çevirmek için işaretli karelerden birini seçin.',
       'forcedPass': '{player} için geçerli hamle yok, sıra pas geçildi.',
       'gameOver': 'Oyun bitti',
       'winner': '{player} kazandı',
@@ -75,6 +83,11 @@ class AppStrings {
       'startGame': 'Başla',
       'modeTwoPlayer': '2 Oyuncu',
       'modeSinglePlayer': '1 Oyuncu · {difficulty}',
+      'aiThinking': 'Bilgisayar düşünüyor…',
+      'leaveTitle': 'Oyundan çıkılsın mı?',
+      'leaveBody': 'Bu oyuna daha sonra menüden devam edebilirsin.',
+      'leave': 'Çık',
+      'continueGame': 'Devam Et',
     },
   };
 
@@ -102,6 +115,11 @@ class AppStrings {
   String get back => _get('back');
   String get startGame => _get('startGame');
   String get modeTwoPlayer => _get('modeTwoPlayer');
+  String get aiThinking => _get('aiThinking');
+  String get leaveTitle => _get('leaveTitle');
+  String get leaveBody => _get('leaveBody');
+  String get leave => _get('leave');
+  String get continueGame => _get('continueGame');
 
   String playerName(String player) => player == 'black' ? black : white;
 
@@ -133,9 +151,8 @@ class AppStrings {
   }
 
   String _get(String key) {
-    final language = _values.containsKey(locale.languageCode)
-        ? locale.languageCode
-        : 'en';
+    final language =
+        _values.containsKey(locale.languageCode) ? locale.languageCode : 'en';
     return _values[language]![key]!;
   }
 }

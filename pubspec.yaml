@@ -14,11 +14,24 @@ dependencies:
   firebase_core: ^3.15.2
   firebase_analytics: ^11.5.2
   intl: ^0.20.2
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.0
 
 flutter:
   uses-material-design: true
+
+# App icon: drop a 1024x1024 PNG at assets/icon/app_icon.png and an
+# adaptive foreground (transparent background, centered motif) at
+# assets/icon/app_icon_foreground.png, then run:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/icon/app_icon.png
+  adaptive_icon_background: "#3A2419"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
