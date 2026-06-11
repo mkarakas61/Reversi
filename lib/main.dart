@@ -15,6 +15,8 @@ import 'l10n/app_strings.dart';
 import 'screens/main_menu_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/game_storage.dart';
+import 'theme/game_theme.dart';
+import 'widgets/wood_board.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -353,74 +355,79 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
     final validMoves = _game.validMoves;
     final blackScore = _game.scoreFor(Disc.black);
     final whiteScore = _game.scoreFor(Disc.white);
+    final gameOver = _game.phase == GamePhase.gameOver;
+    final blacksTurn = _game.currentPlayer == Disc.black;
+
+    // Bottom card = black ("Sen"/Siyah, turquoise). Top card = white
+    // ("Aria"/Beyaz, orange).
+    final blackName = _isSinglePlayer ? strings.playerYou : strings.black;
+    final whiteName = _isSinglePlayer ? strings.playerAi : strings.white;
+
+    final whiteActive = !gameOver && !blacksTurn;
+    final blackActive = !gameOver && blacksTurn;
+
+    String statusFor(bool isBlack) {
+      if (_aiThinking && !isBlack) return strings.aiThinking;
+      if (_isSinglePlayer && isBlack) return strings.yourMove;
+      return strings.toMove;
+    }
 
     return PopScope(
-      canPop: _game.phase == GamePhase.gameOver || _game.lastMove == null,
+      canPop: gameOver || _game.lastMove == null,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         unawaited(_confirmLeave());
       },
       child: Scaffold(
-        body: SafeArea(
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF4A2D1D), Color(0xFF251711)],
+        body: _CreamShell(
+          child: Column(
+            children: [
+              _GameTopBar(
+                onBack: () => Navigator.of(context).maybePop(),
+                onNewGame: _confirmRestart,
+                onLocaleChanged: widget.onLocaleChanged,
               ),
-            ),
-            child: Column(
-              children: [
-                _TopBar(
-                  mode: widget.mode,
-                  difficulty: widget.difficulty,
-                  onNewGame: _confirmRestart,
-                  onLocaleChanged: widget.onLocaleChanged,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: _StatusPanel(
-                    game: _game,
-                    blackScore: blackScore,
-                    whiteScore: whiteScore,
-                    aiThinking: _aiThinking,
+              _PlayerCard(
+                side: Disc.white,
+                name: whiteName,
+                mono: whiteName.characters.first.toUpperCase(),
+                score: whiteScore,
+                active: whiteActive,
+                statusText: statusFor(false),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: WoodBoard(
+                    board: _game.board,
+                    validMoves: validMoves,
+                    lastMove: _game.lastMove,
+                    onCellTap: _play,
                   ),
                 ),
-                const SizedBox(height: 18),
-                Expanded(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: ReversiBoard(
-                        board: _game.board,
-                        validMoves: validMoves,
-                        lastMove: _game.lastMove,
-                        onCellTap: _play,
-                      ),
-                    ),
-                  ),
+              ),
+              _PlayerCard(
+                side: Disc.black,
+                name: blackName,
+                mono: blackName.characters.first.toUpperCase(),
+                score: blackScore,
+                active: blackActive,
+                statusText: statusFor(true),
+              ),
+              const SizedBox(height: 8),
+              if (gameOver)
+                _GameOverBanner(game: _game, isSinglePlayer: _isSinglePlayer)
+              else
+                _TurnPill(
+                  side: blacksTurn ? Disc.black : Disc.white,
+                  text: _aiThinking
+                      ? strings.aiThinking
+                      : (_isSinglePlayer && blacksTurn
+                          ? strings.yourMove
+                          : '${blacksTurn ? blackName : whiteName} ${strings.toMove}'),
                 ),
-                if (_game.phase == GamePhase.gameOver)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                    child: _GameOverBanner(game: _game),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                    child: Text(
-                      '${strings.validMoveHint}: ${validMoves.length}',
-                      style: const TextStyle(
-                        color: Color(0xFFE9D8B8),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+              const SizedBox(height: 10),
+            ],
           ),
         ),
       ),
@@ -428,72 +435,308 @@ class _ReversiHomePageState extends State<ReversiHomePage> {
   }
 }
 
-class _TopBar extends StatelessWidget {
-  const _TopBar({
-    required this.mode,
-    required this.difficulty,
+/// Cream gradient background with the turquoise diagonal banner at the top.
+class _CreamShell extends StatelessWidget {
+  const _CreamShell({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: creamShellGradient),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 210,
+            child: ClipPath(
+              clipper: _BannerClipper(),
+              child: const DecoratedBox(
+                decoration: BoxDecoration(gradient: bannerGradient),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: child,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BannerClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    // polygon(0 0, 100% 0, 100% 60%, 0 80%)
+    return Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height * 0.60)
+      ..lineTo(0, size.height * 0.80)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(_BannerClipper old) => false;
+}
+
+/// White skeuomorphic pill button used in the game top bar.
+class _BarButton extends StatelessWidget {
+  const _BarButton({required this.child, required this.onTap, this.tooltip});
+
+  final Widget child;
+  final VoidCallback onTap;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: const [
+          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
+          BoxShadow(
+            color: Color(0x1F000000),
+            offset: Offset(0, 5),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(13),
+          onTap: onTap,
+          child: Container(
+            height: 38,
+            constraints: const BoxConstraints(minWidth: 38),
+            padding: const EdgeInsets.symmetric(horizontal: 11),
+            alignment: Alignment.center,
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800,
+                fontSize: 12.5,
+                color: GameColors.onAccent,
+              ),
+              child: IconTheme(
+                data: const IconThemeData(color: GameColors.onAccent, size: 20),
+                child: child,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
+  }
+}
+
+class _GameTopBar extends StatelessWidget {
+  const _GameTopBar({
+    required this.onBack,
     required this.onNewGame,
     required this.onLocaleChanged,
   });
 
-  final GameMode mode;
-  final Difficulty? difficulty;
+  final VoidCallback onBack;
   final VoidCallback onNewGame;
   final ValueChanged<Locale> onLocaleChanged;
 
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
-    final modeLabel = mode == GameMode.twoPlayer
-        ? strings.modeTwoPlayer
-        : strings.modeSinglePlayer(strings.difficultyLabel(difficulty!));
+    final lang = Localizations.localeOf(context).languageCode;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 12, 12, 10),
+    return SizedBox(
+      height: 46,
       child: Row(
         children: [
-          IconButton(
+          _BarButton(
             tooltip: strings.back,
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.arrow_back, color: Color(0xFFFFF1D0)),
+            onTap: onBack,
+            child: const Icon(Icons.chevron_left, size: 22),
           ),
+          Expanded(
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  strings.appTitle.toUpperCase(),
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 23,
+                    letterSpacing: 3.4,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _BarButton(
+                tooltip: strings.language,
+                onTap: () => onLocaleChanged(
+                  Locale(lang == 'tr' ? 'en' : 'tr'),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.public, size: 18),
+                    const SizedBox(width: 5),
+                    Text(lang.toUpperCase()),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 9),
+              _BarButton(
+                tooltip: strings.newGame,
+                onTap: onNewGame,
+                child: const Icon(Icons.refresh, size: 19),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlayerCard extends StatelessWidget {
+  const _PlayerCard({
+    required this.side,
+    required this.name,
+    required this.mono,
+    required this.score,
+    required this.active,
+    required this.statusText,
+  });
+
+  final Disc side;
+  final String name;
+  final String mono;
+  final int score;
+  final bool active;
+  final String statusText;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = side == Disc.black;
+    final accent = isDark ? GameColors.accent : GameColors.accent2;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(18),
+        // Always reserve the border so toggling active doesn't resize the
+        // card (which would otherwise nudge the board between turns).
+        border: Border.all(
+          color: active ? accent : Colors.transparent,
+          width: 3,
+        ),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
+          BoxShadow(
+            color: Color(0x1A000000),
+            offset: Offset(0, 10),
+            blurRadius: 22,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? const [
+                        GameColors.avatarDarkTop,
+                        GameColors.avatarDarkBottom,
+                      ]
+                    : const [
+                        GameColors.avatarLightTop,
+                        GameColors.avatarLightBottom,
+                      ],
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              mono,
+              style: const TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  strings.appTitle,
+                  name,
                   style: const TextStyle(
-                    color: Color(0xFFFFF1D0),
-                    fontSize: 24,
+                    fontFamily: 'Nunito',
                     fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: GameColors.ink,
                   ),
                 ),
-                Text(
-                  modeLabel,
-                  style: const TextStyle(
-                    color: Color(0xFFE9D8B8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                SizedBox(
+                  height: 15,
+                  child: Text(
+                    active ? statusText.toLowerCase() : '',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      color: accent,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          PopupMenuButton<Locale>(
-            tooltip: strings.language,
-            icon: const Icon(Icons.language, color: Color(0xFFFFF1D0)),
-            onSelected: onLocaleChanged,
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: Locale('tr'), child: Text('Türkçe')),
-              PopupMenuItem(value: Locale('en'), child: Text('English')),
-            ],
-          ),
-          IconButton(
-            tooltip: strings.newGame,
-            onPressed: onNewGame,
-            icon: const Icon(Icons.refresh, color: Color(0xFFFFF1D0)),
+          _ScoreChip(isDark: isDark),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$score',
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w700,
+                fontSize: 28,
+                height: 1,
+                color: GameColors.ink,
+              ),
+            ),
           ),
         ],
       ),
@@ -501,283 +744,81 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-class _StatusPanel extends StatelessWidget {
-  const _StatusPanel({
-    required this.game,
-    required this.blackScore,
-    required this.whiteScore,
-    required this.aiThinking,
-  });
+class _ScoreChip extends StatelessWidget {
+  const _ScoreChip({required this.isDark});
 
-  final ReversiGame game;
-  final int blackScore;
-  final int whiteScore;
-  final bool aiThinking;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    final strings = AppStrings.of(context);
-    final currentPlayerName = game.currentPlayer.name;
-    final title = game.phase == GamePhase.gameOver
-        ? strings.gameOver
-        : aiThinking
-            ? strings.aiThinking
-            : strings.turn(currentPlayerName);
-
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: 19,
+      height: 19,
       decoration: BoxDecoration(
-        color: const Color(0xFFE5C58F),
-        borderRadius: BorderRadius.circular(8),
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          center: const Alignment(-0.3, -0.4),
+          colors: isDark
+              ? const [GameColors.chipDarkTop, GameColors.chipDarkBottom]
+              : const [GameColors.chipLightTop, GameColors.chipLightBottom],
+          stops: const [0.0, 0.72],
+        ),
         boxShadow: const [
+          BoxShadow(color: Color(0x40000000), blurRadius: 2, spreadRadius: -1),
+        ],
+      ),
+    );
+  }
+}
+
+class _TurnPill extends StatelessWidget {
+  const _TurnPill({required this.side, required this.text});
+
+  final Disc side;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = side == Disc.black ? GameColors.accent : GameColors.accent2;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: const [
+          BoxShadow(color: Color(0x12000000), offset: Offset(0, 4)),
           BoxShadow(
-            color: Color(0x66000000),
-            offset: Offset(0, 6),
-            blurRadius: 18,
+            color: Color(0x1F000000),
+            offset: Offset(0, 8),
+            blurRadius: 16,
           ),
         ],
       ),
       child: Row(
-        children: [
-          if (aiThinking) ...[
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.4,
-                color: Color(0xFF2A1710),
-              ),
-            ),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xFF2A1710),
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          _ScorePill(
-            label: strings.black,
-            score: blackScore,
-            disc: Disc.black,
-          ),
-          const SizedBox(width: 8),
-          _ScorePill(
-            label: strings.white,
-            score: whiteScore,
-            disc: Disc.white,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScorePill extends StatelessWidget {
-  const _ScorePill({
-    required this.label,
-    required this.score,
-    required this.disc,
-  });
-
-  final String label;
-  final int score;
-  final Disc disc;
-
-  @override
-  Widget build(BuildContext context) {
-    final isBlack = disc == Disc.black;
-    return Container(
-      constraints: const BoxConstraints(minWidth: 68),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isBlack ? const Color(0xFF161616) : const Color(0xFFF8F0DD),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: isBlack ? Colors.white : const Color(0xFF2A1710),
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+          Container(
+            width: 11,
+            height: 11,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent,
+              boxShadow: [
+                BoxShadow(color: accent.withValues(alpha: 0.25), blurRadius: 4, spreadRadius: 4),
+              ],
             ),
           ),
+          const SizedBox(width: 8),
           Text(
-            '$score',
-            style: TextStyle(
-              color: isBlack ? Colors.white : const Color(0xFF2A1710),
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+            text,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w800,
+              fontSize: 13.5,
+              color: GameColors.onAccent,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class ReversiBoard extends StatelessWidget {
-  const ReversiBoard({
-    super.key,
-    required this.board,
-    required this.validMoves,
-    required this.lastMove,
-    required this.onCellTap,
-  });
-
-  final List<List<Disc?>> board;
-  final Set<Position> validMoves;
-  final Position? lastMove;
-  final ValueChanged<Position> onCellTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF6B3F21),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF26150D), width: 3),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x99000000),
-              offset: Offset(0, 10),
-              blurRadius: 24,
-            ),
-          ],
-        ),
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: ReversiGame.size,
-          ),
-          itemCount: ReversiGame.size * ReversiGame.size,
-          itemBuilder: (context, index) {
-            final row = index ~/ ReversiGame.size;
-            final col = index % ReversiGame.size;
-            final position = Position(row, col);
-            return _BoardCell(
-              disc: board[row][col],
-              isValidMove: validMoves.contains(position),
-              isLastMove: lastMove == position,
-              onTap: () => onCellTap(position),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _BoardCell extends StatelessWidget {
-  const _BoardCell({
-    required this.disc,
-    required this.isValidMove,
-    required this.isLastMove,
-    required this.onTap,
-  });
-
-  final Disc? disc;
-  final bool isValidMove;
-  final bool isLastMove;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = AppStrings.of(context);
-
-    return Semantics(
-      label: isValidMove
-          ? strings.validMoveHint
-          : isLastMove
-              ? strings.lastMoveHint
-              : null,
-      button: true,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.all(1.2),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1F7A45),
-            border: Border.all(color: const Color(0xFF0E3E25), width: 0.8),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (isLastMove)
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFD166).withValues(alpha: 0.8),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              if (isValidMove && disc == null)
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF1D0).withValues(alpha: 0.7),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(scale: animation, child: child);
-                },
-                child: disc == null
-                    ? const SizedBox.shrink()
-                    : _DiscView(key: ValueKey(disc), disc: disc!),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DiscView extends StatelessWidget {
-  const _DiscView({super.key, required this.disc});
-
-  final Disc disc;
-
-  @override
-  Widget build(BuildContext context) {
-    final isBlack = disc == Disc.black;
-    return FractionallySizedBox(
-      widthFactor: 0.78,
-      heightFactor: 0.78,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            center: const Alignment(-0.28, -0.36),
-            radius: 0.88,
-            colors: isBlack
-                ? const [Color(0xFF555555), Color(0xFF080808)]
-                : const [Colors.white, Color(0xFFD8D0BF)],
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x77000000),
-              offset: Offset(0, 3),
-              blurRadius: 6,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -797,30 +838,48 @@ Position _aiMoveTask(_AiMoveRequest request) {
 }
 
 class _GameOverBanner extends StatelessWidget {
-  const _GameOverBanner({required this.game});
+  const _GameOverBanner({required this.game, required this.isSinglePlayer});
 
   final ReversiGame game;
+  final bool isSinglePlayer;
 
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final winner = game.winner;
-    final text = winner == null ? strings.draw : strings.winner(winner.name);
+    final String text;
+    if (winner == null) {
+      text = strings.draw;
+    } else {
+      final name = isSinglePlayer
+          ? (winner == Disc.black ? strings.playerYou : strings.playerAi)
+          : (winner == Disc.black ? strings.black : strings.white);
+      text = strings.winnerNamed(name);
+    }
+    final accent =
+        winner == Disc.white ? GameColors.accent2 : GameColors.accent;
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1D0),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F000000),
+            offset: Offset(0, 8),
+            blurRadius: 16,
+          ),
+        ],
       ),
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Color(0xFF2A1710),
+        style: TextStyle(
+          fontFamily: 'Baloo2',
           fontSize: 18,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w800,
+          color: accent,
         ),
       ),
     );

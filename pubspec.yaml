@@ -24,6 +24,15 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/wood/
+  fonts:
+    - family: Baloo2
+      fonts:
+        - asset: assets/fonts/Baloo2.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito.ttf
 
 # App icon: drop a 1024x1024 PNG at assets/icon/app_icon.png and an
 # adaptive foreground (transparent background, centered motif) at

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../game/game_settings.dart';
 import '../l10n/app_strings.dart';
 import '../services/game_storage.dart';
+import '../theme/game_theme.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -43,53 +44,44 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
   Future<void> _start(GameMode mode, Difficulty? difficulty) async {
     await widget.onStartGame(mode, difficulty);
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() => _showDifficulty = false);
     await _refreshSavedGame();
   }
 
   Future<void> _continueSaved() async {
     final saved = _savedGame;
-    if (saved == null) {
-      return;
-    }
+    if (saved == null) return;
     await widget.onContinueGame(saved);
-    if (mounted) {
-      await _refreshSavedGame();
-    }
+    if (mounted) await _refreshSavedGame();
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final lang = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
-      body: SafeArea(
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF4A2D1D), Color(0xFF251711)],
-            ),
-          ),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: bannerGradient),
+        child: SafeArea(
           child: Stack(
             children: [
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: PopupMenuButton<Locale>(
-                    tooltip: strings.language,
-                    icon: const Icon(Icons.language, color: Color(0xFFFFF1D0)),
-                    onSelected: widget.onLocaleChanged,
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: Locale('tr'), child: Text('Türkçe')),
-                      PopupMenuItem(
-                          value: Locale('en'), child: Text('English')),
-                    ],
+                  padding: const EdgeInsets.all(12),
+                  child: _PillButton(
+                    onTap: () =>
+                        widget.onLocaleChanged(Locale(lang == 'tr' ? 'en' : 'tr')),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.public, size: 18),
+                        const SizedBox(width: 5),
+                        Text(lang.toUpperCase()),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -99,80 +91,82 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      _Logo(),
+                      const SizedBox(height: 10),
                       Text(
-                        strings.appTitle,
+                        strings.appTitle.toUpperCase(),
                         style: const TextStyle(
-                          color: Color(0xFFFFF1D0),
-                          fontSize: 40,
+                          fontFamily: 'Baloo2',
                           fontWeight: FontWeight.w800,
+                          fontSize: 44,
+                          letterSpacing: 6,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(color: Color(0x29000000), offset: Offset(0, 3)),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 44),
                       if (!_showDifficulty) ...[
                         if (_savedGame != null) ...[
                           _MenuButton(
                             label: strings.continueGame,
-                            icon: Icons.play_arrow,
-                            onPressed: () => unawaited(_continueSaved()),
+                            icon: Icons.play_arrow_rounded,
+                            primary: true,
+                            onTap: () => unawaited(_continueSaved()),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
                         ],
                         _MenuButton(
                           label: strings.onePlayer,
-                          icon: Icons.person,
-                          onPressed: () =>
-                              setState(() => _showDifficulty = true),
+                          icon: Icons.person_rounded,
+                          onTap: () => setState(() => _showDifficulty = true),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _MenuButton(
                           label: strings.twoPlayer,
-                          icon: Icons.people,
-                          onPressed: () =>
+                          icon: Icons.people_rounded,
+                          onTap: () =>
                               unawaited(_start(GameMode.twoPlayer, null)),
                         ),
                       ] else ...[
                         Text(
                           strings.chooseDifficulty,
                           style: const TextStyle(
-                            color: Color(0xFFE9D8B8),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         _MenuButton(
                           label: strings.easy,
-                          icon: Icons.sentiment_satisfied,
-                          onPressed: () => unawaited(
+                          icon: Icons.sentiment_satisfied_rounded,
+                          onTap: () => unawaited(
                             _start(GameMode.singlePlayer, Difficulty.easy),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _MenuButton(
                           label: strings.normal,
-                          icon: Icons.sentiment_neutral,
-                          onPressed: () => unawaited(
+                          icon: Icons.sentiment_neutral_rounded,
+                          onTap: () => unawaited(
                             _start(GameMode.singlePlayer, Difficulty.normal),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _MenuButton(
                           label: strings.hard,
-                          icon: Icons.sentiment_very_dissatisfied,
-                          onPressed: () => unawaited(
+                          icon: Icons.sentiment_very_dissatisfied_rounded,
+                          onTap: () => unawaited(
                             _start(GameMode.singlePlayer, Difficulty.hard),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        TextButton.icon(
-                          onPressed: () =>
-                              setState(() => _showDifficulty = false),
-                          icon: const Icon(Icons.arrow_back,
-                              color: Color(0xFFE9D8B8)),
-                          label: Text(
-                            strings.back,
-                            style: const TextStyle(color: Color(0xFFE9D8B8)),
-                          ),
+                        const SizedBox(height: 20),
+                        _BackLink(
+                          label: strings.back,
+                          onTap: () => setState(() => _showDifficulty = false),
                         ),
                       ],
                     ],
@@ -187,35 +181,185 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   }
 }
 
+/// The 2×2 opening-position motif from the app icon, as a small logo.
+class _Logo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Widget tile(bool dark) => Container(
+          margin: const EdgeInsets.all(3),
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFCE9C8),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          alignment: Alignment.center,
+          child: Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                center: const Alignment(-0.3, -0.4),
+                colors: dark
+                    ? const [Color(0xFF4A5468), Color(0xFF11141D)]
+                    : const [Colors.white, Color(0xFFC4C8D2)],
+                stops: const [0.0, 0.75],
+              ),
+            ),
+          ),
+        );
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(mainAxisSize: MainAxisSize.min, children: [tile(false), tile(true)]),
+          Row(mainAxisSize: MainAxisSize.min, children: [tile(true), tile(false)]),
+        ],
+      ),
+    );
+  }
+}
+
 class _MenuButton extends StatelessWidget {
   const _MenuButton({
     required this.label,
     required this.icon,
-    required this.onPressed,
+    required this.onTap,
+    this.primary = false,
   });
 
   final String label;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback onTap;
+  final bool primary;
 
   @override
   Widget build(BuildContext context) {
+    final fg = primary ? Colors.white : GameColors.onAccent;
+    final bg = primary ? GameColors.accent2 : Colors.white;
     return SizedBox(
-      width: 240,
-      height: 56,
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+      width: 260,
+      height: 58,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.14),
+              offset: const Offset(0, 8),
+              blurRadius: 16,
+            ),
+          ],
         ),
-        style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFFE5C58F),
-          foregroundColor: const Color(0xFF2A1710),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: fg, size: 22),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        color: fg,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PillButton extends StatelessWidget {
+  const _PillButton({required this.child, required this.onTap});
+
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: const [
+          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
+          BoxShadow(
+            color: Color(0x1F000000),
+            offset: Offset(0, 5),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(13),
+          onTap: onTap,
+          child: Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800,
+                fontSize: 12.5,
+                color: GameColors.onAccent,
+              ),
+              child: IconTheme(
+                data: const IconThemeData(color: GameColors.onAccent, size: 20),
+                child: child,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BackLink extends StatelessWidget {
+  const _BackLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
         ),
       ),
     );

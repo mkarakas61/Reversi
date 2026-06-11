@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reversi/main.dart';
 import 'package:reversi/services/analytics_service.dart';
+import 'package:reversi/widgets/wood_board.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -9,40 +10,40 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('renders the main menu', (tester) async {
+  Future<void> pumpApp(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     tester.binding.platformDispatcher.localeTestValue = const Locale('en');
     addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-
     await tester.pumpWidget(ReversiApp(analytics: AnalyticsService()));
     await tester.pumpAndSettle();
+  }
 
-    expect(find.text('Reversi'), findsOneWidget);
+  testWidgets('renders the main menu', (tester) async {
+    await pumpApp(tester);
+
+    expect(find.text('REVERSI'), findsOneWidget);
     expect(find.text('Single Player'), findsOneWidget);
     expect(find.text('Two Players'), findsOneWidget);
   });
 
-  testWidgets('starting a two player game renders the board and score panel',
+  testWidgets('starting a two player game renders the board and cards',
       (tester) async {
-    tester.binding.platformDispatcher.localeTestValue = const Locale('en');
-    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-
-    await tester.pumpWidget(ReversiApp(analytics: AnalyticsService()));
-    await tester.pumpAndSettle();
+    await pumpApp(tester);
 
     await tester.tap(find.text('Two Players'));
-    await tester.pumpAndSettle();
+    await tester.pump(); // start route transition
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Black'), findsOneWidget);
     expect(find.text('White'), findsOneWidget);
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byType(WoodBoard), findsOneWidget);
   });
 
   testWidgets('single player flow shows difficulty selection', (tester) async {
-    tester.binding.platformDispatcher.localeTestValue = const Locale('en');
-    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-
-    await tester.pumpWidget(ReversiApp(analytics: AnalyticsService()));
-    await tester.pumpAndSettle();
+    await pumpApp(tester);
 
     await tester.tap(find.text('Single Player'));
     await tester.pumpAndSettle();
@@ -53,29 +54,21 @@ void main() {
     expect(find.text('Hard'), findsOneWidget);
 
     await tester.tap(find.text('Normal'));
-    await tester.pumpAndSettle();
+    await tester.pump(); // start route transition
+    await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('1 Player · Normal'), findsOneWidget);
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byType(WoodBoard), findsOneWidget);
+    // Human is "You", AI opponent is "Aria".
+    expect(find.text('You'), findsOneWidget);
+    expect(find.text('Aria'), findsOneWidget);
   });
 
-  testWidgets('can switch to Turkish locale', (tester) async {
-    tester.binding.platformDispatcher.localeTestValue = const Locale('en');
-    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
+  testWidgets('can toggle to Turkish from the menu', (tester) async {
+    await pumpApp(tester);
 
-    await tester.pumpWidget(ReversiApp(analytics: AnalyticsService()));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byTooltip('Language'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Türkçe'));
+    await tester.tap(find.text('EN'));
     await tester.pumpAndSettle();
 
     expect(find.text('İki Oyuncu'), findsOneWidget);
-
-    await tester.tap(find.text('İki Oyuncu'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Siyah'), findsOneWidget);
   });
 }

@@ -52,6 +52,12 @@ class AppStrings {
       'leaveBody': 'You can continue this game later from the menu.',
       'leave': 'Leave',
       'continueGame': 'Continue',
+      'playerYou': 'You',
+      'playerAi': 'Aria',
+      'yourMove': 'Your move',
+      'toMove': 'to move',
+      'newGameTitle': 'New Game',
+      'gameMode': 'Game mode',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -88,6 +94,12 @@ class AppStrings {
       'leaveBody': 'Bu oyuna daha sonra menüden devam edebilirsin.',
       'leave': 'Çık',
       'continueGame': 'Devam Et',
+      'playerYou': 'Sen',
+      'playerAi': 'Aria',
+      'yourMove': 'Senin sıran',
+      'toMove': 'sırada',
+      'newGameTitle': 'Yeni Oyun',
+      'gameMode': 'Oyun modu',
     },
   };
 
@@ -120,6 +132,12 @@ class AppStrings {
   String get leaveBody => _get('leaveBody');
   String get leave => _get('leave');
   String get continueGame => _get('continueGame');
+  String get playerYou => _get('playerYou');
+  String get playerAi => _get('playerAi');
+  String get yourMove => _get('yourMove');
+  String get toMove => _get('toMove');
+  String get newGameTitle => _get('newGameTitle');
+  String get gameMode => _get('gameMode');
 
   String playerName(String player) => player == 'black' ? black : white;
 
@@ -133,6 +151,11 @@ class AppStrings {
 
   String winner(String player) {
     return _get('winner').replaceAll('{player}', playerName(player));
+  }
+
+  /// Like [winner] but takes an already-resolved display name.
+  String winnerNamed(String name) {
+    return _get('winner').replaceAll('{player}', name);
   }
 
   String modeSinglePlayer(String difficulty) {
