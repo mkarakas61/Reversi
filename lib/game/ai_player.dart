@@ -5,10 +5,10 @@ import 'reversi_game.dart';
 
 /// Chooses moves for the computer opponent.
 ///
-/// Difficulty mapping (agreed parameters):
-/// - easy: greedy max-flips with 30% random moves, no lookahead.
-/// - normal: alpha-beta depth 3, positional weights + mobility,
-///   random tie-break between equal moves.
+/// Difficulty mapping:
+/// - easy: fully random legal move — no evaluation at all.
+/// - normal: shallow 1-ply positional + mobility pick, but slips and plays a
+///   random move ~30% of the time, so it feels human and stays beatable.
 /// - hard: alpha-beta depth 5, positional weights + mobility + frontier
 ///   with phase-shifted disc weight; exact search when 12 or fewer
 ///   squares remain.
@@ -44,30 +44,39 @@ class ReversiAi {
 
     switch (difficulty) {
       case Difficulty.easy:
-        return _chooseEasy(game, moves);
+        return _chooseEasy(moves);
       case Difficulty.normal:
-        return _chooseBySearch(game, moves,
-            depth: 3, evaluate: _evaluateNormal, randomTieBreak: true);
+        return _chooseNormal(game, moves);
       case Difficulty.hard:
         return _chooseHard(game, moves);
     }
   }
 
-  Position _chooseEasy(ReversiGame game, List<Position> moves) {
+  /// Easy plays with no plan at all: a uniformly random legal move.
+  Position _chooseEasy(List<Position> moves) {
+    return moves[_random.nextInt(moves.length)];
+  }
+
+  /// Normal slips into a random move ~30% of the time; otherwise it picks the
+  /// best move by a shallow, 1-ply positional + mobility evaluation (so it
+  /// values corners and shuns X-squares, but never plans ahead).
+  Position _chooseNormal(ReversiGame game, List<Position> moves) {
     if (_random.nextDouble() < 0.3) {
       return moves[_random.nextInt(moves.length)];
     }
 
-    var bestFlips = -1;
+    final aiDisc = game.currentPlayer;
+    var bestScore = -_infinity;
     final best = <Position>[];
     for (final move in moves) {
-      final flips = game.play(move).result.flipped.length;
-      if (flips > bestFlips) {
-        bestFlips = flips;
+      final next = game.play(move).game;
+      final score = _evaluateNormal(next, aiDisc);
+      if (score > bestScore) {
+        bestScore = score;
         best
           ..clear()
           ..add(move);
-      } else if (flips == bestFlips) {
+      } else if (score == bestScore) {
         best.add(move);
       }
     }

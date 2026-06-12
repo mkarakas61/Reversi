@@ -79,6 +79,12 @@ class AppStrings {
       'aiLuckyMessage': 'Sorry, I just got lucky. Shall we play again?',
       'playAgain': 'Play Again',
       'mainMenu': 'Main Menu',
+      'chooseTimeLimit': 'Choose time limit',
+      'time30s': '30 sec limit',
+      'time1m': '1 min limit',
+      'time3m': '3 min limit',
+      'timeNone': 'No time limit',
+      'timeUp': "Time's up. Opponent's turn!",
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -141,6 +147,12 @@ class AppStrings {
       'aiLuckyMessage': 'Üzgünüm, sadece şanslıydım. Tekrar oynayalım mı?',
       'playAgain': 'Tekrar Oyna',
       'mainMenu': 'Ana Menü',
+      'chooseTimeLimit': 'Süre sınırı seçin',
+      'time30s': '30 sn süre sınırı',
+      'time1m': '1 dk süre sınırı',
+      'time3m': '3 dk süre sınırı',
+      'timeNone': 'Süre Sınırsız',
+      'timeUp': 'Süren doldu. Sıra Rakibinde!',
     },
   };
 
@@ -189,6 +201,21 @@ class AppStrings {
   String get aiLuckyMessage => _get('aiLuckyMessage');
   String get playAgain => _get('playAgain');
   String get mainMenu => _get('mainMenu');
+  String get chooseTimeLimit => _get('chooseTimeLimit');
+  String get timeUp => _get('timeUp');
+
+  String timeLimitLabel(TimeLimit limit) {
+    switch (limit) {
+      case TimeLimit.thirtySeconds:
+        return _get('time30s');
+      case TimeLimit.oneMinute:
+        return _get('time1m');
+      case TimeLimit.threeMinutes:
+        return _get('time3m');
+      case TimeLimit.none:
+        return _get('timeNone');
+    }
+  }
 
   String winnerTitle(String name) {
     return _get('winnerTitle').replaceAll('{name}', name);

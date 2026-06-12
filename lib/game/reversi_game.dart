@@ -141,6 +141,25 @@ class ReversiGame {
         scoreFor(Disc.black) == scoreFor(Disc.white);
   }
 
+  /// Hands the turn to the opponent without a move being played — used when a
+  /// player's move timer runs out in timed games. Follows the pass rule: if
+  /// the opponent has no legal reply, the turn returns to the current player;
+  /// if neither side can move, the game ends.
+  ReversiGame forfeitTurn() {
+    if (phase == GamePhase.gameOver) {
+      return this;
+    }
+    final next = opponent;
+    if (_validMovesFor(board, next).isNotEmpty) {
+      return copyWith(currentPlayer: next, clearLastPassPlayer: true);
+    }
+    if (validMoves.isNotEmpty) {
+      // Opponent is stuck; the turn stays here (their forced pass).
+      return copyWith(lastPassPlayer: next);
+    }
+    return copyWith(phase: GamePhase.gameOver);
+  }
+
   ReversiGame copyWith({
     List<List<Disc?>>? board,
     Disc? currentPlayer,

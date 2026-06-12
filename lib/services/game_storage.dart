@@ -10,11 +10,13 @@ class SavedGame {
     required this.game,
     required this.mode,
     required this.difficulty,
+    this.timeLimit = TimeLimit.none,
   });
 
   final ReversiGame game;
   final GameMode mode;
   final Difficulty? difficulty;
+  final TimeLimit timeLimit;
 }
 
 /// Persists the in-progress game so it survives the app being killed.
@@ -24,10 +26,12 @@ class GameStorage {
   Future<void> save(
     ReversiGame game,
     GameMode mode,
-    Difficulty? difficulty,
-  ) async {
+    Difficulty? difficulty, {
+    TimeLimit timeLimit = TimeLimit.none,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode(_encode(game, mode, difficulty)));
+    await prefs.setString(
+        _key, jsonEncode(_encode(game, mode, difficulty, timeLimit)));
   }
 
   Future<SavedGame?> load() async {
@@ -53,6 +57,7 @@ class GameStorage {
     ReversiGame game,
     GameMode mode,
     Difficulty? difficulty,
+    TimeLimit timeLimit,
   ) {
     final cells = StringBuffer();
     for (final row in game.board) {
@@ -65,6 +70,7 @@ class GameStorage {
       'current': game.currentPlayer.name,
       'mode': mode.name,
       'difficulty': difficulty?.name,
+      'timeLimit': timeLimit.name,
       'lastMoveRow': game.lastMove?.row,
       'lastMoveCol': game.lastMove?.col,
     };
@@ -91,6 +97,8 @@ class GameStorage {
     final lastMoveRow = data['lastMoveRow'] as int?;
     final lastMoveCol = data['lastMoveCol'] as int?;
     final difficultyName = data['difficulty'] as String?;
+    // Older saves predate timed games; treat them as untimed.
+    final timeLimitName = data['timeLimit'] as String?;
 
     return SavedGame(
       game: ReversiGame.restore(
@@ -104,6 +112,9 @@ class GameStorage {
       difficulty: difficultyName == null
           ? null
           : Difficulty.values.byName(difficultyName),
+      timeLimit: timeLimitName == null
+          ? TimeLimit.none
+          : TimeLimit.values.byName(timeLimitName),
     );
   }
 }

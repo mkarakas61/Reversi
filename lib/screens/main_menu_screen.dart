@@ -15,7 +15,8 @@ class MainMenuScreen extends StatefulWidget {
     required this.onContinueGame,
   });
 
-  final Future<void> Function(GameMode mode, Difficulty? difficulty)
+  final Future<void> Function(
+          GameMode mode, Difficulty? difficulty, TimeLimit timeLimit)
       onStartGame;
   final Future<void> Function(SavedGame saved) onContinueGame;
 
@@ -25,6 +26,7 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   bool _showDifficulty = false;
+  bool _showTimeLimit = false;
   final GameStorage _storage = GameStorage();
   SavedGame? _savedGame;
 
@@ -41,10 +43,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     }
   }
 
-  Future<void> _start(GameMode mode, Difficulty? difficulty) async {
-    await widget.onStartGame(mode, difficulty);
+  Future<void> _start(
+      GameMode mode, Difficulty? difficulty, TimeLimit timeLimit) async {
+    await widget.onStartGame(mode, difficulty, timeLimit);
     if (!mounted) return;
-    setState(() => _showDifficulty = false);
+    setState(() {
+      _showDifficulty = false;
+      _showTimeLimit = false;
+    });
     await _refreshSavedGame();
   }
 
@@ -108,7 +114,77 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         ),
                       ),
                       const SizedBox(height: 44),
-                      if (!_showDifficulty) ...[
+                      if (_showDifficulty) ...[
+                        Text(
+                          strings.chooseDifficulty,
+                          style: const TextStyle(
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _MenuButton(
+                          label: strings.easy,
+                          icon: Icons.sentiment_satisfied_rounded,
+                          onTap: () => unawaited(
+                            _start(GameMode.singlePlayer, Difficulty.easy,
+                                TimeLimit.none),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _MenuButton(
+                          label: strings.normal,
+                          icon: Icons.sentiment_neutral_rounded,
+                          onTap: () => unawaited(
+                            _start(GameMode.singlePlayer, Difficulty.normal,
+                                TimeLimit.none),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _MenuButton(
+                          label: strings.hard,
+                          icon: Icons.sentiment_very_dissatisfied_rounded,
+                          onTap: () => unawaited(
+                            _start(GameMode.singlePlayer, Difficulty.hard,
+                                TimeLimit.none),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _BackLink(
+                          label: strings.back,
+                          onTap: () => setState(() => _showDifficulty = false),
+                        ),
+                      ] else if (_showTimeLimit) ...[
+                        Text(
+                          strings.chooseTimeLimit,
+                          style: const TextStyle(
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        for (final limit in TimeLimit.values) ...[
+                          _MenuButton(
+                            label: strings.timeLimitLabel(limit),
+                            icon: limit == TimeLimit.none
+                                ? Icons.all_inclusive_rounded
+                                : Icons.timer_outlined,
+                            onTap: () => unawaited(
+                              _start(GameMode.twoPlayer, null, limit),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
+                        const SizedBox(height: 6),
+                        _BackLink(
+                          label: strings.back,
+                          onTap: () => setState(() => _showTimeLimit = false),
+                        ),
+                      ] else ...[
                         if (_savedGame != null) ...[
                           _MenuButton(
                             label: strings.continueGame,
@@ -127,47 +203,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         _MenuButton(
                           label: strings.twoPlayer,
                           icon: Icons.people_rounded,
-                          onTap: () =>
-                              unawaited(_start(GameMode.twoPlayer, null)),
-                        ),
-                      ] else ...[
-                        Text(
-                          strings.chooseDifficulty,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _MenuButton(
-                          label: strings.easy,
-                          icon: Icons.sentiment_satisfied_rounded,
-                          onTap: () => unawaited(
-                            _start(GameMode.singlePlayer, Difficulty.easy),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        _MenuButton(
-                          label: strings.normal,
-                          icon: Icons.sentiment_neutral_rounded,
-                          onTap: () => unawaited(
-                            _start(GameMode.singlePlayer, Difficulty.normal),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        _MenuButton(
-                          label: strings.hard,
-                          icon: Icons.sentiment_very_dissatisfied_rounded,
-                          onTap: () => unawaited(
-                            _start(GameMode.singlePlayer, Difficulty.hard),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _BackLink(
-                          label: strings.back,
-                          onTap: () => setState(() => _showDifficulty = false),
+                          onTap: () => setState(() => _showTimeLimit = true),
                         ),
                       ],
                     ],

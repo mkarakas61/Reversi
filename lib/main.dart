@@ -97,13 +97,14 @@ class ReversiApp extends StatelessWidget {
             ),
             home: Builder(
               builder: (context) => MainMenuScreen(
-                onStartGame: (mode, difficulty) {
+                onStartGame: (mode, difficulty, timeLimit) {
                   return Navigator.of(context).push(
                     _gameRoute(
                       ReversiHomePage(
                         analytics: analytics,
                         mode: mode,
                         difficulty: difficulty,
+                        timeLimit: timeLimit,
                       ),
                     ),
                   );
@@ -115,6 +116,7 @@ class ReversiApp extends StatelessWidget {
                         analytics: analytics,
                         mode: saved.mode,
                         difficulty: saved.difficulty,
+                        timeLimit: saved.timeLimit,
                         initialGame: saved.game,
                       ),
                     ),
@@ -157,12 +159,14 @@ class ReversiHomePage extends StatefulWidget {
     required this.analytics,
     required this.mode,
     required this.difficulty,
+    this.timeLimit = TimeLimit.none,
     this.initialGame,
   });
 
   final AnalyticsService analytics;
   final GameMode mode;
   final Difficulty? difficulty;
+  final TimeLimit timeLimit;
   final ReversiGame? initialGame;
 
   @override
@@ -191,7 +195,23 @@ class _ReversiHomePageState extends State<ReversiHomePage>
   late final ConfettiController _confettiRight;
   bool _celebrated = false;
 
+  // Describes the most recent placement so the board can play its flip
+  // animation. `id` increments per move; the board animates when it changes.
+  int _moveSeq = 0;
+  BoardMove? _lastMove;
+
+  // Per-move chess clock for timed two-player games. Ticks every half second
+  // so the last-10-seconds warning can blink at 2 Hz.
+  Timer? _clock;
+  int _ticksLeft = 0;
+  bool _blinkOn = true;
+  bool _timeUpVisible = false;
+
   bool get _isSinglePlayer => widget.mode == GameMode.singlePlayer;
+
+  bool get _isTimed => !_isSinglePlayer && widget.timeLimit.seconds != null;
+
+  int get _secondsLeft => (_ticksLeft + 1) ~/ 2;
 
   @override
   void initState() {
@@ -205,24 +225,73 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       vsync: this,
       duration: const Duration(milliseconds: 750),
     );
-    if (_isSinglePlayer) {
-      // A restored game may have been saved while it was the AI's turn. Let the
-      // entrance settle before the AI starts thinking so the two don't overlap.
-      _entry.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
+    // Let the entrance settle before play begins: the AI starts thinking (a
+    // restored game may have been saved mid-AI-turn) and the move clock starts
+    // counting only once the table is in place.
+    _entry.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (_isSinglePlayer) {
           unawaited(_runAiTurn());
         }
-      });
-    }
+        _restartClock();
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _entry.forward());
   }
 
   @override
   void dispose() {
     _entry.dispose();
+    _clock?.cancel();
     _confettiLeft.dispose();
     _confettiRight.dispose();
     super.dispose();
+  }
+
+  /// (Re)starts the move clock for the player to move. No-op in untimed or
+  /// single-player games; cancels any previous countdown.
+  void _restartClock() {
+    _clock?.cancel();
+    _clock = null;
+    if (!_isTimed || !mounted || _game.phase != GamePhase.playing) {
+      return;
+    }
+    setState(() {
+      _ticksLeft = widget.timeLimit.seconds! * 2;
+      _blinkOn = true;
+    });
+    _clock = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (!mounted) return;
+      setState(() {
+        _ticksLeft--;
+        _blinkOn = !_blinkOn;
+      });
+      if (_ticksLeft <= 0) {
+        _clock?.cancel();
+        _clock = null;
+        unawaited(_onTimeExpired());
+      }
+    });
+  }
+
+  /// The mover's clock hit zero: show the "time's up" notice for three
+  /// seconds, then hand the turn to the opponent and restart the clock.
+  Future<void> _onTimeExpired() async {
+    setState(() => _timeUpVisible = true);
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+    setState(() {
+      _timeUpVisible = false;
+      _game = _game.forfeitTurn();
+    });
+    if (_game.phase == GamePhase.gameOver) {
+      unawaited(_storage.clear());
+      _handleGameEnded();
+    } else {
+      unawaited(_storage.save(_game, widget.mode, widget.difficulty,
+          timeLimit: widget.timeLimit));
+      _restartClock();
+    }
   }
 
   /// Fires once when the game ends. Confetti only for a celebratory result:
@@ -253,6 +322,9 @@ class _ReversiHomePageState extends State<ReversiHomePage>
   }
 
   void _play(Position position) {
+    if (_timeUpVisible) {
+      return; // turn is being forfeited; ignore board taps
+    }
     if (_isSinglePlayer && (_aiThinking || _game.currentPlayer != _humanDisc)) {
       return;
     }
@@ -266,6 +338,12 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       return;
     }
 
+    _lastMove = BoardMove(
+      id: ++_moveSeq,
+      placed: position,
+      flipped: move.result.flipped.toSet(),
+      color: beforePlayer,
+    );
     setState(() => _game = move.game);
     widget.analytics.logMove(
       player: beforePlayer,
@@ -280,6 +358,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     }
 
     if (move.result.gameOver) {
+      _clock?.cancel();
       widget.analytics.logGameEnded(
         blackScore: _game.scoreFor(Disc.black),
         whiteScore: _game.scoreFor(Disc.white),
@@ -288,7 +367,9 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       unawaited(_storage.clear());
       _handleGameEnded();
     } else {
-      unawaited(_storage.save(_game, widget.mode, widget.difficulty));
+      unawaited(_storage.save(_game, widget.mode, widget.difficulty,
+          timeLimit: widget.timeLimit));
+      _restartClock();
       if (_isSinglePlayer) {
         unawaited(_runAiTurn());
       }
@@ -307,8 +388,10 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       if (!_aiThinking) {
         setState(() => _aiThinking = true);
       }
+      // Deliberate pause so the AI feels like it is genuinely thinking — at
+      // least three seconds before every move.
       await Future<void>.delayed(
-        Duration(milliseconds: 400 + _random.nextInt(300)),
+        Duration(milliseconds: 3000 + _random.nextInt(800)),
       );
       if (!mounted || generation != _aiGeneration) {
         return;
@@ -324,6 +407,12 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       if (!move.result.isValid) {
         break;
       }
+      _lastMove = BoardMove(
+        id: ++_moveSeq,
+        placed: position,
+        flipped: move.result.flipped.toSet(),
+        color: _aiDisc,
+      );
       setState(() => _game = move.game);
       widget.analytics.logMove(
         player: _aiDisc,
@@ -345,7 +434,8 @@ class _ReversiHomePageState extends State<ReversiHomePage>
         unawaited(_storage.clear());
         _handleGameEnded();
       } else {
-        unawaited(_storage.save(_game, widget.mode, widget.difficulty));
+        unawaited(_storage.save(_game, widget.mode, widget.difficulty,
+            timeLimit: widget.timeLimit));
       }
     }
     if (mounted && generation == _aiGeneration && _aiThinking) {
@@ -385,12 +475,15 @@ class _ReversiHomePageState extends State<ReversiHomePage>
   void _startNewGame() {
     _aiGeneration++;
     _celebrated = false;
+    _lastMove = null;
     _confettiLeft.stop();
     _confettiRight.stop();
     setState(() {
       _game = ReversiGame.newGame();
       _aiThinking = false;
+      _timeUpVisible = false;
     });
+    _restartClock();
     unawaited(_storage.clear());
     widget.analytics.logGameStarted(
       locale: Localizations.localeOf(context).languageCode,
@@ -463,6 +556,14 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       return strings.toMove;
     }
 
+    // Move clock shown in the centre of the active player's card.
+    final secondsLeft = _secondsLeft.clamp(0, 5999);
+    final clockText = _isTimed && !gameOver && _clock != null
+        ? '${secondsLeft ~/ 60}:${(secondsLeft % 60).toString().padLeft(2, '0')}'
+        : null;
+    final clockUrgent = secondsLeft <= 10;
+    final clockVisible = !clockUrgent || _blinkOn;
+
     return PopScope(
       canPop: gameOver || _game.lastMove == null,
       onPopInvokedWithResult: (didPop, result) {
@@ -511,6 +612,9 @@ class _ReversiHomePageState extends State<ReversiHomePage>
                       active: whiteActive,
                       statusText: statusFor(false),
                       coin: settings.opponentCoin,
+                      countdown: whiteActive ? clockText : null,
+                      countdownUrgent: clockUrgent,
+                      countdownVisible: clockVisible,
                     ),
                   ),
                   Expanded(
@@ -527,6 +631,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
                           theme: settings.board,
                           blackCoin: settings.yourCoin,
                           whiteCoin: settings.opponentCoin,
+                          move: _lastMove,
                         ),
                       ),
                     ),
@@ -542,6 +647,9 @@ class _ReversiHomePageState extends State<ReversiHomePage>
                       active: blackActive,
                       statusText: statusFor(true),
                       coin: settings.yourCoin,
+                      countdown: blackActive ? clockText : null,
+                      countdownUrgent: clockUrgent,
+                      countdownVisible: clockVisible,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -567,6 +675,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
             );
           },
             ),
+            if (_timeUpVisible) _TimeUpOverlay(message: strings.timeUp),
             if (gameOver)
               _GameOverOverlay(
                 winner: _game.winner,
@@ -819,6 +928,9 @@ class _PlayerCard extends StatelessWidget {
     required this.active,
     required this.statusText,
     required this.coin,
+    this.countdown,
+    this.countdownUrgent = false,
+    this.countdownVisible = true,
   });
 
   final Disc side;
@@ -830,6 +942,14 @@ class _PlayerCard extends StatelessWidget {
 
   /// This side's chosen coin colour — drives the avatar and the score disc.
   final CoinColor coin;
+
+  /// Move-clock text ("0:27") shown in the centre of the card while it is this
+  /// side's turn in a timed game; `null` hides the clock.
+  final String? countdown;
+
+  /// Last ten seconds: the clock turns red and blinks via [countdownVisible].
+  final bool countdownUrgent;
+  final bool countdownVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -863,7 +983,29 @@ class _PlayerCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (countdown != null)
+            AnimatedOpacity(
+              opacity: countdownVisible ? 1.0 : 0.15,
+              duration: const Duration(milliseconds: 220),
+              child: Text(
+                countdown!,
+                style: TextStyle(
+                  fontFamily: 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  height: 1,
+                  color: countdownUrgent
+                      ? const Color(0xFFE0312B)
+                      : (side == Disc.black
+                          ? GameColors.accent
+                          : GameColors.accent2),
+                ),
+              ),
+            ),
+          Row(
         children: [
           Container(
             width: 44,
@@ -938,6 +1080,8 @@ class _PlayerCard extends StatelessWidget {
                 color: GameColors.ink,
               ),
             ),
+          ),
+        ],
           ),
         ],
       ),
@@ -1035,6 +1179,80 @@ class _AiMoveRequest {
 // searches never block the UI thread.
 Position _aiMoveTask(_AiMoveRequest request) {
   return ReversiAi(difficulty: request.difficulty).chooseMove(request.game);
+}
+
+/// Brief "time's up" notice for timed games: a light scrim that blocks input
+/// and a centred card. Shown for three seconds before the turn is forfeited.
+class _TimeUpOverlay extends StatelessWidget {
+  const _TimeUpOverlay({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {},
+              child: const ColoredBox(color: Color(0x42000000)),
+            ),
+          ),
+          Center(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutBack,
+              builder: (context, v, child) => Transform.scale(
+                scale: 0.85 + 0.15 * v.clamp(0.0, 1.0),
+                child: Opacity(opacity: v.clamp(0.0, 1.0), child: child),
+              ),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 36),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x40000000),
+                      offset: Offset(0, 14),
+                      blurRadius: 34,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.timer_off_outlined,
+                      size: 38,
+                      color: Color(0xFFE0312B),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 19,
+                        height: 1.25,
+                        color: GameColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Full-screen end-of-game celebration: a dimmed scrim, two confetti cannons
