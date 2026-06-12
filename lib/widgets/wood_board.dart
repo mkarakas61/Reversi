@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../game/app_settings.dart';
 import '../game/reversi_game.dart';
 import '../theme/game_theme.dart';
 import 'coin_view.dart';
@@ -16,6 +17,9 @@ class WoodBoard extends StatelessWidget {
     required this.validMoves,
     required this.lastMove,
     required this.onCellTap,
+    this.theme = BoardTheme.wood,
+    this.blackCoin = CoinColor.black,
+    this.whiteCoin = CoinColor.white,
   });
 
   final List<List<Disc?>> board;
@@ -23,10 +27,20 @@ class WoodBoard extends StatelessWidget {
   final Position? lastMove;
   final ValueChanged<Position> onCellTap;
 
+  /// Slab look. [BoardTheme.wood] keeps the image-textured table; the rest are
+  /// flat-colour palettes from [boardPalettes].
+  final BoardTheme theme;
+
+  /// Coin skins for the [Disc.black] (bottom / "Sen") and [Disc.white]
+  /// (top / "Aria") sides.
+  final CoinColor blackCoin;
+  final CoinColor whiteCoin;
+
   static const _framePad = 14.0; // wood border around the felt
 
   @override
   Widget build(BuildContext context) {
+    final palette = boardPalettes[theme]; // null → wooden slab
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
@@ -80,7 +94,7 @@ class WoodBoard extends StatelessWidget {
               coinWidgets.add(Positioned(
                 left: center.dx - hintSize / 2,
                 top: center.dy - hintSize / 2,
-                child: _Hint(size: hintSize),
+                child: _Hint(size: hintSize, palette: palette),
               ));
               continue;
             }
@@ -94,7 +108,8 @@ class WoodBoard extends StatelessWidget {
               // Centre the whole cylinder (face + wall) on the cell.
               top: center.dy - totalH / 2,
               child: CoinView(
-                tone: disc!,
+                palette: coinPalettes[
+                    disc! == Disc.black ? blackCoin : whiteCoin]!,
                 width: coinW,
                 faceSquash: faceSquash,
                 thicknessFactor: thicknessFactor,
@@ -127,7 +142,11 @@ class WoodBoard extends StatelessWidget {
                     minHeight: s,
                     maxHeight: s,
                     alignment: Alignment.topLeft,
-                    child: _Slab(feltSize: feltSize, framePad: _framePad),
+                    child: _Slab(
+                      feltSize: feltSize,
+                      framePad: _framePad,
+                      palette: palette,
+                    ),
                   ),
                 ),
                 ...coinWidgets,
@@ -179,50 +198,88 @@ class WoodBoard extends StatelessWidget {
 }
 
 class _Slab extends StatelessWidget {
-  const _Slab({required this.feltSize, required this.framePad});
+  const _Slab({
+    required this.feltSize,
+    required this.framePad,
+    required this.palette,
+  });
 
   final double feltSize;
   final double framePad;
 
+  /// `null` renders the original wooden textures; otherwise a flat-colour slab.
+  final BoardPalette? palette;
+
   @override
   Widget build(BuildContext context) {
+    final p = palette;
+
+    final BoxDecoration frameDecoration = p == null
+        ? const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            image: DecorationImage(
+              image: AssetImage('assets/wood/wood-frame.png'),
+              fit: BoxFit.cover,
+              repeat: ImageRepeat.repeat,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x59000000),
+                blurRadius: 22,
+                offset: Offset(0, 12),
+              ),
+            ],
+          )
+        : BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            gradient: p.frameGradient,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x59000000),
+                blurRadius: 22,
+                offset: Offset(0, 12),
+              ),
+            ],
+          );
+
+    final BoxDecoration surfaceDecoration = p == null
+        ? const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+            image: DecorationImage(
+              image: AssetImage('assets/wood/wood-surface.png'),
+              fit: BoxFit.cover,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x61000000),
+                blurRadius: 9,
+                spreadRadius: -2,
+                offset: Offset(0, 3),
+              ),
+            ],
+          )
+        : BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(4)),
+            gradient: p.surfaceGradient,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x61000000),
+                blurRadius: 9,
+                spreadRadius: -2,
+                offset: Offset(0, 3),
+              ),
+            ],
+          );
+
     return Container(
       padding: EdgeInsets.all(framePad),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        image: DecorationImage(
-          image: AssetImage('assets/wood/wood-frame.png'),
-          fit: BoxFit.cover,
-          repeat: ImageRepeat.repeat,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x59000000),
-            blurRadius: 22,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
+      decoration: frameDecoration,
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          image: DecorationImage(
-            image: AssetImage('assets/wood/wood-surface.png'),
-            fit: BoxFit.cover,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x61000000),
-              blurRadius: 9,
-              spreadRadius: -2,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
+        decoration: surfaceDecoration,
         child: SizedBox(
           width: feltSize,
           height: feltSize,
-          child: CustomPaint(painter: _GridPainter()),
+          child: CustomPaint(painter: _GridPainter(palette: p)),
         ),
       ),
     );
@@ -230,27 +287,33 @@ class _Slab extends StatelessWidget {
 }
 
 class _GridPainter extends CustomPainter {
+  _GridPainter({required this.palette});
+
+  final BoardPalette? palette;
+
   @override
   void paint(Canvas canvas, Size size) {
     final n = ReversiGame.size;
     final cell = size.width / n;
 
+    final p = palette;
     final hi = Paint()
-      ..color = GameColors.gridHi
+      ..color = p == null ? GameColors.gridHi : p.lineHi
       ..strokeWidth = 3.0;
     final line = Paint()
-      ..color = GameColors.gridLine
+      ..color = p == null ? GameColors.gridLine : p.line
       ..strokeWidth = 3.0;
 
     for (var i = 0; i <= n; i++) {
-      final p = i * cell;
-      canvas.drawLine(Offset(p + 1.6, 1.6), Offset(p + 1.6, size.height), hi);
-      canvas.drawLine(Offset(1.6, p + 1.6), Offset(size.width, p + 1.6), hi);
-      canvas.drawLine(Offset(p, 0), Offset(p, size.height), line);
-      canvas.drawLine(Offset(0, p), Offset(size.width, p), line);
+      final pos = i * cell;
+      canvas.drawLine(
+          Offset(pos + 1.6, 1.6), Offset(pos + 1.6, size.height), hi);
+      canvas.drawLine(Offset(1.6, pos + 1.6), Offset(size.width, pos + 1.6), hi);
+      canvas.drawLine(Offset(pos, 0), Offset(pos, size.height), line);
+      canvas.drawLine(Offset(0, pos), Offset(size.width, pos), line);
     }
 
-    final star = Paint()..color = GameColors.starDot;
+    final star = Paint()..color = p == null ? GameColors.starDot : p.star;
     for (final st in const [
       Offset(2, 2),
       Offset(6, 2),
@@ -262,13 +325,14 @@ class _GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_GridPainter old) => false;
+  bool shouldRepaint(_GridPainter old) => old.palette != palette;
 }
 
 class _Hint extends StatefulWidget {
-  const _Hint({required this.size});
+  const _Hint({required this.size, required this.palette});
 
   final double size;
+  final BoardPalette? palette;
 
   @override
   State<_Hint> createState() => _HintState();
@@ -288,6 +352,11 @@ class _HintState extends State<_Hint> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final p = widget.palette;
+    // Wood keeps the cream-on-walnut engraved spot; colour boards reuse their
+    // own engraved-line palette so the hint reads against any felt.
+    final fill = p == null ? const Color(0x2E281709) : p.line;
+    final ring = p == null ? const Color(0x73FFF0D2) : p.lineHi;
     return ScaleTransition(
       scale: Tween(begin: 0.8, end: 1.0).animate(
         CurvedAnimation(parent: _c, curve: Curves.easeInOut),
@@ -297,8 +366,8 @@ class _HintState extends State<_Hint> with SingleTickerProviderStateMixin {
         height: widget.size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0x2E281709),
-          border: Border.all(color: const Color(0x73FFF0D2), width: 2),
+          color: fill,
+          border: Border.all(color: ring, width: 2),
         ),
       ),
     );

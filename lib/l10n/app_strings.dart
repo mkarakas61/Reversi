@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../game/app_settings.dart';
 import '../game/game_settings.dart';
 
 class AppStrings {
@@ -53,11 +54,31 @@ class AppStrings {
       'leave': 'Leave',
       'continueGame': 'Continue',
       'playerYou': 'You',
-      'playerAi': 'Aria',
+      'playerAi': 'AI',
       'yourMove': 'Your move',
       'toMove': 'to move',
       'newGameTitle': 'New Game',
       'gameMode': 'Game mode',
+      'settings': 'Settings',
+      'boardColor': 'Board color',
+      'coinColor': 'Coin color',
+      'yourCoin': 'Your coin',
+      'opponentCoin': 'Opponent coin',
+      'themeWood': 'Wood',
+      'themeTurkuaz': 'Turquoise',
+      'themeGece': 'Midnight Blue',
+      'themeAntrasit': 'Anthracite',
+      'themePetrol': 'Deep Petrol',
+      'coinBlack': 'Black',
+      'coinWhite': 'White',
+      'coinTurquoise': 'Turquoise',
+      'coinOrange': 'Orange',
+      'youWon': 'You Won!',
+      'winnerTitle': '{name} Wins!',
+      'drawTitle': "It's a Draw!",
+      'aiLuckyMessage': 'Sorry, I just got lucky. Shall we play again?',
+      'playAgain': 'Play Again',
+      'mainMenu': 'Main Menu',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -95,11 +116,31 @@ class AppStrings {
       'leave': 'Çık',
       'continueGame': 'Devam Et',
       'playerYou': 'Sen',
-      'playerAi': 'Aria',
+      'playerAi': 'Yapay Zeka',
       'yourMove': 'Senin sıran',
       'toMove': 'sırada',
       'newGameTitle': 'Yeni Oyun',
       'gameMode': 'Oyun modu',
+      'settings': 'Ayarlar',
+      'boardColor': 'Tahta rengi',
+      'coinColor': 'Taş rengi',
+      'yourCoin': 'Senin taşın',
+      'opponentCoin': 'Rakip taşı',
+      'themeWood': 'Ahşap',
+      'themeTurkuaz': 'Turkuaz',
+      'themeGece': 'Gece Mavisi',
+      'themeAntrasit': 'Antrasit',
+      'themePetrol': 'Koyu Petrol',
+      'coinBlack': 'Siyah',
+      'coinWhite': 'Beyaz',
+      'coinTurquoise': 'Turkuaz',
+      'coinOrange': 'Turuncu',
+      'youWon': 'Sen Kazandın!',
+      'winnerTitle': '{name} Kazandı!',
+      'drawTitle': 'Berabere!',
+      'aiLuckyMessage': 'Üzgünüm, sadece şanslıydım. Tekrar oynayalım mı?',
+      'playAgain': 'Tekrar Oyna',
+      'mainMenu': 'Ana Menü',
     },
   };
 
@@ -138,6 +179,48 @@ class AppStrings {
   String get toMove => _get('toMove');
   String get newGameTitle => _get('newGameTitle');
   String get gameMode => _get('gameMode');
+  String get settings => _get('settings');
+  String get boardColor => _get('boardColor');
+  String get coinColor => _get('coinColor');
+  String get yourCoin => _get('yourCoin');
+  String get opponentCoin => _get('opponentCoin');
+  String get youWon => _get('youWon');
+  String get drawTitle => _get('drawTitle');
+  String get aiLuckyMessage => _get('aiLuckyMessage');
+  String get playAgain => _get('playAgain');
+  String get mainMenu => _get('mainMenu');
+
+  String winnerTitle(String name) {
+    return _get('winnerTitle').replaceAll('{name}', name);
+  }
+
+  String boardThemeLabel(BoardTheme theme) {
+    switch (theme) {
+      case BoardTheme.wood:
+        return _get('themeWood');
+      case BoardTheme.turkuaz:
+        return _get('themeTurkuaz');
+      case BoardTheme.gece:
+        return _get('themeGece');
+      case BoardTheme.antrasit:
+        return _get('themeAntrasit');
+      case BoardTheme.petrol:
+        return _get('themePetrol');
+    }
+  }
+
+  String coinColorLabel(CoinColor color) {
+    switch (color) {
+      case CoinColor.black:
+        return _get('coinBlack');
+      case CoinColor.white:
+        return _get('coinWhite');
+      case CoinColor.turquoise:
+        return _get('coinTurquoise');
+      case CoinColor.orange:
+        return _get('coinOrange');
+    }
+  }
 
   String playerName(String player) => player == 'black' ? black : white;
 

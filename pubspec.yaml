@@ -15,6 +15,7 @@ dependencies:
   firebase_analytics: ^11.5.2
   intl: ^0.20.2
   shared_preferences: ^2.5.5
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:

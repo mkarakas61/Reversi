@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reversi/game/app_settings.dart';
 import 'package:reversi/main.dart';
 import 'package:reversi/services/analytics_service.dart';
+import 'package:reversi/services/settings_storage.dart';
 import 'package:reversi/widgets/wood_board.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,7 +19,11 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.binding.platformDispatcher.localeTestValue = const Locale('en');
     addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-    await tester.pumpWidget(ReversiApp(analytics: AnalyticsService()));
+    final settings =
+        SettingsController(const AppSettings(), SettingsStorage());
+    await tester.pumpWidget(
+      ReversiApp(analytics: AnalyticsService(), settings: settings),
+    );
     await tester.pumpAndSettle();
   }
 
@@ -58,17 +64,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byType(WoodBoard), findsOneWidget);
-    // Human is "You", AI opponent is "Aria".
+    // Human is "You", AI opponent shows its difficulty in parentheses.
     expect(find.text('You'), findsOneWidget);
-    expect(find.text('Aria'), findsOneWidget);
+    expect(find.text('AI (Normal)'), findsOneWidget);
   });
 
-  testWidgets('can toggle to Turkish from the menu', (tester) async {
+  testWidgets('can switch to Turkish from settings', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('EN'));
+    await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
 
-    expect(find.text('İki Oyuncu'), findsOneWidget);
+    await tester.tap(find.text('Türkçe'));
+    await tester.pumpAndSettle();
+
+    // The settings screen re-renders in Turkish immediately, confirming the
+    // locale switch propagated app-wide.
+    expect(find.text('Senin taşın'), findsOneWidget);
+    expect(find.text('Taş rengi'), findsOneWidget);
   });
 }

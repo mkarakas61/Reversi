@@ -6,16 +6,15 @@ import '../game/game_settings.dart';
 import '../l10n/app_strings.dart';
 import '../services/game_storage.dart';
 import '../theme/game_theme.dart';
+import 'settings_screen.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
     super.key,
-    required this.onLocaleChanged,
     required this.onStartGame,
     required this.onContinueGame,
   });
 
-  final ValueChanged<Locale> onLocaleChanged;
   final Future<void> Function(GameMode mode, Difficulty? difficulty)
       onStartGame;
   final Future<void> Function(SavedGame saved) onContinueGame;
@@ -59,7 +58,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
-    final lang = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       body: DecoratedBox(
@@ -72,14 +70,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: _PillButton(
-                    onTap: () =>
-                        widget.onLocaleChanged(Locale(lang == 'tr' ? 'en' : 'tr')),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.public, size: 18),
-                        const SizedBox(width: 5),
-                        Text(lang.toUpperCase()),
+                        const Icon(Icons.settings, size: 18),
+                        const SizedBox(width: 6),
+                        Text(strings.settings),
                       ],
                     ),
                   ),

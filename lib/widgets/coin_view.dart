@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../game/reversi_game.dart';
 import '../theme/game_theme.dart';
 
 /// A billboarded 3D cylinder coin: a foreshortened elliptical top face plus a
@@ -11,14 +10,14 @@ import '../theme/game_theme.dart';
 class CoinView extends StatelessWidget {
   const CoinView({
     super.key,
-    required this.tone,
+    required this.palette,
     required this.width,
     this.faceSquash = 0.74,
     this.thicknessFactor = 0.17,
   });
 
-  /// Which side is showing.
-  final Disc tone;
+  /// Colour ramp for this coin.
+  final CoinPalette palette;
 
   /// On-screen width (diameter) of the coin face.
   final double width;
@@ -38,7 +37,7 @@ class CoinView extends StatelessWidget {
       height: faceHeight + thickness,
       child: CustomPaint(
         painter: _CoinPainter(
-          tone: tone,
+          palette: palette,
           faceHeight: faceHeight,
           thickness: thickness,
         ),
@@ -49,18 +48,17 @@ class CoinView extends StatelessWidget {
 
 class _CoinPainter extends CustomPainter {
   _CoinPainter({
-    required this.tone,
+    required this.palette,
     required this.faceHeight,
     required this.thickness,
   });
 
-  final Disc tone;
+  final CoinPalette palette;
   final double faceHeight;
   final double thickness;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final isDark = tone == Disc.black;
     final w = size.width;
     final cx = w / 2;
     final faceCenterY = faceHeight / 2;
@@ -74,17 +72,7 @@ class _CoinPainter extends CustomPainter {
 
     // ── side wall ────────────────────────────────────────────────
     final edgeGradient = LinearGradient(
-      colors: isDark
-          ? const [
-              GameColors.coinDarkEdgeDark,
-              GameColors.coinDarkEdgeLight,
-              GameColors.coinDarkEdgeDark,
-            ]
-          : const [
-              GameColors.coinLightEdgeDark,
-              GameColors.coinLightEdgeLight,
-              GameColors.coinLightEdgeDark,
-            ],
+      colors: [palette.edgeDark, palette.edgeLight, palette.edgeDark],
       stops: const [0.0, 0.5, 1.0],
     );
     final wallPaint = Paint()..shader = edgeGradient.createShader(faceRect);
@@ -102,17 +90,7 @@ class _CoinPainter extends CustomPainter {
     final faceGradient = RadialGradient(
       center: const Alignment(-0.24, -0.36),
       radius: 0.95,
-      colors: isDark
-          ? const [
-              GameColors.coinDarkFaceTop,
-              GameColors.coinDarkFaceMid,
-              GameColors.coinDarkFaceBottom,
-            ]
-          : const [
-              GameColors.coinLightFaceTop,
-              GameColors.coinLightFaceMid,
-              GameColors.coinLightFaceBottom,
-            ],
+      colors: [palette.faceTop, palette.faceMid, palette.faceBottom],
       stops: const [0.0, 0.5, 1.0],
     );
     canvas.drawOval(faceRect, Paint()..shader = faceGradient.createShader(faceRect));
@@ -123,9 +101,7 @@ class _CoinPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = faceHeight * 0.04
-        ..color = isDark
-            ? Colors.white.withValues(alpha: 0.16)
-            : Colors.white.withValues(alpha: 0.85),
+        ..color = Colors.white.withValues(alpha: palette.rimAlpha),
     );
 
     // ── gloss highlight ──────────────────────────────────────────
@@ -137,7 +113,7 @@ class _CoinPainter extends CustomPainter {
     );
     final glossGradient = RadialGradient(
       colors: [
-        Colors.white.withValues(alpha: isDark ? 0.38 : 0.85),
+        Colors.white.withValues(alpha: palette.glossAlpha),
         Colors.white.withValues(alpha: 0.0),
       ],
       stops: const [0.0, 0.72],
@@ -150,7 +126,7 @@ class _CoinPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CoinPainter old) =>
-      old.tone != tone ||
+      old.palette != palette ||
       old.faceHeight != faceHeight ||
       old.thickness != thickness;
 }
