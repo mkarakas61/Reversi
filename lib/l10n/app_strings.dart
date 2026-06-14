@@ -88,6 +88,7 @@ class AppStrings {
       'sound': 'Sound',
       'soundEffects': 'Sound effects',
       'music': 'Music',
+      'undo': 'Undo',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -159,6 +160,7 @@ class AppStrings {
       'sound': 'Ses',
       'soundEffects': 'Ses efektleri',
       'music': 'Müzik',
+      'undo': 'Geri Al',
     },
   };
 
@@ -212,6 +214,7 @@ class AppStrings {
   String get sound => _get('sound');
   String get soundEffects => _get('soundEffects');
   String get music => _get('music');
+  String get undo => _get('undo');
 
   String timeLimitLabel(TimeLimit limit) {
     switch (limit) {

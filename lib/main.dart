@@ -212,6 +212,10 @@ class _ReversiHomePageState extends State<ReversiHomePage>
   int _moveSeq = 0;
   BoardMove? _lastMove;
 
+  // Undo history: the game state *before* each applied move/forfeit, newest
+  // last. Single-player undo rewinds past the AI's reply to the player's turn.
+  final List<ReversiGame> _history = [];
+
   // Per-move chess clock for timed two-player games. Ticks every half second
   // so the last-10-seconds warning can blink at 2 Hz.
   Timer? _clock;
@@ -291,6 +295,41 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     });
   }
 
+  /// Undo is available once there is history, the AI is not mid-think, and no
+  /// "time's up" overlay is showing.
+  bool get _canUndo =>
+      _history.isNotEmpty && !_aiThinking && !_timeUpVisible;
+
+  /// Steps the board back. Two-player undoes one ply; single-player rewinds
+  /// past the AI's reply to the player's own previous turn. The move clock
+  /// resets for whoever is to move (per the timed-mode rule).
+  void _undo() {
+    if (!_canUndo) return;
+    _aiGeneration++; // cancel any pending AI turn
+    ReversiGame? target;
+    if (_isSinglePlayer) {
+      while (_history.isNotEmpty) {
+        target = _history.removeLast();
+        if (target.currentPlayer == _humanDisc) break;
+      }
+    } else {
+      target = _history.removeLast();
+    }
+    if (target == null) return;
+    _confettiLeft.stop();
+    _confettiRight.stop();
+    setState(() {
+      _game = target!;
+      _aiThinking = false;
+      _celebrated = false;
+      _timeUpVisible = false;
+      _lastMove = null; // no flip animation on undo
+    });
+    unawaited(_storage.save(_game, widget.mode, widget.difficulty,
+        timeLimit: widget.timeLimit));
+    _restartClock();
+  }
+
   /// Plays the placement thock, then a flip swoosh if any discs were captured.
   void _playMoveSfx(int flippedCount) {
     SoundService.instance.playSfx(Sfx.place);
@@ -308,6 +347,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     setState(() => _timeUpVisible = true);
     await Future<void>.delayed(const Duration(seconds: 3));
     if (!mounted) return;
+    _history.add(_game);
     setState(() {
       _timeUpVisible = false;
       _game = _game.forfeitTurn();
@@ -387,6 +427,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       return;
     }
 
+    _history.add(_game);
     _lastMove = BoardMove(
       id: ++_moveSeq,
       placed: position,
@@ -457,6 +498,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       if (!move.result.isValid) {
         break;
       }
+      _history.add(_game);
       _lastMove = BoardMove(
         id: ++_moveSeq,
         placed: position,
@@ -527,6 +569,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     _aiGeneration++;
     _celebrated = false;
     _lastMove = null;
+    _history.clear();
     _confettiLeft.stop();
     _confettiRight.stop();
     setState(() {
@@ -650,6 +693,8 @@ class _ReversiHomePageState extends State<ReversiHomePage>
                       onBack: () => Navigator.of(context).maybePop(),
                       onNewGame: _confirmRestart,
                       onSettings: () => openSettings(context),
+                      onUndo: _undo,
+                      canUndo: _canUndo,
                     ),
                   ),
                   _EntrySlide(
@@ -852,50 +897,62 @@ class _BannerClipper extends CustomClipper<Path> {
 
 /// White skeuomorphic pill button used in the game top bar.
 class _BarButton extends StatelessWidget {
-  const _BarButton({required this.child, required this.onTap, this.tooltip});
+  const _BarButton({
+    required this.child,
+    required this.onTap,
+    this.tooltip,
+    this.enabled = true,
+  });
 
   final Widget child;
   final VoidCallback onTap;
   final String? tooltip;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    final button = DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-          BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 5),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    final button = Opacity(
+      opacity: enabled ? 1.0 : 0.4,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(13),
-          onTap: () {
-            SoundService.instance.playSfx(Sfx.button);
-            onTap();
-          },
-          child: Container(
-            height: 38,
-            constraints: const BoxConstraints(minWidth: 38),
-            padding: const EdgeInsets.symmetric(horizontal: 11),
-            alignment: Alignment.center,
-            child: DefaultTextStyle(
-              style: const TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w800,
-                fontSize: 12.5,
-                color: GameColors.onAccent,
-              ),
-              child: IconTheme(
-                data: const IconThemeData(color: GameColors.onAccent, size: 20),
-                child: child,
+          boxShadow: const [
+            BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
+            BoxShadow(
+              color: Color(0x1F000000),
+              offset: Offset(0, 5),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(13),
+            onTap: enabled
+                ? () {
+                    SoundService.instance.playSfx(Sfx.button);
+                    onTap();
+                  }
+                : null,
+            child: Container(
+              height: 38,
+              constraints: const BoxConstraints(minWidth: 38),
+              padding: const EdgeInsets.symmetric(horizontal: 11),
+              alignment: Alignment.center,
+              child: DefaultTextStyle(
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12.5,
+                  color: GameColors.onAccent,
+                ),
+                child: IconTheme(
+                  data:
+                      const IconThemeData(color: GameColors.onAccent, size: 20),
+                  child: child,
+                ),
               ),
             ),
           ),
@@ -911,11 +968,15 @@ class _GameTopBar extends StatelessWidget {
     required this.onBack,
     required this.onNewGame,
     required this.onSettings,
+    required this.onUndo,
+    required this.canUndo,
   });
 
   final VoidCallback onBack;
   final VoidCallback onNewGame;
   final VoidCallback onSettings;
+  final VoidCallback onUndo;
+  final bool canUndo;
 
   @override
   Widget build(BuildContext context) {
@@ -954,6 +1015,13 @@ class _GameTopBar extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              _BarButton(
+                tooltip: strings.undo,
+                onTap: onUndo,
+                enabled: canUndo,
+                child: const Icon(Icons.undo_rounded, size: 19),
+              ),
+              const SizedBox(width: 9),
               _BarButton(
                 tooltip: strings.settings,
                 onTap: onSettings,
