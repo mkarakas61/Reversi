@@ -81,6 +81,24 @@ class SettingsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
+                        _Section(
+                          title: strings.sound,
+                          child: Column(
+                            children: [
+                              _ToggleRow(
+                                label: strings.soundEffects,
+                                value: settings.soundEnabled,
+                                onChanged: controller.setSoundEnabled,
+                              ),
+                              const SizedBox(height: 6),
+                              _ToggleRow(
+                                label: strings.music,
+                                value: settings.musicEnabled,
+                                onChanged: controller.setMusicEnabled,
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -432,6 +450,43 @@ class _MiniGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MiniGridPainter old) => old.palette != palette;
+}
+
+class _ToggleRow extends StatelessWidget {
+  const _ToggleRow({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w800,
+              fontSize: 14.5,
+              color: GameColors.inkSoft,
+            ),
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: Colors.white,
+          activeTrackColor: GameColors.accent,
+        ),
+      ],
+    );
+  }
 }
 
 class _CoinRow extends StatelessWidget {

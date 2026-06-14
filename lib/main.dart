@@ -20,8 +20,13 @@ import 'screens/settings_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/game_storage.dart';
 import 'services/settings_storage.dart';
+import 'services/sound_service.dart';
 import 'theme/game_theme.dart';
 import 'widgets/wood_board.dart';
+
+/// Lets screens react to navigation (to switch background music per screen).
+final RouteObserver<PageRoute<dynamic>> routeObserver =
+    RouteObserver<PageRoute<dynamic>>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,11 +66,18 @@ class ReversiApp extends StatelessWidget {
       controller: settings,
       child: Builder(
         builder: (context) {
-          final locale = SettingsScope.of(context).settings.locale;
+          final appSettings = SettingsScope.of(context).settings;
+          final locale = appSettings.locale;
+          // Keep the audio engine in sync with the latest preferences.
+          SoundService.instance.applySettings(
+            soundEnabled: appSettings.soundEnabled,
+            musicEnabled: appSettings.musicEnabled,
+          );
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Reversi',
             locale: locale,
+            navigatorObservers: [routeObserver],
             supportedLocales: AppStrings.supportedLocales,
             localizationsDelegates: const [
               AppStrings.delegate,
@@ -174,7 +186,7 @@ class ReversiHomePage extends StatefulWidget {
 }
 
 class _ReversiHomePageState extends State<ReversiHomePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   static const Disc _humanDisc = Disc.black;
   static const Disc _aiDisc = Disc.white;
 
@@ -241,6 +253,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _entry.dispose();
     _clock?.cancel();
     _confettiLeft.dispose();
@@ -266,6 +279,10 @@ class _ReversiHomePageState extends State<ReversiHomePage>
         _ticksLeft--;
         _blinkOn = !_blinkOn;
       });
+      // Tick once per second through the final ten seconds.
+      if (_ticksLeft > 0 && _ticksLeft <= 20 && _ticksLeft.isEven) {
+        SoundService.instance.playSfx(Sfx.tick);
+      }
       if (_ticksLeft <= 0) {
         _clock?.cancel();
         _clock = null;
@@ -274,9 +291,20 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     });
   }
 
+  /// Plays the placement thock, then a flip swoosh if any discs were captured.
+  void _playMoveSfx(int flippedCount) {
+    SoundService.instance.playSfx(Sfx.place);
+    if (flippedCount > 0) {
+      Future<void>.delayed(const Duration(milliseconds: 280), () {
+        SoundService.instance.playSfx(Sfx.flip);
+      });
+    }
+  }
+
   /// The mover's clock hit zero: show the "time's up" notice for three
   /// seconds, then hand the turn to the opponent and restart the clock.
   Future<void> _onTimeExpired() async {
+    SoundService.instance.playSfx(Sfx.timeup);
     setState(() => _timeUpVisible = true);
     await Future<void>.delayed(const Duration(seconds: 3));
     if (!mounted) return;
@@ -306,11 +334,24 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       _confettiLeft.play();
       _confettiRight.play();
     }
+    final Sfx endSfx;
+    if (winner == null) {
+      endSfx = Sfx.draw;
+    } else if (celebrate) {
+      endSfx = Sfx.win;
+    } else {
+      endSfx = Sfx.lose; // single player, AI won
+    }
+    SoundService.instance.playSfx(endSfx);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
     if (!_loggedInitialGame) {
       _loggedInitialGame = true;
       widget.analytics.logGameStarted(
@@ -320,6 +361,13 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       );
     }
   }
+
+  // Switch to the calm in-game track when this screen is shown or returned to.
+  @override
+  void didPush() => SoundService.instance.playMusic(Music.game);
+
+  @override
+  void didPopNext() => SoundService.instance.playMusic(Music.game);
 
   void _play(Position position) {
     if (_timeUpVisible) {
@@ -334,6 +382,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     final move = _game.play(position);
 
     if (!move.result.isValid) {
+      SoundService.instance.playSfx(Sfx.invalid);
       _showMessage(strings.invalidMove);
       return;
     }
@@ -345,6 +394,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       color: beforePlayer,
     );
     setState(() => _game = move.game);
+    _playMoveSfx(move.result.flipped.length);
     widget.analytics.logMove(
       player: beforePlayer,
       position: position,
@@ -388,10 +438,10 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       if (!_aiThinking) {
         setState(() => _aiThinking = true);
       }
-      // Deliberate pause so the AI feels like it is genuinely thinking — at
-      // least three seconds before every move.
+      // Deliberate pause so the AI feels like it is genuinely thinking —
+      // around two seconds before every move.
       await Future<void>.delayed(
-        Duration(milliseconds: 3000 + _random.nextInt(800)),
+        Duration(milliseconds: 2000 + _random.nextInt(500)),
       );
       if (!mounted || generation != _aiGeneration) {
         return;
@@ -414,6 +464,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
         color: _aiDisc,
       );
       setState(() => _game = move.game);
+      _playMoveSfx(move.result.flipped.length);
       widget.analytics.logMove(
         player: _aiDisc,
         position: position,
@@ -826,7 +877,10 @@ class _BarButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(13),
-          onTap: onTap,
+          onTap: () {
+            SoundService.instance.playSfx(Sfx.button);
+            onTap();
+          },
           child: Container(
             height: 38,
             constraints: const BoxConstraints(minWidth: 38),
@@ -1590,7 +1644,10 @@ class _GameOverButton extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(15),
-            onTap: onTap,
+            onTap: () {
+              SoundService.instance.playSfx(Sfx.button);
+              onTap();
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

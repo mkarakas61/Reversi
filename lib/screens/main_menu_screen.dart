@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../game/game_settings.dart';
 import '../l10n/app_strings.dart';
+import '../main.dart' show routeObserver;
 import '../services/game_storage.dart';
+import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
 import 'settings_screen.dart';
 
@@ -24,7 +26,8 @@ class MainMenuScreen extends StatefulWidget {
   State<MainMenuScreen> createState() => _MainMenuScreenState();
 }
 
-class _MainMenuScreenState extends State<MainMenuScreen> {
+class _MainMenuScreenState extends State<MainMenuScreen>
+    with RouteAware, WidgetsBindingObserver {
   bool _showDifficulty = false;
   bool _showTimeLimit = false;
   final GameStorage _storage = GameStorage();
@@ -33,7 +36,42 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_refreshSavedGame());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Energetic menu track whenever the menu is the active screen.
+  @override
+  void didPush() => SoundService.instance.playMusic(Music.menu);
+
+  @override
+  void didPopNext() => SoundService.instance.playMusic(Music.menu);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SoundService.instance.resumeMusic();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      SoundService.instance.pauseMusic();
+    }
   }
 
   Future<void> _refreshSavedGame() async {
@@ -303,7 +341,10 @@ class _MenuButton extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
+            onTap: () {
+              SoundService.instance.playSfx(Sfx.button);
+              onTap();
+            },
             child: Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -357,7 +398,10 @@ class _PillButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(13),
-          onTap: onTap,
+          onTap: () {
+            SoundService.instance.playSfx(Sfx.button);
+            onTap();
+          },
           child: Container(
             height: 38,
             padding: const EdgeInsets.symmetric(horizontal: 12),

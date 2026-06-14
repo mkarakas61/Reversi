@@ -9,6 +9,8 @@ class SettingsStorage {
   static const _boardKey = 'settings_board';
   static const _yourCoinKey = 'settings_your_coin';
   static const _opponentCoinKey = 'settings_opponent_coin';
+  static const _soundKey = 'settings_sound_enabled';
+  static const _musicKey = 'settings_music_enabled';
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -28,6 +30,8 @@ class SettingsStorage {
       opponentCoin:
           _enumByName(CoinColor.values, prefs.getString(_opponentCoinKey)) ??
               CoinColor.white,
+      soundEnabled: prefs.getBool(_soundKey) ?? true,
+      musicEnabled: prefs.getBool(_musicKey) ?? true,
     );
   }
 
@@ -42,6 +46,8 @@ class SettingsStorage {
     await prefs.setString(_boardKey, settings.board.name);
     await prefs.setString(_yourCoinKey, settings.yourCoin.name);
     await prefs.setString(_opponentCoinKey, settings.opponentCoin.name);
+    await prefs.setBool(_soundKey, settings.soundEnabled);
+    await prefs.setBool(_musicKey, settings.musicEnabled);
   }
 
   static T? _enumByName<T extends Enum>(List<T> values, String? name) {

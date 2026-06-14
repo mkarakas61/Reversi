@@ -20,6 +20,8 @@ class AppSettings {
     this.board = BoardTheme.wood,
     this.yourCoin = CoinColor.black,
     this.opponentCoin = CoinColor.white,
+    this.soundEnabled = true,
+    this.musicEnabled = true,
   });
 
   /// Explicit language override. `null` follows the device locale.
@@ -32,18 +34,28 @@ class AppSettings {
   /// Skin for the top side ([Disc.white] / "Aria").
   final CoinColor opponentCoin;
 
+  /// One-shot sound effects on/off.
+  final bool soundEnabled;
+
+  /// Background music on/off.
+  final bool musicEnabled;
+
   AppSettings copyWith({
     Locale? locale,
     bool clearLocale = false,
     BoardTheme? board,
     CoinColor? yourCoin,
     CoinColor? opponentCoin,
+    bool? soundEnabled,
+    bool? musicEnabled,
   }) {
     return AppSettings(
       locale: clearLocale ? null : (locale ?? this.locale),
       board: board ?? this.board,
       yourCoin: yourCoin ?? this.yourCoin,
       opponentCoin: opponentCoin ?? this.opponentCoin,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
+      musicEnabled: musicEnabled ?? this.musicEnabled,
     );
   }
 }
@@ -83,6 +95,16 @@ class SettingsController extends ChangeNotifier {
     final your =
         color == _settings.yourCoin ? _settings.opponentCoin : _settings.yourCoin;
     _update(_settings.copyWith(opponentCoin: color, yourCoin: your));
+  }
+
+  void setSoundEnabled(bool enabled) {
+    if (_settings.soundEnabled == enabled) return;
+    _update(_settings.copyWith(soundEnabled: enabled));
+  }
+
+  void setMusicEnabled(bool enabled) {
+    if (_settings.musicEnabled == enabled) return;
+    _update(_settings.copyWith(musicEnabled: enabled));
   }
 
   void _update(AppSettings next) {

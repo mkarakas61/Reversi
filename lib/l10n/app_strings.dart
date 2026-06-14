@@ -85,6 +85,9 @@ class AppStrings {
       'time3m': '3 min limit',
       'timeNone': 'No time limit',
       'timeUp': "Time's up. Opponent's turn!",
+      'sound': 'Sound',
+      'soundEffects': 'Sound effects',
+      'music': 'Music',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -153,6 +156,9 @@ class AppStrings {
       'time3m': '3 dk süre sınırı',
       'timeNone': 'Süre Sınırsız',
       'timeUp': 'Süren doldu. Sıra Rakibinde!',
+      'sound': 'Ses',
+      'soundEffects': 'Ses efektleri',
+      'music': 'Müzik',
     },
   };
 
@@ -203,6 +209,9 @@ class AppStrings {
   String get mainMenu => _get('mainMenu');
   String get chooseTimeLimit => _get('chooseTimeLimit');
   String get timeUp => _get('timeUp');
+  String get sound => _get('sound');
+  String get soundEffects => _get('soundEffects');
+  String get music => _get('music');
 
   String timeLimitLabel(TimeLimit limit) {
     switch (limit) {
