@@ -15,12 +15,14 @@ import 'game/app_settings.dart';
 import 'game/game_settings.dart';
 import 'game/reversi_game.dart';
 import 'l10n/app_strings.dart';
+import 'models/game_stats.dart';
 import 'screens/main_menu_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/game_storage.dart';
 import 'services/settings_storage.dart';
 import 'services/sound_service.dart';
+import 'services/stats_storage.dart';
 import 'theme/game_theme.dart';
 import 'widgets/wood_board.dart';
 
@@ -195,7 +197,12 @@ class _ReversiHomePageState extends State<ReversiHomePage>
   bool _aiThinking = false;
   int _aiGeneration = 0;
   final GameStorage _storage = GameStorage();
+  final StatsStorage _statsStorage = StatsStorage();
   final Random _random = Random();
+
+  // Tallied for the lifetime statistics, recorded once the game ends.
+  int _flippedThisGame = 0;
+  DateTime _gameStartTime = DateTime.now();
 
   // "Camera descends to the table" entrance. 0 = full-screen turquoise with
   // everything off-stage; 1 = settled game layout. See [_CreamShell] and the
@@ -383,6 +390,22 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       endSfx = Sfx.lose; // single player, AI won
     }
     SoundService.instance.playSfx(endSfx);
+    unawaited(_recordStats());
+  }
+
+  /// Updates the lifetime statistics with this game's result.
+  Future<void> _recordStats() async {
+    final blackScore = _game.scoreFor(Disc.black);
+    final whiteScore = _game.scoreFor(Disc.white);
+    final stats = await _statsStorage.load();
+    final updated = stats.recordGame(
+      mode: StatsMode.fromGame(widget.mode, widget.difficulty),
+      outcome: outcomeFor(_game.winner),
+      scoreDiff: (blackScore - whiteScore).abs(),
+      flippedDiscs: _flippedThisGame,
+      durationSeconds: DateTime.now().difference(_gameStartTime).inSeconds,
+    );
+    await _statsStorage.save(updated);
   }
 
   @override
@@ -436,6 +459,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     );
     setState(() => _game = move.game);
     _playMoveSfx(move.result.flipped.length);
+    _flippedThisGame += move.result.flipped.length;
     widget.analytics.logMove(
       player: beforePlayer,
       position: position,
@@ -507,6 +531,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       );
       setState(() => _game = move.game);
       _playMoveSfx(move.result.flipped.length);
+      _flippedThisGame += move.result.flipped.length;
       widget.analytics.logMove(
         player: _aiDisc,
         position: position,
@@ -570,6 +595,8 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     _celebrated = false;
     _lastMove = null;
     _history.clear();
+    _flippedThisGame = 0;
+    _gameStartTime = DateTime.now();
     _confettiLeft.stop();
     _confettiRight.stop();
     setState(() {
