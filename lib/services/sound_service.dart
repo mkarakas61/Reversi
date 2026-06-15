@@ -1,6 +1,8 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
+import 'ringer_mode_service.dart';
+
 /// The one-shot sound effects.
 enum Sfx { place, flip, invalid, button, tick, timeup, win, lose, draw }
 
@@ -47,6 +49,47 @@ class SoundService {
   bool _musicEnabled = true;
   Music? _currentMusic;
 
+  /// Whether the device's ringer is currently in silent mode. While true,
+  /// SFX are muted and music stays paused, mirroring the system's own sounds.
+  bool _ringerSilent = false;
+
+  /// Configures audio playback so it never grabs audio focus from (or
+  /// interrupts) other apps' music, and respects the system's silent mode.
+  /// Safe to call multiple times; failures are non-fatal.
+  Future<void> init() async {
+    try {
+      await AudioPlayer.global.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+          isSpeakerphoneOn: false,
+          stayAwake: false,
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.game,
+          audioFocus: AndroidAudioFocus.none,
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.ambient,
+        ),
+      ));
+    } catch (e) {
+      debugPrint('Audio context setup failed: $e');
+    }
+    await refreshRingerMode();
+  }
+
+  /// Re-checks the device's ringer mode (e.g. when the app resumes) and
+  /// mutes/restores audio accordingly.
+  Future<void> refreshRingerMode() async {
+    final silent =
+        await RingerModeService.instance.currentMode() == RingerMode.silent;
+    if (silent == _ringerSilent) return;
+    _ringerSilent = silent;
+    if (silent) {
+      await pauseMusic();
+    } else {
+      await resumeMusic();
+    }
+  }
+
   /// Pushes the latest user preferences; starts/stops music as needed.
   void applySettings({required bool soundEnabled, required bool musicEnabled}) {
     _soundEnabled = soundEnabled;
@@ -62,7 +105,7 @@ class SoundService {
   }
 
   Future<void> playSfx(Sfx sfx) async {
-    if (!_soundEnabled) return;
+    if (!_soundEnabled || _ringerSilent) return;
     final asset = _sfxAsset[sfx];
     if (asset == null) return;
     final player = _pool[_next];
@@ -79,7 +122,7 @@ class SoundService {
   Future<void> playMusic(Music music) async {
     if (_currentMusic == music) return;
     _currentMusic = music;
-    if (!_musicEnabled) return;
+    if (!_musicEnabled || _ringerSilent) return;
     await _resumeMusic(music);
   }
 
@@ -103,9 +146,19 @@ class SoundService {
   }
 
   Future<void> resumeMusic() async {
-    if (!_musicEnabled || _currentMusic == null) return;
+    if (!_musicEnabled || _currentMusic == null || _ringerSilent) return;
     try {
       await _music.resume();
     } catch (_) {}
+  }
+
+  /// Stops any in-flight one-shot sound effects, e.g. when the app is sent
+  /// to the background.
+  Future<void> stopAllSfx() async {
+    for (final player in _pool) {
+      try {
+        await player.stop();
+      } catch (_) {}
+    }
   }
 }

@@ -33,6 +33,7 @@ final RouteObserver<PageRoute<dynamic>> routeObserver =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SoundService.instance.init();
 
   final settingsStorage = SettingsStorage();
   final settings = await settingsStorage.load();
@@ -188,7 +189,7 @@ class ReversiHomePage extends StatefulWidget {
 }
 
 class _ReversiHomePageState extends State<ReversiHomePage>
-    with SingleTickerProviderStateMixin, RouteAware {
+    with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   static const Disc _humanDisc = Disc.black;
   static const Disc _aiDisc = Disc.white;
 
@@ -260,16 +261,31 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _entry.forward());
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _entry.dispose();
     _clock?.cancel();
     _confettiLeft.dispose();
     _confettiRight.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SoundService.instance.refreshRingerMode();
+      SoundService.instance.resumeMusic();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      SoundService.instance.pauseMusic();
+      SoundService.instance.stopAllSfx();
+    }
   }
 
   /// (Re)starts the move clock for the player to move. No-op in untimed or

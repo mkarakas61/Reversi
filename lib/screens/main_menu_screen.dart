@@ -67,11 +67,13 @@ class _MainMenuScreenState extends State<MainMenuScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      SoundService.instance.refreshRingerMode();
       SoundService.instance.resumeMusic();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       SoundService.instance.pauseMusic();
+      SoundService.instance.stopAllSfx();
     }
   }
 
