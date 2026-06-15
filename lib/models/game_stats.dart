@@ -6,19 +6,17 @@ import '../game/reversi_game.dart';
 /// plays as [Disc.black] (the bottom card) vs [Disc.white].
 enum GameOutcome { win, loss, draw }
 
-/// The mode/difficulty buckets stats are broken down by. Kept separate from
-/// [GameMode]/[Difficulty] so future modes (online play, levels) can be added
-/// without touching old saved data.
+/// The single-player difficulty buckets stats are broken down by. Two-player
+/// games are not recorded — with no AI opponent, win/loss has no consistent
+/// meaning (the human may have played either side). Kept separate from
+/// [Difficulty] so future modes (online play, levels) can be added without
+/// touching old saved data.
 enum StatsMode {
   singlePlayerEasy,
   singlePlayerNormal,
-  singlePlayerHard,
-  twoPlayer;
+  singlePlayerHard;
 
-  static StatsMode fromGame(GameMode mode, Difficulty? difficulty) {
-    if (mode == GameMode.twoPlayer) {
-      return StatsMode.twoPlayer;
-    }
+  static StatsMode fromDifficulty(Difficulty? difficulty) {
     switch (difficulty) {
       case Difficulty.easy:
         return StatsMode.singlePlayerEasy;

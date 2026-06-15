@@ -17,7 +17,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final storage = StatsStorage();
     final stats = GameStats.empty.recordGame(
-      mode: StatsMode.twoPlayer,
+      mode: StatsMode.singlePlayerNormal,
       outcome: GameOutcome.win,
       scoreDiff: 12,
       flippedDiscs: 22,
@@ -36,7 +36,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final storage = StatsStorage();
     await storage.save(GameStats.empty.recordGame(
-      mode: StatsMode.twoPlayer,
+      mode: StatsMode.singlePlayerNormal,
       outcome: GameOutcome.win,
       scoreDiff: 1,
       flippedDiscs: 1,

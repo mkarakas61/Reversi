@@ -29,7 +29,12 @@ class AppStrings {
       'score': 'Score',
       'invalidMove':
           'Choose a highlighted square to capture at least one disc.',
-      'forcedPass': '{player} has no legal move and passes.',
+      'passSkippedYou':
+          'You have no legal move — your turn passes to your opponent.',
+      'passSkippedOpponent':
+          "Your opponent has no legal move — it's your turn again!",
+      'passSkippedTwoPlayer':
+          '{coin} has no legal move — the turn passes to the other player.',
       'gameOver': 'Game over',
       'winner': '{player} wins',
       'draw': 'Draw',
@@ -110,7 +115,6 @@ class AppStrings {
       'statsModeSinglePlayerEasy': '1 Player · Easy',
       'statsModeSinglePlayerNormal': '1 Player · Normal',
       'statsModeSinglePlayerHard': '1 Player · Hard',
-      'statsModeTwoPlayer': '2 Players',
       'durationHoursMinutes': '{h}h {m}m',
       'durationMinutes': '{m}m',
       'durationSeconds': '{s}s',
@@ -125,7 +129,10 @@ class AppStrings {
       'score': 'Skor',
       'invalidMove':
           'En az bir taşı çevirmek için işaretli karelerden birini seçin.',
-      'forcedPass': '{player} için geçerli hamle yok, sıra pas geçildi.',
+      'passSkippedYou': 'Hamle hakkın yok, sıra rakibine geçti.',
+      'passSkippedOpponent': 'Rakibinin hamle hakkı yok, sıra sende!',
+      'passSkippedTwoPlayer':
+          '{coin} için geçerli hamle yok, sıra diğer oyuncuya geçti.',
       'gameOver': 'Oyun bitti',
       'winner': '{player} kazandı',
       'draw': 'Berabere',
@@ -206,7 +213,6 @@ class AppStrings {
       'statsModeSinglePlayerEasy': '1 Oyuncu · Kolay',
       'statsModeSinglePlayerNormal': '1 Oyuncu · Normal',
       'statsModeSinglePlayerHard': '1 Oyuncu · Zor',
-      'statsModeTwoPlayer': '2 Oyuncu',
       'durationHoursMinutes': '{h} sa {m} dk',
       'durationMinutes': '{m} dk',
       'durationSeconds': '{s} sn',
@@ -333,8 +339,11 @@ class AppStrings {
     return _get('turn').replaceAll('{player}', playerName(player));
   }
 
-  String forcedPass(String player) {
-    return _get('forcedPass').replaceAll('{player}', playerName(player));
+  String get passSkippedYou => _get('passSkippedYou');
+  String get passSkippedOpponent => _get('passSkippedOpponent');
+
+  String passSkippedTwoPlayer(String coin) {
+    return _get('passSkippedTwoPlayer').replaceAll('{coin}', coin);
   }
 
   String winner(String player) {
@@ -369,8 +378,6 @@ class AppStrings {
         return _get('statsModeSinglePlayerNormal');
       case StatsMode.singlePlayerHard:
         return _get('statsModeSinglePlayerHard');
-      case StatsMode.twoPlayer:
-        return _get('statsModeTwoPlayer');
     }
   }
 

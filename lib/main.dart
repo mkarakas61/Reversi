@@ -231,6 +231,11 @@ class _ReversiHomePageState extends State<ReversiHomePage>
   bool _blinkOn = true;
   bool _timeUpVisible = false;
 
+  // Short-lived informational popup (invalid move, forced pass) shown via
+  // _showInfoPopup. Reusable so impatient players can tap to dismiss early.
+  String? _infoMessage;
+  Duration _infoPopupDuration = const Duration(seconds: 2);
+
   bool get _isSinglePlayer => widget.mode == GameMode.singlePlayer;
 
   bool get _isTimed => !_isSinglePlayer && widget.timeLimit.seconds != null;
@@ -346,6 +351,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       _aiThinking = false;
       _celebrated = false;
       _timeUpVisible = false;
+      _infoMessage = null;
       _lastMove = null; // no flip animation on undo
     });
     unawaited(_storage.save(_game, widget.mode, widget.difficulty,
@@ -409,13 +415,16 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     unawaited(_recordStats());
   }
 
-  /// Updates the lifetime statistics with this game's result.
+  /// Updates the lifetime statistics with this game's result. Two-player
+  /// games are not recorded — with no AI opponent, win/loss/draw has no
+  /// consistent meaning (the human may have played either side).
   Future<void> _recordStats() async {
+    if (!_isSinglePlayer) return;
     final blackScore = _game.scoreFor(Disc.black);
     final whiteScore = _game.scoreFor(Disc.white);
     final stats = await _statsStorage.load();
     final updated = stats.recordGame(
-      mode: StatsMode.fromGame(widget.mode, widget.difficulty),
+      mode: StatsMode.fromDifficulty(widget.difficulty),
       outcome: outcomeFor(_game.winner),
       scoreDiff: (blackScore - whiteScore).abs(),
       flippedDiscs: _flippedThisGame,
@@ -462,7 +471,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
 
     if (!move.result.isValid) {
       SoundService.instance.playSfx(Sfx.invalid);
-      _showMessage(strings.invalidMove);
+      _showInfoPopup(strings.invalidMove, duration: const Duration(seconds: 1));
       return;
     }
 
@@ -484,7 +493,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
 
     if (move.result.passOccurred) {
       final passed = beforePlayer == Disc.black ? Disc.white : Disc.black;
-      _showMessage(strings.forcedPass(passed.name));
+      _showInfoPopup(_passMessage(passed));
       widget.analytics.logPass(player: passed);
     }
 
@@ -555,7 +564,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       );
 
       if (move.result.passOccurred) {
-        _showMessage(AppStrings.of(context).forcedPass(_humanDisc.name));
+        _showInfoPopup(_passMessage(_humanDisc));
         widget.analytics.logPass(player: _humanDisc);
       }
 
@@ -619,6 +628,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       _game = ReversiGame.newGame();
       _aiThinking = false;
       _timeUpVisible = false;
+      _infoMessage = null;
     });
     _restartClock();
     unawaited(_storage.clear());
@@ -656,10 +666,36 @@ class _ReversiHomePageState extends State<ReversiHomePage>
     }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  /// Shows a short-lived popup that auto-dismisses after [duration], or
+  /// immediately if the player taps the screen.
+  void _showInfoPopup(String message,
+      {Duration duration = const Duration(seconds: 2)}) {
+    setState(() {
+      _infoMessage = message;
+      _infoPopupDuration = duration;
+    });
+  }
+
+  void _dismissInfoPopup() {
+    if (_infoMessage != null) {
+      setState(() => _infoMessage = null);
+    }
+  }
+
+  /// Localized message for a forced pass, naming the side that was skipped.
+  /// In single-player it speaks directly to the human ("you have no move" /
+  /// "your opponent has no move"); in two-player it names the skipped coin
+  /// color.
+  String _passMessage(Disc passed) {
+    final strings = AppStrings.of(context);
+    if (_isSinglePlayer) {
+      return passed == _humanDisc
+          ? strings.passSkippedYou
+          : strings.passSkippedOpponent;
+    }
+    final settings = SettingsScope.of(context).settings;
+    final coin = passed == Disc.black ? settings.yourCoin : settings.opponentCoin;
+    return strings.passSkippedTwoPlayer(strings.coinColorLabel(coin));
   }
 
   @override
@@ -815,6 +851,13 @@ class _ReversiHomePageState extends State<ReversiHomePage>
           },
             ),
             if (_timeUpVisible) _TimeUpOverlay(message: strings.timeUp),
+            if (_infoMessage != null)
+              _InfoPopup(
+                key: ValueKey(_infoMessage),
+                message: _infoMessage!,
+                duration: _infoPopupDuration,
+                onDismissed: _dismissInfoPopup,
+              ),
             if (gameOver)
               _GameOverOverlay(
                 winner: _game.winner,
@@ -1415,6 +1458,89 @@ class _TimeUpOverlay extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A short-lived, centered popup for transient game messages (invalid move,
+/// forced pass). Auto-dismisses after [duration], or immediately if the
+/// player taps anywhere on the screen — built for impatient players.
+class _InfoPopup extends StatefulWidget {
+  const _InfoPopup({
+    super.key,
+    required this.message,
+    required this.onDismissed,
+    this.duration = const Duration(seconds: 2),
+  });
+
+  final String message;
+  final Duration duration;
+  final VoidCallback onDismissed;
+
+  @override
+  State<_InfoPopup> createState() => _InfoPopupState();
+}
+
+class _InfoPopupState extends State<_InfoPopup> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(widget.duration, widget.onDismissed);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: widget.onDismissed,
+        child: Center(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutBack,
+            builder: (context, v, child) => Transform.scale(
+              scale: 0.85 + 0.15 * v.clamp(0.0, 1.0),
+              child: Opacity(opacity: v.clamp(0.0, 1.0), child: child),
+            ),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 36),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40000000),
+                    offset: Offset(0, 10),
+                    blurRadius: 26,
+                  ),
+                ],
+              ),
+              child: Text(
+                widget.message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                  height: 1.25,
+                  color: GameColors.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

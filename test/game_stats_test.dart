@@ -4,18 +4,18 @@ import 'package:reversi/game/reversi_game.dart';
 import 'package:reversi/models/game_stats.dart';
 
 void main() {
-  group('StatsMode.fromGame', () {
+  group('StatsMode.fromDifficulty', () {
     test('maps single-player difficulties', () {
-      expect(StatsMode.fromGame(GameMode.singlePlayer, Difficulty.easy),
+      expect(StatsMode.fromDifficulty(Difficulty.easy),
           StatsMode.singlePlayerEasy);
-      expect(StatsMode.fromGame(GameMode.singlePlayer, Difficulty.normal),
+      expect(StatsMode.fromDifficulty(Difficulty.normal),
           StatsMode.singlePlayerNormal);
-      expect(StatsMode.fromGame(GameMode.singlePlayer, Difficulty.hard),
+      expect(StatsMode.fromDifficulty(Difficulty.hard),
           StatsMode.singlePlayerHard);
     });
 
-    test('maps two-player regardless of difficulty', () {
-      expect(StatsMode.fromGame(GameMode.twoPlayer, null), StatsMode.twoPlayer);
+    test('maps null difficulty to normal', () {
+      expect(StatsMode.fromDifficulty(null), StatsMode.singlePlayerNormal);
     });
   });
 
@@ -38,7 +38,7 @@ void main() {
         durationSeconds: 60,
       );
       stats = stats.recordGame(
-        mode: StatsMode.twoPlayer,
+        mode: StatsMode.singlePlayerNormal,
         outcome: GameOutcome.loss,
         scoreDiff: 4,
         flippedDiscs: 10,
@@ -49,7 +49,7 @@ void main() {
       expect(stats.overall.wins, 1);
       expect(stats.overall.losses, 1);
       expect(stats.recordFor(StatsMode.singlePlayerEasy).wins, 1);
-      expect(stats.recordFor(StatsMode.twoPlayer).losses, 1);
+      expect(stats.recordFor(StatsMode.singlePlayerNormal).losses, 1);
       expect(stats.totalFlippedDiscs, 40);
       expect(stats.totalPlayTimeSeconds, 90);
       expect(stats.bestScoreDiff, 20);
@@ -59,7 +59,7 @@ void main() {
       var stats = GameStats.empty;
       for (var i = 0; i < 3; i++) {
         stats = stats.recordGame(
-          mode: StatsMode.twoPlayer,
+          mode: StatsMode.singlePlayerNormal,
           outcome: GameOutcome.win,
           scoreDiff: 1,
           flippedDiscs: 1,
@@ -70,7 +70,7 @@ void main() {
       expect(stats.bestWinStreak, 3);
 
       stats = stats.recordGame(
-        mode: StatsMode.twoPlayer,
+        mode: StatsMode.singlePlayerNormal,
         outcome: GameOutcome.loss,
         scoreDiff: 1,
         flippedDiscs: 1,
@@ -82,7 +82,7 @@ void main() {
 
     test('a draw does not raise bestScoreDiff', () {
       final stats = GameStats.empty.recordGame(
-        mode: StatsMode.twoPlayer,
+        mode: StatsMode.singlePlayerNormal,
         outcome: GameOutcome.draw,
         scoreDiff: 0,
         flippedDiscs: 5,
