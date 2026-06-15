@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../game/app_settings.dart';
+import '../game/game_settings.dart';
 
 /// Persists [AppSettings] (language, board theme, coin colours) across launches.
 class SettingsStorage {
@@ -11,6 +12,7 @@ class SettingsStorage {
   static const _opponentCoinKey = 'settings_opponent_coin';
   static const _soundKey = 'settings_sound_enabled';
   static const _musicKey = 'settings_music_enabled';
+  static const _gameSpeedKey = 'settings_game_speed';
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,6 +34,8 @@ class SettingsStorage {
               CoinColor.white,
       soundEnabled: prefs.getBool(_soundKey) ?? true,
       musicEnabled: prefs.getBool(_musicKey) ?? true,
+      gameSpeed: _enumByName(GameSpeed.values, prefs.getString(_gameSpeedKey)) ??
+          GameSpeed.normal,
     );
   }
 
@@ -48,6 +52,7 @@ class SettingsStorage {
     await prefs.setString(_opponentCoinKey, settings.opponentCoin.name);
     await prefs.setBool(_soundKey, settings.soundEnabled);
     await prefs.setBool(_musicKey, settings.musicEnabled);
+    await prefs.setString(_gameSpeedKey, settings.gameSpeed.name);
   }
 
   static T? _enumByName<T extends Enum>(List<T> values, String? name) {

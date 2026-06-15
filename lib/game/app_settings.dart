@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../services/settings_storage.dart';
+import 'game_settings.dart';
 
 /// Visual palette chosen for the board slab. [wood] keeps the original
 /// image-textured table; the rest are the flat colour schemes from the
@@ -22,6 +23,7 @@ class AppSettings {
     this.opponentCoin = CoinColor.white,
     this.soundEnabled = true,
     this.musicEnabled = true,
+    this.gameSpeed = GameSpeed.normal,
   });
 
   /// Explicit language override. `null` follows the device locale.
@@ -40,6 +42,9 @@ class AppSettings {
   /// Background music on/off.
   final bool musicEnabled;
 
+  /// How long the AI pauses before each move in single-player.
+  final GameSpeed gameSpeed;
+
   AppSettings copyWith({
     Locale? locale,
     bool clearLocale = false,
@@ -48,6 +53,7 @@ class AppSettings {
     CoinColor? opponentCoin,
     bool? soundEnabled,
     bool? musicEnabled,
+    GameSpeed? gameSpeed,
   }) {
     return AppSettings(
       locale: clearLocale ? null : (locale ?? this.locale),
@@ -56,6 +62,7 @@ class AppSettings {
       opponentCoin: opponentCoin ?? this.opponentCoin,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       musicEnabled: musicEnabled ?? this.musicEnabled,
+      gameSpeed: gameSpeed ?? this.gameSpeed,
     );
   }
 }
@@ -105,6 +112,11 @@ class SettingsController extends ChangeNotifier {
   void setMusicEnabled(bool enabled) {
     if (_settings.musicEnabled == enabled) return;
     _update(_settings.copyWith(musicEnabled: enabled));
+  }
+
+  void setGameSpeed(GameSpeed speed) {
+    if (_settings.gameSpeed == speed) return;
+    _update(_settings.copyWith(gameSpeed: speed));
   }
 
   void _update(AppSettings next) {

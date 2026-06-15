@@ -95,6 +95,10 @@ class AppStrings {
       'soundEffects': 'Sound effects',
       'music': 'Music',
       'undo': 'Undo',
+      'gameSpeed': 'Game speed',
+      'speedFast': 'Fast',
+      'speedNormal': 'Normal',
+      'speedSlow': 'Slow',
       'statistics': 'Statistics',
       'statsTotalGames': 'Total games',
       'statsWins': 'Wins',
@@ -193,6 +197,10 @@ class AppStrings {
       'soundEffects': 'Ses efektleri',
       'music': 'Müzik',
       'undo': 'Geri Al',
+      'gameSpeed': 'Oyun hızı',
+      'speedFast': 'Hızlı',
+      'speedNormal': 'Normal',
+      'speedSlow': 'Yavaş',
       'statistics': 'İstatistikler',
       'statsTotalGames': 'Toplam oyun',
       'statsWins': 'Galibiyet',
@@ -367,6 +375,19 @@ class AppStrings {
         return normal;
       case Difficulty.hard:
         return hard;
+    }
+  }
+
+  String get gameSpeed => _get('gameSpeed');
+
+  String gameSpeedLabel(GameSpeed speed) {
+    switch (speed) {
+      case GameSpeed.fast:
+        return _get('speedFast');
+      case GameSpeed.normal:
+        return _get('speedNormal');
+      case GameSpeed.slow:
+        return _get('speedSlow');
     }
   }
 

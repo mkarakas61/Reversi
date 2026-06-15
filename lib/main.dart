@@ -528,10 +528,13 @@ class _ReversiHomePageState extends State<ReversiHomePage>
       if (!_aiThinking) {
         setState(() => _aiThinking = true);
       }
-      // Deliberate pause so the AI feels like it is genuinely thinking —
-      // around two seconds before every move.
+      // Deliberate pause so the AI feels like it is genuinely thinking. The
+      // base wait follows the player's chosen game speed (read fresh each move
+      // so changing it mid-game takes effect immediately), with a small random
+      // jitter so moves don't feel mechanical.
+      final baseDelay = SettingsScope.of(context).settings.gameSpeed.aiDelayMs;
       await Future<void>.delayed(
-        Duration(milliseconds: 2000 + _random.nextInt(500)),
+        Duration(milliseconds: baseDelay + _random.nextInt(500)),
       );
       if (!mounted || generation != _aiGeneration) {
         return;
@@ -774,6 +777,10 @@ class _ReversiHomePageState extends State<ReversiHomePage>
                       onSettings: () => openSettings(context),
                       onUndo: _undo,
                       canUndo: _canUndo,
+                      showSpeed: _isSinglePlayer,
+                      gameSpeed: settings.gameSpeed,
+                      onSpeedChanged: (speed) =>
+                          SettingsScope.of(context).setGameSpeed(speed),
                     ),
                   ),
                   _EntrySlide(
@@ -1049,6 +1056,87 @@ class _BarButton extends StatelessWidget {
   }
 }
 
+/// A speed-control button for the game top bar: tapping it opens a dropdown of
+/// [GameSpeed] options (Fast / Normal / Slow) that set how long the AI pauses
+/// before each move. Styled to match [_BarButton].
+class _SpeedMenuButton extends StatelessWidget {
+  const _SpeedMenuButton({required this.speed, required this.onChanged});
+
+  final GameSpeed speed;
+  final ValueChanged<GameSpeed> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    return PopupMenuButton<GameSpeed>(
+      tooltip: strings.gameSpeed,
+      initialValue: speed,
+      offset: const Offset(0, 46),
+      color: Colors.white,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      onSelected: (value) {
+        SoundService.instance.playSfx(Sfx.button);
+        onChanged(value);
+      },
+      itemBuilder: (context) => [
+        for (final option in GameSpeed.values)
+          PopupMenuItem<GameSpeed>(
+            value: option,
+            child: Row(
+              children: [
+                Icon(
+                  option == speed
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 18,
+                  color: option == speed
+                      ? GameColors.accent
+                      : GameColors.ink.withValues(alpha: 0.4),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  strings.gameSpeedLabel(option),
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: GameColors.ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(13),
+          boxShadow: const [
+            BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
+            BoxShadow(
+              color: Color(0x1F000000),
+              offset: Offset(0, 5),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        child: Container(
+          height: 38,
+          constraints: const BoxConstraints(minWidth: 38),
+          padding: const EdgeInsets.symmetric(horizontal: 11),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.speed_rounded,
+            size: 20,
+            color: GameColors.onAccent,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GameTopBar extends StatelessWidget {
   const _GameTopBar({
     required this.onBack,
@@ -1056,6 +1144,9 @@ class _GameTopBar extends StatelessWidget {
     required this.onSettings,
     required this.onUndo,
     required this.canUndo,
+    required this.showSpeed,
+    required this.gameSpeed,
+    required this.onSpeedChanged,
   });
 
   final VoidCallback onBack;
@@ -1063,6 +1154,11 @@ class _GameTopBar extends StatelessWidget {
   final VoidCallback onSettings;
   final VoidCallback onUndo;
   final bool canUndo;
+
+  /// Speed control only makes sense against the AI (single-player).
+  final bool showSpeed;
+  final GameSpeed gameSpeed;
+  final ValueChanged<GameSpeed> onSpeedChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -1101,6 +1197,13 @@ class _GameTopBar extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (showSpeed) ...[
+                _SpeedMenuButton(
+                  speed: gameSpeed,
+                  onChanged: onSpeedChanged,
+                ),
+                const SizedBox(width: 9),
+              ],
               _BarButton(
                 tooltip: strings.undo,
                 onTap: onUndo,
