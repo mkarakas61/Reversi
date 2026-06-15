@@ -9,6 +9,7 @@ import '../services/game_storage.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
 import 'settings_screen.dart';
+import 'stats_screen.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -109,6 +110,27 @@ class _MainMenuScreenState extends State<MainMenuScreen>
         child: SafeArea(
           child: Stack(
             children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: _PillButton(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const StatsScreen(),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bar_chart_rounded, size: 18),
+                        const SizedBox(width: 6),
+                        Text(strings.statistics),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(

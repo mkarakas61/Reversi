@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../game/app_settings.dart';
 import '../game/game_settings.dart';
+import '../models/game_stats.dart';
 
 class AppStrings {
   AppStrings(this.locale);
@@ -89,6 +90,30 @@ class AppStrings {
       'soundEffects': 'Sound effects',
       'music': 'Music',
       'undo': 'Undo',
+      'statistics': 'Statistics',
+      'statsTotalGames': 'Total games',
+      'statsWins': 'Wins',
+      'statsLosses': 'Losses',
+      'statsDraws': 'Draws',
+      'statsWinRate': 'Win rate',
+      'statsCurrentStreak': 'Current win streak',
+      'statsBestStreak': 'Best win streak',
+      'statsBestScoreDiff': 'Best score gap',
+      'statsTotalFlipped': 'Total discs flipped',
+      'statsTotalPlayTime': 'Total play time',
+      'statsResultDistribution': 'Result distribution',
+      'statsByMode': 'By game mode',
+      'statsEmpty': "You haven't finished a game yet. Play one to see your stats here!",
+      'statsReset': 'Reset statistics',
+      'statsResetTitle': 'Reset statistics?',
+      'statsResetBody': 'All statistics will be permanently deleted. This cannot be undone.',
+      'statsModeSinglePlayerEasy': '1 Player · Easy',
+      'statsModeSinglePlayerNormal': '1 Player · Normal',
+      'statsModeSinglePlayerHard': '1 Player · Hard',
+      'statsModeTwoPlayer': '2 Players',
+      'durationHoursMinutes': '{h}h {m}m',
+      'durationMinutes': '{m}m',
+      'durationSeconds': '{s}s',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -161,6 +186,30 @@ class AppStrings {
       'soundEffects': 'Ses efektleri',
       'music': 'Müzik',
       'undo': 'Geri Al',
+      'statistics': 'İstatistikler',
+      'statsTotalGames': 'Toplam oyun',
+      'statsWins': 'Galibiyet',
+      'statsLosses': 'Mağlubiyet',
+      'statsDraws': 'Beraberlik',
+      'statsWinRate': 'Galibiyet oranı',
+      'statsCurrentStreak': 'Mevcut galibiyet serisi',
+      'statsBestStreak': 'En uzun galibiyet serisi',
+      'statsBestScoreDiff': 'En yüksek skor farkı',
+      'statsTotalFlipped': 'Toplam çevrilen taş',
+      'statsTotalPlayTime': 'Toplam oynama süresi',
+      'statsResultDistribution': 'Sonuç dağılımı',
+      'statsByMode': 'Oyun moduna göre',
+      'statsEmpty': 'Henüz tamamlanmış bir oyun yok. İstatistiklerini görmek için bir oyun oyna!',
+      'statsReset': 'İstatistikleri sıfırla',
+      'statsResetTitle': 'İstatistikler sıfırlansın mı?',
+      'statsResetBody': 'Tüm istatistik verileri kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      'statsModeSinglePlayerEasy': '1 Oyuncu · Kolay',
+      'statsModeSinglePlayerNormal': '1 Oyuncu · Normal',
+      'statsModeSinglePlayerHard': '1 Oyuncu · Zor',
+      'statsModeTwoPlayer': '2 Oyuncu',
+      'durationHoursMinutes': '{h} sa {m} dk',
+      'durationMinutes': '{m} dk',
+      'durationSeconds': '{s} sn',
     },
   };
 
@@ -215,6 +264,23 @@ class AppStrings {
   String get soundEffects => _get('soundEffects');
   String get music => _get('music');
   String get undo => _get('undo');
+  String get statistics => _get('statistics');
+  String get statsTotalGames => _get('statsTotalGames');
+  String get statsWins => _get('statsWins');
+  String get statsLosses => _get('statsLosses');
+  String get statsDraws => _get('statsDraws');
+  String get statsWinRate => _get('statsWinRate');
+  String get statsCurrentStreak => _get('statsCurrentStreak');
+  String get statsBestStreak => _get('statsBestStreak');
+  String get statsBestScoreDiff => _get('statsBestScoreDiff');
+  String get statsTotalFlipped => _get('statsTotalFlipped');
+  String get statsTotalPlayTime => _get('statsTotalPlayTime');
+  String get statsResultDistribution => _get('statsResultDistribution');
+  String get statsByMode => _get('statsByMode');
+  String get statsEmpty => _get('statsEmpty');
+  String get statsReset => _get('statsReset');
+  String get statsResetTitle => _get('statsResetTitle');
+  String get statsResetBody => _get('statsResetBody');
 
   String timeLimitLabel(TimeLimit limit) {
     switch (limit) {
@@ -293,6 +359,34 @@ class AppStrings {
       case Difficulty.hard:
         return hard;
     }
+  }
+
+  String statsModeLabel(StatsMode mode) {
+    switch (mode) {
+      case StatsMode.singlePlayerEasy:
+        return _get('statsModeSinglePlayerEasy');
+      case StatsMode.singlePlayerNormal:
+        return _get('statsModeSinglePlayerNormal');
+      case StatsMode.singlePlayerHard:
+        return _get('statsModeSinglePlayerHard');
+      case StatsMode.twoPlayer:
+        return _get('statsModeTwoPlayer');
+    }
+  }
+
+  /// Formats a duration as "{h}h {m}m", "{m}m" or "{s}s" depending on size.
+  String formatDuration(int totalSeconds) {
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    if (hours > 0) {
+      return _get('durationHoursMinutes')
+          .replaceAll('{h}', '$hours')
+          .replaceAll('{m}', '$minutes');
+    }
+    if (minutes > 0) {
+      return _get('durationMinutes').replaceAll('{m}', '$minutes');
+    }
+    return _get('durationSeconds').replaceAll('{s}', '$totalSeconds');
   }
 
   String _get(String key) {
