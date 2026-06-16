@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// Reversi online security rules (draft — tightened in REV-51).
+//
+// Core principle: clients may only write the "safe" identity fields of their
+// own profile. Everything that affects ranking — xp, level and the online
+// stats — is written exclusively by Cloud Functions via the Admin SDK, which
+// bypasses these rules. So a player can never edit their own XP/level/stats.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      // Any signed-in user can read profiles — needed later to show an
+      // opponent's basic stats before a match (REV-45).
+      allow read: if signedIn();
+
+      // Owner may create their profile with only identity fields.
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+             ['displayName', 'photoUrl', 'createdAt', 'updatedAt']);
+
+      // Owner may update only identity fields. xp / level / online are owned by
+      // Cloud Functions, so the client can never touch them.
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+             ['displayName', 'photoUrl', 'updatedAt']);
+
+      allow delete: if false;
+    }
+
+    // Matchmaking tickets: a user only manages their own ticket. The actual
+    // pairing is done by a Cloud Function (Admin SDK). Tightened in REV-43.
+    match /matchmaking/{uid} {
+      allow read, create, update, delete: if isOwner(uid);
+    }
+
+    // Games: only the two participants may read. All writes (creation, moves,
+    // results) go through Cloud Functions for now; client move writes are
+    // opened up under strict turn rules in REV-47 / REV-51. Game docs are
+    // expected to carry a `playerUids` array of the two uids.
+    match /games/{gameId} {
+      allow read: if signedIn()
+        && request.auth.uid in resource.data.playerUids;
+      allow write: if false;
+    }
+  }
+}
