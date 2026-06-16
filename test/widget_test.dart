@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reversi/game/app_settings.dart';
+import 'package:reversi/game/auth_scope.dart';
+import 'package:reversi/game/profile_scope.dart';
 import 'package:reversi/game/reversi_game.dart';
 import 'package:reversi/main.dart';
 import 'package:reversi/services/analytics_service.dart';
@@ -22,8 +24,15 @@ void main() {
     addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
     final settings =
         SettingsController(const AppSettings(), SettingsStorage());
+    final auth = AuthController(null);
+    final profile = ProfileController(auth);
     await tester.pumpWidget(
-      ReversiApp(analytics: AnalyticsService(), settings: settings),
+      ReversiApp(
+        analytics: AnalyticsService(),
+        settings: settings,
+        auth: auth,
+        profile: profile,
+      ),
     );
     await tester.pumpAndSettle();
   }

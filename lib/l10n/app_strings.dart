@@ -99,6 +99,9 @@ class AppStrings {
       'speedFast': 'Fast',
       'speedNormal': 'Normal',
       'speedSlow': 'Slow',
+      'signIn': 'Sign in',
+      'signOut': 'Sign out',
+      'signInError': 'Sign-in failed, please try again.',
       'statistics': 'Statistics',
       'statsTotalGames': 'Total games',
       'statsWins': 'Wins',
@@ -112,10 +115,12 @@ class AppStrings {
       'statsTotalPlayTime': 'Total play time',
       'statsResultDistribution': 'Result distribution',
       'statsByMode': 'By game mode',
-      'statsEmpty': "You haven't finished a game yet. Play one to see your stats here!",
+      'statsEmpty':
+          "You haven't finished a game yet. Play one to see your stats here!",
       'statsReset': 'Reset statistics',
       'statsResetTitle': 'Reset statistics?',
-      'statsResetBody': 'All statistics will be permanently deleted. This cannot be undone.',
+      'statsResetBody':
+          'All statistics will be permanently deleted. This cannot be undone.',
       'statsModeSinglePlayerEasy': '1 Player · Easy',
       'statsModeSinglePlayerNormal': '1 Player · Normal',
       'statsModeSinglePlayerHard': '1 Player · Hard',
@@ -201,6 +206,9 @@ class AppStrings {
       'speedFast': 'Hızlı',
       'speedNormal': 'Normal',
       'speedSlow': 'Yavaş',
+      'signIn': 'Giriş yap',
+      'signOut': 'Çıkış yap',
+      'signInError': 'Giriş yapılamadı, lütfen tekrar deneyin.',
       'statistics': 'İstatistikler',
       'statsTotalGames': 'Toplam oyun',
       'statsWins': 'Galibiyet',
@@ -214,10 +222,12 @@ class AppStrings {
       'statsTotalPlayTime': 'Toplam oynama süresi',
       'statsResultDistribution': 'Sonuç dağılımı',
       'statsByMode': 'Oyun moduna göre',
-      'statsEmpty': 'Henüz tamamlanmış bir oyun yok. İstatistiklerini görmek için bir oyun oyna!',
+      'statsEmpty':
+          'Henüz tamamlanmış bir oyun yok. İstatistiklerini görmek için bir oyun oyna!',
       'statsReset': 'İstatistikleri sıfırla',
       'statsResetTitle': 'İstatistikler sıfırlansın mı?',
-      'statsResetBody': 'Tüm istatistik verileri kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      'statsResetBody':
+          'Tüm istatistik verileri kalıcı olarak silinecek. Bu işlem geri alınamaz.',
       'statsModeSinglePlayerEasy': '1 Oyuncu · Kolay',
       'statsModeSinglePlayerNormal': '1 Oyuncu · Normal',
       'statsModeSinglePlayerHard': '1 Oyuncu · Zor',
@@ -278,6 +288,9 @@ class AppStrings {
   String get soundEffects => _get('soundEffects');
   String get music => _get('music');
   String get undo => _get('undo');
+  String get signIn => _get('signIn');
+  String get signOut => _get('signOut');
+  String get signInError => _get('signInError');
   String get statistics => _get('statistics');
   String get statsTotalGames => _get('statsTotalGames');
   String get statsWins => _get('statsWins');

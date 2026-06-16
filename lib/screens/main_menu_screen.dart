@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../game/game_settings.dart';
+import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../main.dart' show routeObserver;
+import '../services/auth_service.dart';
 import '../services/game_storage.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
@@ -19,8 +21,7 @@ class MainMenuScreen extends StatefulWidget {
   });
 
   final Future<void> Function(
-          GameMode mode, Difficulty? difficulty, TimeLimit timeLimit)
-      onStartGame;
+      GameMode mode, Difficulty? difficulty, TimeLimit timeLimit) onStartGame;
   final Future<void> Function(SavedGame saved) onContinueGame;
 
   @override
@@ -161,6 +162,13 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                   ),
                 ),
               ),
+              const Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: _ProfileChip(),
+                ),
+              ),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
@@ -178,7 +186,8 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                           letterSpacing: 6,
                           color: Colors.white,
                           shadows: [
-                            Shadow(color: Color(0x29000000), offset: Offset(0, 3)),
+                            Shadow(
+                                color: Color(0x29000000), offset: Offset(0, 3)),
                           ],
                         ),
                       ),
@@ -324,8 +333,12 @@ class _Logo extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(mainAxisSize: MainAxisSize.min, children: [tile(false), tile(true)]),
-          Row(mainAxisSize: MainAxisSize.min, children: [tile(true), tile(false)]),
+          Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [tile(false), tile(true)]),
+          Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [tile(true), tile(false)]),
         ],
       ),
     );
@@ -451,6 +464,149 @@ class _PillButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Top-of-menu chip that doubles as the sign-in gate: signed out it offers
+/// Google sign-in (offline play still works without it); signed in it shows the
+/// player's avatar and name, tapping it to open a sheet with sign-out.
+class _ProfileChip extends StatefulWidget {
+  const _ProfileChip();
+
+  @override
+  State<_ProfileChip> createState() => _ProfileChipState();
+}
+
+class _ProfileChipState extends State<_ProfileChip> {
+  bool _busy = false;
+
+  Future<void> _signIn() async {
+    if (_busy) return;
+    final strings = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await AuthService.instance.signInWithGoogle();
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(strings.signInError)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openSheet(Profile profile) async {
+    final strings = AppStrings.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _Avatar(photoUrl: profile.photoUrl, radius: 34),
+                const SizedBox(height: 12),
+                Text(
+                  profile.displayName ?? '',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                    color: GameColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      SoundService.instance.playSfx(Sfx.button);
+                      Navigator.of(ctx).pop();
+                      AuthService.instance.signOut();
+                    },
+                    icon: const Icon(Icons.logout_rounded),
+                    label: Text(strings.signOut),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final profile = ProfileScope.of(context).profile;
+
+    if (profile == null) {
+      return _PillButton(
+        onTap: _signIn,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_busy)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: GameColors.onAccent,
+                ),
+              )
+            else
+              const Icon(Icons.login_rounded, size: 18),
+            const SizedBox(width: 6),
+            Text(strings.signIn),
+          ],
+        ),
+      );
+    }
+
+    final name = profile.displayName ?? '';
+    final firstName = name.isEmpty ? strings.signIn : name.split(' ').first;
+    return _PillButton(
+      onTap: () => _openSheet(profile),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _Avatar(photoUrl: profile.photoUrl, radius: 11),
+          const SizedBox(width: 7),
+          Text(firstName),
+        ],
+      ),
+    );
+  }
+}
+
+/// Circular profile photo, falling back to a person icon when there is no URL.
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.photoUrl, required this.radius});
+
+  final String? photoUrl;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl;
+    final hasUrl = url != null && url.isNotEmpty;
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+      backgroundImage: hasUrl ? NetworkImage(url) : null,
+      child: hasUrl
+          ? null
+          : Icon(Icons.person_rounded,
+              size: radius, color: GameColors.onAccent),
     );
   }
 }

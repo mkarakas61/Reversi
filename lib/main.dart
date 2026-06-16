@@ -4,6 +4,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:confetti/confetti.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'firebase_options.dart';
 import 'game/ai_player.dart';
 import 'game/app_settings.dart';
+import 'game/auth_scope.dart';
 import 'game/game_settings.dart';
+import 'game/profile_scope.dart';
 import 'game/reversi_game.dart';
 import 'l10n/app_strings.dart';
 import 'models/game_stats.dart';
@@ -41,20 +44,28 @@ Future<void> main() async {
   final settingsController = SettingsController(settings, settingsStorage);
 
   FirebaseAnalytics? firebaseAnalytics;
+  var firebaseReady = false;
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     firebaseAnalytics = FirebaseAnalytics.instance;
+    firebaseReady = true;
   } catch (e) {
     // Keep the app usable offline even if Firebase can't start.
     debugPrint('Firebase init failed: $e');
     firebaseAnalytics = null;
   }
 
+  final authController =
+      AuthController(firebaseReady ? FirebaseAuth.instance : null);
+  final profileController = ProfileController(authController);
+
   runApp(ReversiApp(
     analytics: AnalyticsService(analytics: firebaseAnalytics),
     settings: settingsController,
+    auth: authController,
+    profile: profileController,
   ));
 }
 
@@ -63,89 +74,99 @@ class ReversiApp extends StatelessWidget {
     super.key,
     required this.analytics,
     required this.settings,
+    required this.auth,
+    required this.profile,
   });
 
   final AnalyticsService analytics;
   final SettingsController settings;
+  final AuthController auth;
+  final ProfileController profile;
 
   @override
   Widget build(BuildContext context) {
     return SettingsScope(
       controller: settings,
-      child: Builder(
-        builder: (context) {
-          final appSettings = SettingsScope.of(context).settings;
-          final locale = appSettings.locale;
-          // Keep the audio engine in sync with the latest preferences.
-          SoundService.instance.applySettings(
-            soundEnabled: appSettings.soundEnabled,
-            musicEnabled: appSettings.musicEnabled,
-          );
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Reversi',
-            locale: locale,
-            navigatorObservers: [routeObserver],
-            supportedLocales: AppStrings.supportedLocales,
-            localizationsDelegates: const [
-              AppStrings.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            localeResolutionCallback: (deviceLocale, supportedLocales) {
-              if (locale != null) {
-                return locale;
-              }
-              if (deviceLocale != null) {
-                for (final supported in supportedLocales) {
-                  if (supported.languageCode == deviceLocale.languageCode) {
-                    return supported;
+      child: AuthScope(
+        controller: auth,
+        child: ProfileScope(
+          controller: profile,
+          child: Builder(
+            builder: (context) {
+              final appSettings = SettingsScope.of(context).settings;
+              final locale = appSettings.locale;
+              // Keep the audio engine in sync with the latest preferences.
+              SoundService.instance.applySettings(
+                soundEnabled: appSettings.soundEnabled,
+                musicEnabled: appSettings.musicEnabled,
+              );
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'Reversi',
+                locale: locale,
+                navigatorObservers: [routeObserver],
+                supportedLocales: AppStrings.supportedLocales,
+                localizationsDelegates: const [
+                  AppStrings.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                localeResolutionCallback: (deviceLocale, supportedLocales) {
+                  if (locale != null) {
+                    return locale;
                   }
-                }
-              }
-              return const Locale('en');
+                  if (deviceLocale != null) {
+                    for (final supported in supportedLocales) {
+                      if (supported.languageCode == deviceLocale.languageCode) {
+                        return supported;
+                      }
+                    }
+                  }
+                  return const Locale('en');
+                },
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: const Color(0xFF7B4A24),
+                    brightness: Brightness.light,
+                  ),
+                  useMaterial3: true,
+                  scaffoldBackgroundColor: const Color(0xFF3A2419),
+                  fontFamily: 'Roboto',
+                ),
+                home: Builder(
+                  builder: (context) => MainMenuScreen(
+                    onStartGame: (mode, difficulty, timeLimit) {
+                      return Navigator.of(context).push(
+                        _gameRoute(
+                          ReversiHomePage(
+                            analytics: analytics,
+                            mode: mode,
+                            difficulty: difficulty,
+                            timeLimit: timeLimit,
+                          ),
+                        ),
+                      );
+                    },
+                    onContinueGame: (saved) {
+                      return Navigator.of(context).push(
+                        _gameRoute(
+                          ReversiHomePage(
+                            analytics: analytics,
+                            mode: saved.mode,
+                            difficulty: saved.difficulty,
+                            timeLimit: saved.timeLimit,
+                            initialGame: saved.game,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
             },
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF7B4A24),
-                brightness: Brightness.light,
-              ),
-              useMaterial3: true,
-              scaffoldBackgroundColor: const Color(0xFF3A2419),
-              fontFamily: 'Roboto',
-            ),
-            home: Builder(
-              builder: (context) => MainMenuScreen(
-                onStartGame: (mode, difficulty, timeLimit) {
-                  return Navigator.of(context).push(
-                    _gameRoute(
-                      ReversiHomePage(
-                        analytics: analytics,
-                        mode: mode,
-                        difficulty: difficulty,
-                        timeLimit: timeLimit,
-                      ),
-                    ),
-                  );
-                },
-                onContinueGame: (saved) {
-                  return Navigator.of(context).push(
-                    _gameRoute(
-                      ReversiHomePage(
-                        analytics: analytics,
-                        mode: saved.mode,
-                        difficulty: saved.difficulty,
-                        timeLimit: saved.timeLimit,
-                        initialGame: saved.game,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -330,8 +351,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
 
   /// Undo is available once there is history, the AI is not mid-think, and no
   /// "time's up" overlay is showing.
-  bool get _canUndo =>
-      _history.isNotEmpty && !_aiThinking && !_timeUpVisible;
+  bool get _canUndo => _history.isNotEmpty && !_aiThinking && !_timeUpVisible;
 
   /// Steps the board back. Two-player undoes one ply; single-player rewinds
   /// past the AI's reply to the player's own previous turn. The move clock
@@ -702,7 +722,8 @@ class _ReversiHomePageState extends State<ReversiHomePage>
           : strings.passSkippedOpponent;
     }
     final settings = SettingsScope.of(context).settings;
-    final coin = passed == Disc.black ? settings.yourCoin : settings.opponentCoin;
+    final coin =
+        passed == Disc.black ? settings.yourCoin : settings.opponentCoin;
     return strings.passSkippedTwoPlayer(strings.coinColorLabel(coin));
   }
 
@@ -755,112 +776,113 @@ class _ReversiHomePageState extends State<ReversiHomePage>
         body: Stack(
           children: [
             AnimatedBuilder(
-          animation: _entry,
-          builder: (context, _) {
-            final t = _entry.value;
-            // Camera descent: turquoise band shrinks and the board rises, in
-            // lockstep. Panels then settle in from top and bottom.
-            final camera =
-                const Interval(0.0, 0.55, curve: Curves.easeOutCubic)
-                    .transform(t);
-            final topIn = const Interval(0.45, 0.82, curve: Curves.easeOutBack)
-                .transform(t);
-            final bottomIn =
-                const Interval(0.55, 0.95, curve: Curves.easeOutBack)
-                    .transform(t);
+              animation: _entry,
+              builder: (context, _) {
+                final t = _entry.value;
+                // Camera descent: turquoise band shrinks and the board rises, in
+                // lockstep. Panels then settle in from top and bottom.
+                final camera =
+                    const Interval(0.0, 0.55, curve: Curves.easeOutCubic)
+                        .transform(t);
+                final topIn =
+                    const Interval(0.45, 0.82, curve: Curves.easeOutBack)
+                        .transform(t);
+                final bottomIn =
+                    const Interval(0.55, 0.95, curve: Curves.easeOutBack)
+                        .transform(t);
 
-            return _CreamShell(
-              t: camera,
-              child: Column(
-                children: [
-                  _EntrySlide(
-                    progress: topIn,
-                    beginOffset: const Offset(0, -1.4),
-                    child: _GameTopBar(
-                      onBack: () => Navigator.of(context).maybePop(),
-                      onNewGame: _confirmRestart,
-                      onSettings: () => openSettings(context),
-                      onUndo: _undo,
-                      canUndo: _canUndo,
-                      showSpeed: _isSinglePlayer,
-                      gameSpeed: settings.gameSpeed,
-                      onSpeedChanged: (speed) =>
-                          SettingsScope.of(context).setGameSpeed(speed),
-                    ),
-                  ),
-                  _EntrySlide(
-                    progress: topIn,
-                    beginOffset: const Offset(0, -1.4),
-                    child: _PlayerCard(
-                      side: Disc.white,
-                      name: whiteName,
-                      mono: whiteName.characters.first.toUpperCase(),
-                      score: whiteScore,
-                      active: whiteActive,
-                      statusText: statusFor(false),
-                      coin: settings.opponentCoin,
-                      countdown: whiteActive ? clockText : null,
-                      countdownUrgent: clockUrgent,
-                      countdownVisible: clockVisible,
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: _EntrySlide(
-                        progress: camera,
-                        beginOffset: const Offset(0, 0.35),
-                        child: WoodBoard(
-                          board: _game.board,
-                          validMoves: validMoves,
-                          lastMove: _game.lastMove,
-                          onCellTap: _play,
-                          theme: settings.board,
-                          blackCoin: settings.yourCoin,
-                          whiteCoin: settings.opponentCoin,
-                          move: _lastMove,
+                return _CreamShell(
+                  t: camera,
+                  child: Column(
+                    children: [
+                      _EntrySlide(
+                        progress: topIn,
+                        beginOffset: const Offset(0, -1.4),
+                        child: _GameTopBar(
+                          onBack: () => Navigator.of(context).maybePop(),
+                          onNewGame: _confirmRestart,
+                          onSettings: () => openSettings(context),
+                          onUndo: _undo,
+                          canUndo: _canUndo,
+                          showSpeed: _isSinglePlayer,
+                          gameSpeed: settings.gameSpeed,
+                          onSpeedChanged: (speed) =>
+                              SettingsScope.of(context).setGameSpeed(speed),
                         ),
                       ),
-                    ),
-                  ),
-                  _EntrySlide(
-                    progress: bottomIn,
-                    beginOffset: const Offset(0, 1.4),
-                    child: _PlayerCard(
-                      side: Disc.black,
-                      name: blackName,
-                      mono: blackName.characters.first.toUpperCase(),
-                      score: blackScore,
-                      active: blackActive,
-                      statusText: statusFor(true),
-                      coin: settings.yourCoin,
-                      countdown: blackActive ? clockText : null,
-                      countdownUrgent: clockUrgent,
-                      countdownVisible: clockVisible,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // When the game ends, the full-screen overlay takes over, so
-                  // the pill slot just holds its height to avoid a layout jump.
-                  _EntrySlide(
-                    progress: bottomIn,
-                    beginOffset: const Offset(0, 1.4),
-                    child: gameOver
-                        ? const SizedBox(height: 36)
-                        : _TurnPill(
-                            side: blacksTurn ? Disc.black : Disc.white,
-                            text: _aiThinking
-                                ? strings.aiThinking
-                                : (_isSinglePlayer && blacksTurn
-                                    ? strings.yourMove
-                                    : '${blacksTurn ? blackName : whiteName} ${strings.toMove}'),
+                      _EntrySlide(
+                        progress: topIn,
+                        beginOffset: const Offset(0, -1.4),
+                        child: _PlayerCard(
+                          side: Disc.white,
+                          name: whiteName,
+                          mono: whiteName.characters.first.toUpperCase(),
+                          score: whiteScore,
+                          active: whiteActive,
+                          statusText: statusFor(false),
+                          coin: settings.opponentCoin,
+                          countdown: whiteActive ? clockText : null,
+                          countdownUrgent: clockUrgent,
+                          countdownVisible: clockVisible,
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: _EntrySlide(
+                            progress: camera,
+                            beginOffset: const Offset(0, 0.35),
+                            child: WoodBoard(
+                              board: _game.board,
+                              validMoves: validMoves,
+                              lastMove: _game.lastMove,
+                              onCellTap: _play,
+                              theme: settings.board,
+                              blackCoin: settings.yourCoin,
+                              whiteCoin: settings.opponentCoin,
+                              move: _lastMove,
+                            ),
                           ),
+                        ),
+                      ),
+                      _EntrySlide(
+                        progress: bottomIn,
+                        beginOffset: const Offset(0, 1.4),
+                        child: _PlayerCard(
+                          side: Disc.black,
+                          name: blackName,
+                          mono: blackName.characters.first.toUpperCase(),
+                          score: blackScore,
+                          active: blackActive,
+                          statusText: statusFor(true),
+                          coin: settings.yourCoin,
+                          countdown: blackActive ? clockText : null,
+                          countdownUrgent: clockUrgent,
+                          countdownVisible: clockVisible,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // When the game ends, the full-screen overlay takes over, so
+                      // the pill slot just holds its height to avoid a layout jump.
+                      _EntrySlide(
+                        progress: bottomIn,
+                        beginOffset: const Offset(0, 1.4),
+                        child: gameOver
+                            ? const SizedBox(height: 36)
+                            : _TurnPill(
+                                side: blacksTurn ? Disc.black : Disc.white,
+                                text: _aiThinking
+                                    ? strings.aiThinking
+                                    : (_isSinglePlayer && blacksTurn
+                                        ? strings.yourMove
+                                        : '${blacksTurn ? blackName : whiteName} ${strings.toMove}'),
+                              ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            );
-          },
+                );
+              },
             ),
             if (_timeUpVisible) _TimeUpOverlay(message: strings.timeUp),
             if (_infoMessage != null)
@@ -1078,8 +1100,7 @@ class _SpeedMenuButton extends StatelessWidget {
       initialValue: speed,
       offset: const Offset(0, 46),
       color: Colors.white,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       onSelected: (value) {
         SoundService.instance.playSfx(Sfx.button);
         onChanged(value);
@@ -1273,10 +1294,10 @@ class _PlayerCard extends StatelessWidget {
     final accent = isDark ? GameColors.accent : GameColors.accent2;
     final palette = coinPalettes[coin]!;
     // Light coins (white) need dark text on the avatar to stay legible.
-    final monoColor =
-        ThemeData.estimateBrightnessForColor(palette.faceMid) == Brightness.light
-            ? GameColors.ink
-            : Colors.white;
+    final monoColor = ThemeData.estimateBrightnessForColor(palette.faceMid) ==
+            Brightness.light
+        ? GameColors.ink
+        : Colors.white;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -1322,82 +1343,82 @@ class _PlayerCard extends StatelessWidget {
               ),
             ),
           Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [palette.faceTop, palette.faceBottom],
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [palette.faceTop, palette.faceBottom],
+                  ),
+                  border: Border.all(color: const Color(0x14000000), width: 1),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  mono,
+                  style: TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    color: monoColor,
+                  ),
+                ),
               ),
-              border: Border.all(color: const Color(0x14000000), width: 1),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              mono,
-              style: TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                color: monoColor,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: GameColors.ink,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15,
+                      child: Text(
+                        active ? statusText.toLowerCase() : '',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  name,
+              _ScoreChip(coin: coin),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 44,
+                child: Text(
+                  '$score',
+                  textAlign: TextAlign.right,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  overflow: TextOverflow.visible,
                   style: const TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 28,
+                    height: 1,
                     color: GameColors.ink,
                   ),
                 ),
-                SizedBox(
-                  height: 15,
-                  child: Text(
-                    active ? statusText.toLowerCase() : '',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      color: accent,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _ScoreChip(coin: coin),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 44,
-            child: Text(
-              '$score',
-              textAlign: TextAlign.right,
-              maxLines: 1,
-              softWrap: false,
-              overflow: TextOverflow.visible,
-              style: const TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w700,
-                fontSize: 28,
-                height: 1,
-                color: GameColors.ink,
               ),
-            ),
-          ),
-        ],
+            ],
           ),
         ],
       ),
@@ -1464,7 +1485,10 @@ class _TurnPill extends StatelessWidget {
               shape: BoxShape.circle,
               color: accent,
               boxShadow: [
-                BoxShadow(color: accent.withValues(alpha: 0.25), blurRadius: 4, spreadRadius: 4),
+                BoxShadow(
+                    color: accent.withValues(alpha: 0.25),
+                    blurRadius: 4,
+                    spreadRadius: 4),
               ],
             ),
           ),
@@ -1622,8 +1646,7 @@ class _InfoPopupState extends State<_InfoPopup> {
             ),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 36),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
@@ -1711,10 +1734,9 @@ class _GameOverOverlay extends StatelessWidget {
     Color titleColor = GameColors.ink;
     if (titleCoin != null) {
       final mid = coinPalettes[titleCoin]!.faceMid;
-      titleColor =
-          ThemeData.estimateBrightnessForColor(mid) == Brightness.light
-              ? GameColors.ink
-              : mid;
+      titleColor = ThemeData.estimateBrightnessForColor(mid) == Brightness.light
+          ? GameColors.ink
+          : mid;
     }
 
     final confettiColors = <Color>[
