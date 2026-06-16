@@ -36,11 +36,17 @@ class SoundService {
 
   static const double _musicVolume = 0.45;
 
-  final List<AudioPlayer> _pool = List.generate(
-    4,
-    (i) => AudioPlayer(playerId: 'sfx_$i')..setReleaseMode(ReleaseMode.stop),
-  );
-  int _next = 0;
+  /// How many players to keep per effect so a sound can overlap itself (e.g.
+  /// rapid menu taps) without one cutting the previous one off.
+  static const int _sfxPlayersPerSound = 2;
+
+  /// Pre-loaded SFX players, grouped by effect. Each player already has its
+  /// asset set (see [_preloadSfx]), so triggering a sound is a cheap
+  /// seek + resume instead of a fresh asset load. Reloading on every play was
+  /// the root cause of effects dropping or sounding quiet when fired in quick
+  /// succession.
+  final Map<Sfx, List<AudioPlayer>> _sfxPlayers = {};
+  final Map<Sfx, int> _sfxNext = {};
 
   final AudioPlayer _music = AudioPlayer(playerId: 'music')
     ..setReleaseMode(ReleaseMode.loop);
@@ -73,7 +79,29 @@ class SoundService {
     } catch (e) {
       debugPrint('Audio context setup failed: $e');
     }
+    await _preloadSfx();
     await refreshRingerMode();
+  }
+
+  /// Creates and pre-loads a small pool of players for every effect so the
+  /// first (and every later) trigger plays instantly and at full volume.
+  Future<void> _preloadSfx() async {
+    for (final entry in _sfxAsset.entries) {
+      final players = <AudioPlayer>[];
+      for (var i = 0; i < _sfxPlayersPerSound; i++) {
+        try {
+          final player = AudioPlayer(playerId: 'sfx_${entry.key.name}_$i');
+          await player.setReleaseMode(ReleaseMode.stop);
+          await player.setSource(AssetSource(entry.value));
+          await player.setVolume(1.0);
+          players.add(player);
+        } catch (e) {
+          debugPrint('SFX preload failed (${entry.key}): $e');
+        }
+      }
+      _sfxPlayers[entry.key] = players;
+      _sfxNext[entry.key] = 0;
+    }
   }
 
   /// Re-checks the device's ringer mode (e.g. when the app resumes) and
@@ -106,13 +134,16 @@ class SoundService {
 
   Future<void> playSfx(Sfx sfx) async {
     if (!_soundEnabled || _ringerSilent) return;
-    final asset = _sfxAsset[sfx];
-    if (asset == null) return;
-    final player = _pool[_next];
-    _next = (_next + 1) % _pool.length;
+    final players = _sfxPlayers[sfx];
+    if (players == null || players.isEmpty) return;
+    final index = _sfxNext[sfx]!;
+    _sfxNext[sfx] = (index + 1) % players.length;
+    final player = players[index];
     try {
-      await player.stop();
-      await player.play(AssetSource(asset));
+      // The source is already loaded; rewind and play so rapid retriggers
+      // always start from the beginning at full volume.
+      await player.seek(Duration.zero);
+      await player.resume();
     } catch (e) {
       debugPrint('SFX play failed ($sfx): $e');
     }
@@ -155,10 +186,12 @@ class SoundService {
   /// Stops any in-flight one-shot sound effects, e.g. when the app is sent
   /// to the background.
   Future<void> stopAllSfx() async {
-    for (final player in _pool) {
-      try {
-        await player.stop();
-      } catch (_) {}
+    for (final players in _sfxPlayers.values) {
+      for (final player in players) {
+        try {
+          await player.stop();
+        } catch (_) {}
+      }
     }
   }
 }

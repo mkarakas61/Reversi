@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/app_settings.dart';
 import '../game/reversi_game.dart';
 import '../l10n/app_strings.dart';
+import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
 
 /// Settings sheet: language, board colour and coin colours. Changes apply live
@@ -190,7 +191,10 @@ class _RoundButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(13),
-          onTap: onTap,
+          onTap: () {
+            SoundService.instance.playSfx(Sfx.button);
+            onTap();
+          },
           child: SizedBox(
             width: 42,
             height: 38,

@@ -47,6 +47,13 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
       routeObserver.subscribe(this, route);
+      // The observer never delivers didPush for the route it is first
+      // subscribed on (the initial menu route at launch), so assert the menu
+      // track here while the menu is the active screen. playMusic is a no-op
+      // if it is already current.
+      if (route.isCurrent) {
+        SoundService.instance.playMusic(Music.menu);
+      }
     }
   }
 

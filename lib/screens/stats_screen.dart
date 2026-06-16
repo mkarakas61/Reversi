@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/game_stats.dart';
+import '../services/sound_service.dart';
 import '../services/stats_storage.dart';
 import '../theme/game_theme.dart';
 
@@ -565,7 +566,10 @@ class _RoundButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(13),
-          onTap: onTap,
+          onTap: () {
+            SoundService.instance.playSfx(Sfx.button);
+            onTap();
+          },
           child: SizedBox(
             width: 42,
             height: 38,
