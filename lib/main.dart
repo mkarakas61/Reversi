@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'firebase_options.dart';
 import 'game/ai_player.dart';
 import 'game/app_settings.dart';
 import 'game/game_settings.dart';
@@ -41,9 +42,13 @@ Future<void> main() async {
 
   FirebaseAnalytics? firebaseAnalytics;
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     firebaseAnalytics = FirebaseAnalytics.instance;
-  } catch (_) {
+  } catch (e) {
+    // Keep the app usable offline even if Firebase can't start.
+    debugPrint('Firebase init failed: $e');
     firebaseAnalytics = null;
   }
 
