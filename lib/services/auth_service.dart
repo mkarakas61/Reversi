@@ -12,14 +12,19 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _googleReady = false;
 
+  /// The project's OAuth 2.0 Web client id (client_type 3 in
+  /// google-services.json). google_sign_in v7 requires it explicitly on
+  /// Android — it does NOT read default_web_client_id — to mint an idToken
+  /// that Firebase accepts. This is a public client id, safe to commit.
+  static const String _serverClientId =
+      '819735082028-hfgggneicbf3550n57ivrm7pigvmmh9d.apps.googleusercontent.com';
+
   User? get currentUser => _auth.currentUser;
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
   Future<void> _ensureGoogleReady() async {
     if (_googleReady) return;
-    // On Android the server client id is read from google-services.json
-    // (default_web_client_id), so the returned idToken is one Firebase accepts.
-    await GoogleSignIn.instance.initialize();
+    await GoogleSignIn.instance.initialize(serverClientId: _serverClientId);
     _googleReady = true;
   }
 
