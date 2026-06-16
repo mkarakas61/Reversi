@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 
+import '../models/online_stats.dart';
 import '../services/profile_service.dart';
 import 'auth_scope.dart';
 
-/// The player's profile. For now it mirrors the signed-in Google account's
-/// name and photo; REV-38 will back it with the Firestore `users/{uid}`
-/// document (level, xp, online stats), which only Cloud Functions may write.
+/// The player's profile, backed by the Firestore `users/{uid}` document. The
+/// identity fields (name/photo) are client-writable; level, xp and [online]
+/// stats are server-authoritative — only Cloud Functions write them.
 @immutable
 class Profile {
   const Profile({
@@ -17,6 +18,7 @@ class Profile {
     this.photoUrl,
     this.level = 1,
     this.xp = 0,
+    this.online = OnlineStats.empty,
   });
 
   final String uid;
@@ -24,6 +26,7 @@ class Profile {
   final String? photoUrl;
   final int level;
   final int xp;
+  final OnlineStats online;
 }
 
 /// Holds the player's [Profile]. On sign-in it shows the account's name/photo
@@ -86,6 +89,7 @@ class ProfileController extends ChangeNotifier {
           photoUrl: data['photoUrl'] as String? ?? user.photoURL,
           level: (data['level'] as num?)?.toInt() ?? 1,
           xp: (data['xp'] as num?)?.toInt() ?? 0,
+          online: OnlineStats.fromMap(data['online'] as Map<String, dynamic>?),
         );
         notifyListeners();
       },
