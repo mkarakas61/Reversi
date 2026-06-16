@@ -10,6 +10,7 @@ import '../services/auth_service.dart';
 import '../services/game_storage.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
 
@@ -495,51 +496,10 @@ class _ProfileChipState extends State<_ProfileChip> {
     }
   }
 
-  Future<void> _openSheet(Profile profile) async {
-    final strings = AppStrings.of(context);
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _Avatar(photoUrl: profile.photoUrl, radius: 34),
-                const SizedBox(height: 12),
-                Text(
-                  profile.displayName ?? '',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: GameColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      SoundService.instance.playSfx(Sfx.button);
-                      Navigator.of(ctx).pop();
-                      AuthService.instance.signOut();
-                    },
-                    icon: const Icon(Icons.logout_rounded),
-                    label: Text(strings.signOut),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+  void _openProfile() {
+    SoundService.instance.playSfx(Sfx.button);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
     );
   }
 
@@ -575,7 +535,7 @@ class _ProfileChipState extends State<_ProfileChip> {
     final name = profile.displayName ?? '';
     final firstName = name.isEmpty ? strings.signIn : name.split(' ').first;
     return _PillButton(
-      onTap: () => _openSheet(profile),
+      onTap: _openProfile,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

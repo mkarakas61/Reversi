@@ -102,6 +102,8 @@ class AppStrings {
       'signIn': 'Sign in',
       'signOut': 'Sign out',
       'signInError': 'Sign-in failed, please try again.',
+      'profile': 'Profile',
+      'level': 'Level',
       'statistics': 'Statistics',
       'statsTotalGames': 'Total games',
       'statsWins': 'Wins',
@@ -209,6 +211,8 @@ class AppStrings {
       'signIn': 'Giriş yap',
       'signOut': 'Çıkış yap',
       'signInError': 'Giriş yapılamadı, lütfen tekrar deneyin.',
+      'profile': 'Profil',
+      'level': 'Seviye',
       'statistics': 'İstatistikler',
       'statsTotalGames': 'Toplam oyun',
       'statsWins': 'Galibiyet',
@@ -291,6 +295,8 @@ class AppStrings {
   String get signIn => _get('signIn');
   String get signOut => _get('signOut');
   String get signInError => _get('signInError');
+  String get profile => _get('profile');
+  String get level => _get('level');
   String get statistics => _get('statistics');
   String get statsTotalGames => _get('statsTotalGames');
   String get statsWins => _get('statsWins');
