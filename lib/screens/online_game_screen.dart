@@ -10,6 +10,7 @@ import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
 import '../widgets/info_popup.dart';
 import '../widgets/wood_board.dart';
+import 'settings_screen.dart';
 
 /// Live online match. Both clients render from the shared game document; the
 /// player whose turn it is taps to move, which writes the new board to
@@ -305,21 +306,10 @@ class _TopBar extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Material(
-            color: Colors.white.withValues(alpha: 0.18),
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () {
-                SoundService.instance.playSfx(Sfx.button);
-                onLeave();
-              },
-              child: const SizedBox(
-                width: 40,
-                height: 40,
-                child: Icon(Icons.chevron_left, color: Colors.white, size: 26),
-              ),
-            ),
+          _RoundIconButton(
+            icon: Icons.chevron_left,
+            iconSize: 26,
+            onTap: onLeave,
           ),
           Expanded(
             child: Center(
@@ -335,8 +325,49 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 48),
+          // Mid-match access to board / coin / sound settings (changes apply
+          // live since the board reads them from [SettingsScope]).
+          _RoundIconButton(
+            icon: Icons.settings,
+            iconSize: 20,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
+      ),
+    );
+  }
+}
+
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({
+    required this.icon,
+    required this.onTap,
+    this.iconSize = 22,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.18),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () {
+          SoundService.instance.playSfx(Sfx.button);
+          onTap();
+        },
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: Colors.white, size: iconSize),
+        ),
       ),
     );
   }
