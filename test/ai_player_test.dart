@@ -21,8 +21,7 @@ ReversiGame _selfPlay(ReversiAi black, ReversiAi white) {
 
 void main() {
   group('ReversiAi', () {
-    test('every difficulty returns a legal move from the opening position',
-        () {
+    test('every difficulty returns a legal move from the opening position', () {
       for (final difficulty in Difficulty.values) {
         final ai = ReversiAi(difficulty: difficulty, random: Random(1));
         final game = ReversiGame.newGame();

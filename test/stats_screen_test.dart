@@ -99,6 +99,7 @@ void main() {
       find.textContaining("haven't finished a game"),
       findsOneWidget,
     );
-    expect(await storage.load(), predicate<GameStats>((s) => s.totalGames == 0));
+    expect(
+        await storage.load(), predicate<GameStats>((s) => s.totalGames == 0));
   });
 }

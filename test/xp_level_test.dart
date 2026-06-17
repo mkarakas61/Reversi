@@ -92,11 +92,11 @@ void main() {
     test('win with all bonuses', () {
       final xp = XpLevel.earnedXp(
         outcome: GameOutcome.win,
-        scoreDiff: 40,  // capped at 30
+        scoreDiff: 40, // capped at 30
         flippedPieces: 24,
         myLevel: 3,
-        oppLevel: 7,   // oppLevel - myLevel = 4, clamped to +8 → clamp(4,-4,8)=4
-        streak: 7,     // capped at 5
+        oppLevel: 7, // oppLevel - myLevel = 4, clamped to +8 → clamp(4,-4,8)=4
+        streak: 7, // capped at 5
       );
       // base=100, scoreBonus=30, flipBonus=3, levelBonus=clamp(4,-4,8)*8=32, streak=5*5=25
       expect(xp, 100 + 30 + 3 + 32 + 25);
@@ -108,7 +108,7 @@ void main() {
         scoreDiff: 0,
         flippedPieces: 0,
         myLevel: 10,
-        oppLevel: 1,   // oppLevel - myLevel = -9, clamped to -4
+        oppLevel: 1, // oppLevel - myLevel = -9, clamped to -4
         streak: 0,
       );
       // base=100, levelBonus=clamp(-9,-4,8)*8 = -32

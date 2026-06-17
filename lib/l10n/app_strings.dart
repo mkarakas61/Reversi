@@ -108,6 +108,9 @@ class AppStrings {
       'searchingOpponent': 'Finding an opponent…',
       'opponentFound': 'Opponent found!',
       'onlineComingSoon': 'Online play is coming very soon!',
+      'opponentTurn': "Opponent's turn",
+      'youLost': 'You Lost',
+      'leaveOnlineBody': "If you leave, you'll forfeit this match.",
       'statistics': 'Statistics',
       'statsTotalGames': 'Total games',
       'statsWins': 'Wins',
@@ -227,6 +230,9 @@ class AppStrings {
       'searchingOpponent': 'Rakip aranıyor…',
       'opponentFound': 'Rakip bulundu!',
       'onlineComingSoon': 'Online oyun çok yakında!',
+      'opponentTurn': 'Rakibin sırası',
+      'youLost': 'Kaybettin',
+      'leaveOnlineBody': 'Çıkarsan bu maçı kaybedersin.',
       'statistics': 'İstatistikler',
       'statsTotalGames': 'Toplam oyun',
       'statsWins': 'Galibiyet',
@@ -321,6 +327,9 @@ class AppStrings {
   String get searchingOpponent => _get('searchingOpponent');
   String get opponentFound => _get('opponentFound');
   String get onlineComingSoon => _get('onlineComingSoon');
+  String get opponentTurn => _get('opponentTurn');
+  String get youLost => _get('youLost');
+  String get leaveOnlineBody => _get('leaveOnlineBody');
   String get statistics => _get('statistics');
   String get statsTotalGames => _get('statsTotalGames');
   String get statsWins => _get('statsWins');

@@ -42,14 +42,18 @@ service cloud.firestore {
       allow read, create, update, delete: if isOwner(uid);
     }
 
-    // Games: only the two participants may read. All writes (creation, moves,
-    // results) go through Cloud Functions for now; client move writes are
-    // opened up under strict turn rules in REV-47 / REV-51. Game docs are
-    // expected to carry a `playerUids` array of the two uids.
+    // Games: only the two participants may read. The game doc is created by the
+    // matchmaking function (Admin). During an active game either participant may
+    // update it to record their move; the server validates the result and awards
+    // XP by replaying the move log (REV-50), and REV-51 tightens this to
+    // turn-and-field-level checks. Game docs carry a `playerUids` array.
     match /games/{gameId} {
       allow read: if signedIn()
         && request.auth.uid in resource.data.playerUids;
-      allow write: if false;
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.playerUids
+        && resource.data.status == 'active';
+      allow create, delete: if false;
     }
   }
 }

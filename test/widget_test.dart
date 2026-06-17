@@ -22,8 +22,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.binding.platformDispatcher.localeTestValue = const Locale('en');
     addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-    final settings =
-        SettingsController(const AppSettings(), SettingsStorage());
+    final settings = SettingsController(const AppSettings(), SettingsStorage());
     final auth = AuthController(null);
     final profile = ProfileController(auth);
     await tester.pumpWidget(

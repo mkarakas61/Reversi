@@ -74,7 +74,11 @@ export const onMatchmakingTicketCreated = onDocumentCreated(
           [myUid]: playerInfo(mySnap.data()!),
           [partnerId]: playerInfo(partnerSnap.data()!),
         },
+        board: initialBoard(),
         currentPlayer: "black",
+        lastMove: null,
+        moves: [],
+        moveCount: 0,
         status: "active",
         winner: null,
         turnDeadline: Timestamp.fromMillis(Date.now() + TURN_SECONDS * 1000),
@@ -86,6 +90,17 @@ export const onMatchmakingTicketCreated = onDocumentCreated(
     });
   },
 );
+
+/// The standard Reversi opening position as a 64-char row-major string
+/// ("b"/"w"/"-"), matching the client's board codec.
+function initialBoard(): string {
+  const cells = new Array<string>(64).fill("-");
+  cells[3 * 8 + 3] = "w";
+  cells[3 * 8 + 4] = "b";
+  cells[4 * 8 + 3] = "b";
+  cells[4 * 8 + 4] = "w";
+  return cells.join("");
+}
 
 /// The opponent-preview snapshot stored on the game so REV-45 can show basic
 /// stats without extra reads. Sourced from the matchmaking ticket.

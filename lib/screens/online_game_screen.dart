@@ -1,0 +1,446 @@
+import 'package:flutter/material.dart';
+
+import '../game/app_settings.dart';
+import '../game/profile_scope.dart';
+import '../game/reversi_game.dart';
+import '../l10n/app_strings.dart';
+import '../models/online_game.dart';
+import '../services/online_game_service.dart';
+import '../services/sound_service.dart';
+import '../theme/game_theme.dart';
+import '../widgets/wood_board.dart';
+
+/// Live online match. Both clients render from the shared game document; the
+/// player whose turn it is taps to move, which writes the new board to
+/// Firestore. Reuses the [ReversiGame] engine and [WoodBoard] widget so the
+/// rules and look match the local game. XP/level rewards are applied
+/// server-side after the game ends (REV-50).
+class OnlineGameScreen extends StatefulWidget {
+  const OnlineGameScreen({super.key, required this.gameId});
+
+  final String gameId;
+
+  @override
+  State<OnlineGameScreen> createState() => _OnlineGameScreenState();
+}
+
+class _OnlineGameScreenState extends State<OnlineGameScreen> {
+  int _lastMoveCount = -1;
+
+  void _onMoveSound(OnlineGame g) {
+    if (_lastMoveCount < 0) {
+      _lastMoveCount = g.moveCount;
+      return;
+    }
+    if (g.moveCount > _lastMoveCount) {
+      _lastMoveCount = g.moveCount;
+      SoundService.instance.playSfx(Sfx.place);
+      Future<void>.delayed(const Duration(milliseconds: 260),
+          () => SoundService.instance.playSfx(Sfx.flip));
+    }
+  }
+
+  Future<void> _confirmLeave(OnlineGame? g, String myUid) async {
+    final strings = AppStrings.of(context);
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings.leaveTitle),
+        content: Text(strings.leaveOnlineBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings.leave),
+          ),
+        ],
+      ),
+    );
+    if (leave == true) {
+      if (g != null && !g.isFinished) {
+        await OnlineGameService.instance.resign(g, myUid);
+      }
+      if (mounted) Navigator.of(context).maybePop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final settings = SettingsScope.of(context).settings;
+    final myUid = ProfileScope.of(context).profile?.uid;
+
+    if (myUid == null) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => Navigator.of(context).maybePop());
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<OnlineGame>(
+      stream: OnlineGameService.instance.watch(widget.gameId),
+      builder: (context, snapshot) {
+        final g = snapshot.data;
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _confirmLeave(g, myUid);
+          },
+          child: Scaffold(
+            body: DecoratedBox(
+              decoration: const BoxDecoration(gradient: bannerGradient),
+              child: SafeArea(
+                child: g == null
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white))
+                    : _GameBody(
+                        game: g,
+                        myUid: myUid,
+                        settings: settings,
+                        strings: strings,
+                        onSound: _onMoveSound,
+                        onLeave: () => _confirmLeave(g, myUid),
+                      ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GameBody extends StatelessWidget {
+  const _GameBody({
+    required this.game,
+    required this.myUid,
+    required this.settings,
+    required this.strings,
+    required this.onSound,
+    required this.onLeave,
+  });
+
+  final OnlineGame game;
+  final String myUid;
+  final AppSettings settings;
+  final AppStrings strings;
+  final void Function(OnlineGame) onSound;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) {
+    onSound(game);
+
+    final myColor = game.colorFor(myUid);
+    final oppColor = myColor == Disc.black ? Disc.white : Disc.black;
+    final isMyTurn = !game.isFinished && game.game.currentPlayer == myColor;
+
+    // My disc always wears my chosen coin; the opponent wears the other.
+    final blackCoin =
+        myColor == Disc.black ? settings.yourCoin : settings.opponentCoin;
+    final whiteCoin =
+        myColor == Disc.black ? settings.opponentCoin : settings.yourCoin;
+
+    final opp = game.infoFor(game.opponentUid(myUid));
+    final me = ProfileScope.of(context).profile;
+
+    return Stack(
+      children: [
+        Column(
+          children: [
+            _TopBar(title: strings.onlinePlay, onLeave: onLeave),
+            _PlayerStrip(
+              name: opp['name'] as String? ?? '—',
+              photoUrl: opp['photo'] as String?,
+              score: game.game.scoreFor(oppColor),
+              coin: myColor == Disc.black
+                  ? settings.opponentCoin
+                  : settings.yourCoin,
+              active: !game.isFinished && !isMyTurn,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: WoodBoard(
+                      board: game.game.board,
+                      validMoves: isMyTurn ? game.game.validMoves : const {},
+                      lastMove: game.game.lastMove,
+                      theme: settings.board,
+                      blackCoin: blackCoin,
+                      whiteCoin: whiteCoin,
+                      onCellTap: (pos) {
+                        if (!isMyTurn) return;
+                        OnlineGameService.instance.submitMove(game, pos, myUid);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            _PlayerStrip(
+              name: me?.displayName ?? strings.playerYou,
+              photoUrl: me?.photoUrl,
+              score: game.game.scoreFor(myColor),
+              coin: settings.yourCoin,
+              active: isMyTurn,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Text(
+                game.isFinished
+                    ? ''
+                    : (isMyTurn ? strings.yourMove : strings.opponentTurn),
+                style: const TextStyle(
+                  fontFamily: 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (game.isFinished)
+          _ResultOverlay(
+            game: game,
+            myColor: myColor,
+            strings: strings,
+            onMenu: () {
+              SoundService.instance.playSfx(Sfx.button);
+              Navigator.of(context).maybePop();
+            },
+          ),
+      ],
+    );
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.title, required this.onLeave});
+
+  final String title;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 50,
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Material(
+            color: Colors.white.withValues(alpha: 0.18),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () {
+                SoundService.instance.playSfx(Sfx.button);
+                onLeave();
+              },
+              child: const SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(Icons.chevron_left, color: Colors.white, size: 26),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontFamily: 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  letterSpacing: 2,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 48),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlayerStrip extends StatelessWidget {
+  const _PlayerStrip({
+    required this.name,
+    required this.photoUrl,
+    required this.score,
+    required this.coin,
+    required this.active,
+  });
+
+  final String name;
+  final String? photoUrl;
+  final int score;
+  final CoinColor coin;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl;
+    final hasUrl = url != null && url.isNotEmpty;
+    final palette = coinPalettes[coin]!;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: active ? 0.96 : 0.82),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: active ? GameColors.accent : Colors.transparent,
+          width: 2.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+            backgroundImage: hasUrl ? NetworkImage(url) : null,
+            child: hasUrl
+                ? null
+                : const Icon(Icons.person_rounded,
+                    size: 18, color: GameColors.onAccent),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: GameColors.ink,
+              ),
+            ),
+          ),
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [palette.faceTop, palette.faceBottom],
+              ),
+            ),
+            child: Text(
+              '$score',
+              style: TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+                color: ThemeData.estimateBrightnessForColor(palette.faceMid) ==
+                        Brightness.light
+                    ? GameColors.ink
+                    : Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultOverlay extends StatelessWidget {
+  const _ResultOverlay({
+    required this.game,
+    required this.myColor,
+    required this.strings,
+    required this.onMenu,
+  });
+
+  final OnlineGame game;
+  final Disc myColor;
+  final AppStrings strings;
+  final VoidCallback onMenu;
+
+  @override
+  Widget build(BuildContext context) {
+    final String title;
+    if (game.isDraw) {
+      title = strings.drawTitle;
+    } else if (game.winner == myColor) {
+      title = strings.youWon;
+    } else {
+      title = strings.youLost;
+    }
+    return Positioned.fill(
+      child: ColoredBox(
+        color: const Color(0x99000000),
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 24,
+                    color: GameColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${game.game.scoreFor(Disc.black)} - ${game.game.scoreFor(Disc.white)}',
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    color: GameColors.inkSoft,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: GameColors.accent,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: onMenu,
+                    child: Text(
+                      strings.mainMenu,
+                      style: const TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

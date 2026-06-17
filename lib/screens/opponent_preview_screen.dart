@@ -5,6 +5,7 @@ import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import 'online_game_screen.dart';
 
 /// Shown once matched: the opponent's name, photo, level and basic online
 /// record (from the game's playerInfo snapshot), alongside the player. The
@@ -106,9 +107,10 @@ class OpponentPreviewScreen extends StatelessWidget {
                         ),
                         onPressed: () {
                           SoundService.instance.playSfx(Sfx.button);
-                          // Live online gameplay is wired in REV-47.
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(strings.onlineComingSoon)),
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute<void>(
+                              builder: (_) => OnlineGameScreen(gameId: gameId),
+                            ),
                           );
                         },
                         child: Text(
