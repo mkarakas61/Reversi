@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../game/reversi_game.dart';
 
 /// Decodes a 64-char row-major board string ("b"/"w"/"-") into a board grid.
@@ -46,6 +48,7 @@ class OnlineGame {
     required this.winner,
     required this.isDraw,
     required this.moveCount,
+    this.lastSeen = const {},
   });
 
   final String id;
@@ -59,6 +62,10 @@ class OnlineGame {
   final bool isDraw;
   final int moveCount;
 
+  /// Server timestamp of each player's most recent in-game heartbeat, keyed by
+  /// uid. Used to detect a disconnected opponent (REV-48).
+  final Map<String, DateTime> lastSeen;
+
   bool get isFinished => status == OnlineStatus.finished;
 
   /// Aborted before play started (e.g. a player left the opponent preview).
@@ -68,6 +75,9 @@ class OnlineGame {
   Disc colorFor(String uid) => uid == blackUid ? Disc.black : Disc.white;
 
   String opponentUid(String myUid) => myUid == blackUid ? whiteUid : blackUid;
+
+  /// Most recent heartbeat for [uid], or null if they've never checked in.
+  DateTime? lastSeenFor(String uid) => lastSeen[uid];
 
   Map<String, dynamic> infoFor(String uid) =>
       playerInfo[uid] as Map<String, dynamic>? ?? const {};
@@ -85,6 +95,12 @@ class OnlineGame {
 
     final winnerStr = d['winner'] as String?;
     final players = d['players'] as Map<String, dynamic>? ?? const {};
+
+    final lastSeenRaw = d['lastSeen'] as Map<String, dynamic>? ?? const {};
+    final lastSeen = <String, DateTime>{};
+    lastSeenRaw.forEach((k, v) {
+      if (v is Timestamp) lastSeen[k] = v.toDate();
+    });
 
     return OnlineGame(
       id: id,

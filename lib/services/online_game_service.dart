@@ -72,13 +72,49 @@ class OnlineGameService {
     } catch (_) {}
   }
 
-  /// Forfeits the game so the opponent wins. Refined (timeouts/disconnect) in
-  /// REV-48.
+  /// Forfeits a game in progress so the opponent wins — the player explicitly
+  /// left after play had started.
   Future<void> resign(OnlineGame g, String byUid) async {
     final opponentColor = g.colorFor(g.opponentUid(byUid));
     await _doc(g.id).update({
       'status': 'finished',
       'winner': opponentColor == Disc.black ? 'black' : 'white',
     });
+  }
+
+  /// Records that [uid] is still present in the game (REV-48). Both clients
+  /// stamp this every few seconds; a stale stamp means the player dropped.
+  Future<void> heartbeat(String gameId, String uid) async {
+    try {
+      await _doc(gameId)
+          .update({'lastSeen.$uid': FieldValue.serverTimestamp()});
+    } catch (_) {}
+  }
+
+  /// Claims the win when the opponent has stopped sending heartbeats — i.e. has
+  /// disconnected (REV-48). Compares the two server-written `lastSeen` stamps
+  /// (so it's free of client-clock skew) inside a transaction, and only
+  /// finishes if the opponent is still [staleThreshold] behind. There is no
+  /// per-turn time limit; a connected player may think as long as they like.
+  Future<void> claimDisconnectWin(OnlineGame g, String myUid) async {
+    const staleThreshold = Duration(seconds: 30);
+    final ref = _doc(g.id);
+    final myColor = g.colorFor(myUid);
+    final oppUid = g.opponentUid(myUid);
+    try {
+      await _db.runTransaction((tx) async {
+        final d = (await tx.get(ref)).data();
+        if (d == null || d['status'] != 'active') return;
+        final ls = d['lastSeen'] as Map<String, dynamic>?;
+        final mine = (ls?[myUid] as Timestamp?)?.toDate();
+        final opp = (ls?[oppUid] as Timestamp?)?.toDate();
+        if (mine == null || opp == null) return;
+        if (mine.difference(opp) < staleThreshold) return; // not stale yet
+        tx.update(ref, {
+          'status': 'finished',
+          'winner': myColor == Disc.black ? 'black' : 'white',
+        });
+      });
+    } catch (_) {}
   }
 }

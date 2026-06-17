@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../game/app_settings.dart';
@@ -38,6 +40,17 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   String? _infoMessage;
   // Guards a one-time auto-exit when the opponent cancels an un-started match.
   bool _exited = false;
+  // Presence heartbeat telling the opponent we're connected (REV-48); guards so
+  // we start it once and only ever claim a disconnect win once.
+  Timer? _heartbeat;
+  bool _heartbeatStarted = false;
+  bool _claiming = false;
+
+  @override
+  void dispose() {
+    _heartbeat?.cancel();
+    super.dispose();
+  }
 
   /// Folds each new snapshot into local UI state: plays the move chime, derives
   /// the flip animation by diffing the board, and surfaces a forced-pass popup.
@@ -146,18 +159,42 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       return const SizedBox.shrink();
     }
 
+    // Start the presence heartbeat once we know who we are (REV-48).
+    if (!_heartbeatStarted) {
+      _heartbeatStarted = true;
+      OnlineGameService.instance.heartbeat(widget.gameId, myUid);
+      _heartbeat = Timer.periodic(
+        const Duration(seconds: 10),
+        (_) => OnlineGameService.instance.heartbeat(widget.gameId, myUid),
+      );
+    }
+
     return StreamBuilder<OnlineGame>(
       stream: OnlineGameService.instance.watch(widget.gameId),
       builder: (context, snapshot) {
         final g = snapshot.data;
         if (g != null) {
           _sync(g, myUid, strings);
-          // The opponent aborted an un-started match — leave too, no penalty.
+          if (g.isFinished || g.isCancelled) {
+            _heartbeat?.cancel();
+          }
           if (g.isCancelled && !_exited) {
+            // The opponent aborted an un-started match — leave too, no penalty.
             _exited = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) Navigator.of(context).maybePop();
             });
+          } else if (!g.isFinished && !g.isCancelled && !_claiming) {
+            // Opponent's heartbeat has gone stale (>30s behind ours) — they
+            // disconnected, so claim the win.
+            final mine = g.lastSeenFor(myUid);
+            final opp = g.lastSeenFor(g.opponentUid(myUid));
+            if (mine != null &&
+                opp != null &&
+                mine.difference(opp) > const Duration(seconds: 30)) {
+              _claiming = true;
+              OnlineGameService.instance.claimDisconnectWin(g, myUid);
+            }
           }
         }
         return PopScope(
