@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../models/online_stats.dart';
+import '../models/xp_level.dart';
 import '../services/auth_service.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
@@ -148,9 +149,7 @@ class _LevelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provisional band: 100 XP per level step. Replaced by the REV-40 curve.
-    final intoLevel = xp % 100;
-    final progress = (intoLevel / 100).clamp(0.0, 1.0);
+    final progress = XpLevel.levelProgress(xp);
 
     return _Card(
       child: Column(
