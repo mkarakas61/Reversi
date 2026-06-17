@@ -19,3 +19,6 @@ export const ping = onCall((request) => {
     at: Date.now(),
   };
 });
+
+// Matchmaking: pairs waiting players into a game (REV-43).
+export {onMatchmakingTicketCreated} from "./matchmaking";
