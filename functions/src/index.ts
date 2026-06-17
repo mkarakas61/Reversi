@@ -22,3 +22,7 @@ export const ping = onCall((request) => {
 
 // Matchmaking: pairs waiting players into a game (REV-43).
 export {onMatchmakingTicketCreated} from "./matchmaking";
+
+// End-of-game rewards: replays the move log to validate the result, then awards
+// XP, level, ranked stats and coins to both players (REV-50).
+export {onGameFinished} from "./finish_game";

@@ -53,3 +53,19 @@ export function earnedXp(r: GameResult): number {
   const streakBonus = Math.min(r.streak, 5) * 5;
   return base + scoreBonus + flipBonus + levelBonus + streakBonus;
 }
+
+// ── Coins (soft currency) ───────────────────────────────────────────────────
+// Awarded from launch (REV-50 product decision) toward the planned v1.1 IAP
+// economy. Amounts are intentionally simple and tunable from here.
+const COIN_WIN = 10;
+const COIN_DRAW = 5;
+const COIN_LOSS = 2;
+
+/** Coins earned for one online game. */
+export function earnedCoins(outcome: GameOutcome): number {
+  return outcome === "win"
+    ? COIN_WIN
+    : outcome === "draw"
+      ? COIN_DRAW
+      : COIN_LOSS;
+}
