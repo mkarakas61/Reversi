@@ -34,8 +34,9 @@ class SettingsStorage {
               CoinColor.white,
       soundEnabled: prefs.getBool(_soundKey) ?? true,
       musicEnabled: prefs.getBool(_musicKey) ?? true,
-      gameSpeed: _enumByName(GameSpeed.values, prefs.getString(_gameSpeedKey)) ??
-          GameSpeed.normal,
+      gameSpeed:
+          _enumByName(GameSpeed.values, prefs.getString(_gameSpeedKey)) ??
+              GameSpeed.normal,
     );
   }
 

@@ -93,7 +93,8 @@ class _CoinPainter extends CustomPainter {
       colors: [palette.faceTop, palette.faceMid, palette.faceBottom],
       stops: const [0.0, 0.5, 1.0],
     );
-    canvas.drawOval(faceRect, Paint()..shader = faceGradient.createShader(faceRect));
+    canvas.drawOval(
+        faceRect, Paint()..shader = faceGradient.createShader(faceRect));
 
     // rim shading
     canvas.drawOval(

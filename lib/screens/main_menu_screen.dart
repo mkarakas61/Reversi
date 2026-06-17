@@ -10,6 +10,7 @@ import '../services/auth_service.dart';
 import '../services/game_storage.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import 'matchmaking_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
@@ -114,6 +115,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final isSignedIn = ProfileScope.of(context).profile != null;
 
     return Scaffold(
       body: DecoratedBox(
@@ -284,6 +286,19 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                           icon: Icons.people_rounded,
                           onTap: () => setState(() => _showTimeLimit = true),
                         ),
+                        if (isSignedIn) ...[
+                          const SizedBox(height: 14),
+                          _MenuButton(
+                            label: strings.onlinePlay,
+                            icon: Icons.public_rounded,
+                            primary: true,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const MatchmakingScreen(),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ),

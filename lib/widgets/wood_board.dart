@@ -122,9 +122,8 @@ class _WoodBoardState extends State<WoodBoard>
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final h = constraints.maxHeight.isFinite
-            ? constraints.maxHeight
-            : w * 1.1;
+        final h =
+            constraints.maxHeight.isFinite ? constraints.maxHeight : w * 1.1;
 
         // Slab is described in its own local square of side [s]; the homography
         // maps that square onto the on-screen trapezoid.
@@ -150,8 +149,7 @@ class _WoodBoardState extends State<WoodBoard>
         final transform = _squareToQuad(s, corners);
         final inverse = Matrix4.inverted(transform);
 
-        Offset project(Offset p) =>
-            MatrixUtils.transformPoint(transform, p);
+        Offset project(Offset p) => MatrixUtils.transformPoint(transform, p);
 
         // Projected centre and on-screen diameter for cell (r, c).
         (Offset, double) cellGeometry(int r, int c) {
@@ -581,7 +579,8 @@ class _GridPainter extends CustomPainter {
       final pos = i * cell;
       canvas.drawLine(
           Offset(pos + 1.6, 1.6), Offset(pos + 1.6, size.height), hi);
-      canvas.drawLine(Offset(1.6, pos + 1.6), Offset(size.width, pos + 1.6), hi);
+      canvas.drawLine(
+          Offset(1.6, pos + 1.6), Offset(size.width, pos + 1.6), hi);
       canvas.drawLine(Offset(pos, 0), Offset(pos, size.height), line);
       canvas.drawLine(Offset(0, pos), Offset(size.width, pos), line);
     }

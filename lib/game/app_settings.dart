@@ -92,15 +92,17 @@ class SettingsController extends ChangeNotifier {
   /// colour, the two swap so the sides always stay distinct.
   void setYourCoin(CoinColor color) {
     if (_settings.yourCoin == color) return;
-    final opponent =
-        color == _settings.opponentCoin ? _settings.yourCoin : _settings.opponentCoin;
+    final opponent = color == _settings.opponentCoin
+        ? _settings.yourCoin
+        : _settings.opponentCoin;
     _update(_settings.copyWith(yourCoin: color, opponentCoin: opponent));
   }
 
   void setOpponentCoin(CoinColor color) {
     if (_settings.opponentCoin == color) return;
-    final your =
-        color == _settings.yourCoin ? _settings.opponentCoin : _settings.yourCoin;
+    final your = color == _settings.yourCoin
+        ? _settings.opponentCoin
+        : _settings.yourCoin;
     _update(_settings.copyWith(opponentCoin: color, yourCoin: your));
   }
 
@@ -136,8 +138,7 @@ class SettingsScope extends InheritedNotifier<SettingsController> {
   }) : super(notifier: controller);
 
   static SettingsController of(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<SettingsScope>();
+    final scope = context.dependOnInheritedWidgetOfExactType<SettingsScope>();
     assert(scope?.notifier != null, 'No SettingsScope found in context');
     return scope!.notifier!;
   }

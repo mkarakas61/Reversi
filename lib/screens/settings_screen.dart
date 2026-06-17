@@ -572,7 +572,8 @@ class _CoinSwatch extends StatelessWidget {
           stops: const [0.0, 0.5, 1.0],
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(
+              color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
     );

@@ -115,8 +115,7 @@ class GameStats {
     required int flippedDiscs,
     required int durationSeconds,
   }) {
-    final nextStreak =
-        outcome == GameOutcome.win ? currentWinStreak + 1 : 0;
+    final nextStreak = outcome == GameOutcome.win ? currentWinStreak + 1 : 0;
     return GameStats(
       overall: overall.addOutcome(outcome),
       byMode: {
@@ -124,8 +123,7 @@ class GameStats {
         mode: recordFor(mode).addOutcome(outcome),
       },
       currentWinStreak: nextStreak,
-      bestWinStreak:
-          nextStreak > bestWinStreak ? nextStreak : bestWinStreak,
+      bestWinStreak: nextStreak > bestWinStreak ? nextStreak : bestWinStreak,
       bestScoreDiff: outcome == GameOutcome.win && scoreDiff > bestScoreDiff
           ? scoreDiff
           : bestScoreDiff,
@@ -137,7 +135,8 @@ class GameStats {
   Map<String, dynamic> toJson() => {
         'overall': overall.toJson(),
         'byMode': {
-          for (final entry in byMode.entries) entry.key.name: entry.value.toJson(),
+          for (final entry in byMode.entries)
+            entry.key.name: entry.value.toJson(),
         },
         'currentWinStreak': currentWinStreak,
         'bestWinStreak': bestWinStreak,
