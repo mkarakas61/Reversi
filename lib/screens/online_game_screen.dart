@@ -221,9 +221,7 @@ class _GameBody extends StatelessWidget {
               name: opp['name'] as String? ?? '—',
               photoUrl: opp['photo'] as String?,
               score: game.game.scoreFor(oppColor),
-              coin: myColor == Disc.black
-                  ? settings.opponentCoin
-                  : settings.yourCoin,
+              coin: settings.opponentCoin,
               active: !game.isFinished && !isMyTurn,
             ),
             Expanded(
