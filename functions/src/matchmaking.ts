@@ -44,17 +44,12 @@ export const onMatchmakingTicketCreated = onDocumentCreated(
       }
       if (partnerId == null) return; // nobody else waiting yet — stay queued
 
-      // Only the newer ticket initiates, so paired triggers don't double-book.
-      const mine = mySnap.data()!.createdAt as Timestamp | null;
-      const theirs = waiting.docs
-        .find((d) => d.id === partnerId)!
-        .data().createdAt as Timestamp | null;
-      if (mine && theirs) {
-        const cmp = mine.toMillis() - theirs.toMillis();
-        const iAmNewer = cmp > 0 || (cmp === 0 && myUid > partnerId);
-        if (!iAmNewer) return; // the other ticket will initiate
-      }
-
+      // Both players' create-triggers race to pair. Rather than have one defer
+      // to the other (which left both waiting when that trigger fired alone or
+      // was delayed/dropped — REV-46), either trigger may initiate: both writes
+      // touch the same two ticket docs, so concurrent attempts conflict and the
+      // loser retries, re-reads a now-"matched" ticket, and bails. Exactly one
+      // game is ever created.
       const partnerRef = mm.doc(partnerId);
       const partnerSnap = await tx.get(partnerRef);
       if (!partnerSnap.exists || partnerSnap.data()!.status !== "waiting") {
