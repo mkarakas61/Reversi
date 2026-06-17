@@ -129,6 +129,12 @@ class AppStrings {
       'durationHoursMinutes': '{h}h {m}m',
       'durationMinutes': '{m}m',
       'durationSeconds': '{s}s',
+      'onlineStatistics': 'Online Statistics',
+      'statsOnlineEmpty':
+          "You haven't played any online games yet. Play a ranked match to see your stats here!",
+      'statsTotalFlippedOnline': 'Total discs flipped',
+      'statsBestScoreDiffOnline': 'Best score gap',
+      'viewAll': 'View all',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -238,6 +244,12 @@ class AppStrings {
       'durationHoursMinutes': '{h} sa {m} dk',
       'durationMinutes': '{m} dk',
       'durationSeconds': '{s} sn',
+      'onlineStatistics': 'Online İstatistikler',
+      'statsOnlineEmpty':
+          'Henüz çevrimiçi oyun oynamadın. Sıralama maçı oynayınca istatistiklerin burada görünecek!',
+      'statsTotalFlippedOnline': 'Toplam çevrilen taş',
+      'statsBestScoreDiffOnline': 'En yüksek skor farkı',
+      'viewAll': 'Tümünü gör',
     },
   };
 
@@ -314,6 +326,9 @@ class AppStrings {
   String get statsReset => _get('statsReset');
   String get statsResetTitle => _get('statsResetTitle');
   String get statsResetBody => _get('statsResetBody');
+  String get onlineStatistics => _get('onlineStatistics');
+  String get statsOnlineEmpty => _get('statsOnlineEmpty');
+  String get viewAll => _get('viewAll');
 
   String timeLimitLabel(TimeLimit limit) {
     switch (limit) {

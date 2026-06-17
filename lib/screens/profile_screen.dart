@@ -4,6 +4,7 @@ import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../models/online_stats.dart';
 import '../models/xp_level.dart';
+import 'online_stats_screen.dart';
 import '../services/auth_service.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
@@ -236,14 +237,47 @@ class _OnlineRecordCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            strings.statistics,
-            style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: GameColors.ink,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  strings.onlineStatistics,
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: GameColors.ink,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  SoundService.instance.playSfx(Sfx.button);
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => const OnlineStatsScreen(),
+                  ));
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      strings.viewAll,
+                      style: const TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        color: GameColors.accent,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 16,
+                      color: GameColors.accent,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           Row(
