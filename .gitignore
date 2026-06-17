@@ -16,3 +16,10 @@ android/key.properties
 .idea/
 .vscode/
 .DS_Store
+
+# Firebase emulator logs
+*-debug.log
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
+.firebase/
