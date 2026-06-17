@@ -23,6 +23,7 @@ class MatchmakingScreen extends StatefulWidget {
 
 class _MatchmakingScreenState extends State<MatchmakingScreen> {
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _sub;
+  Timer? _pinger;
   String? _uid;
   bool _matched = false;
   bool _error = false;
@@ -51,6 +52,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
       if (data == null || _matched || !mounted) return;
       if (data['status'] == 'matched' && data['gameId'] != null) {
         _matched = true;
+        _pinger?.cancel();
         final gameId = data['gameId'] as String;
         SoundService.instance.playSfx(Sfx.win);
         Navigator.of(context).pushReplacement(
@@ -58,6 +60,15 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
             builder: (_) => OpponentPreviewScreen(gameId: gameId),
           ),
         );
+      }
+    });
+
+    // Re-stamp the ticket every few seconds so the pairing function re-runs; it
+    // self-heals a simultaneous join where both initial create-triggers queried
+    // before the other's ticket was visible (otherwise both sit waiting).
+    _pinger = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_matched && _uid != null) {
+        MatchmakingService.instance.touch(_uid!);
       }
     });
   }
@@ -72,6 +83,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
   @override
   void dispose() {
     _sub?.cancel();
+    _pinger?.cancel();
     // Best-effort: drop the ticket if we left without matching.
     if (!_matched && _uid != null) {
       unawaited(MatchmakingService.instance.cancel(_uid!));

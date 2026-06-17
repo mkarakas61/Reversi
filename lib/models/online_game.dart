@@ -29,7 +29,7 @@ String encodeBoard(List<List<Disc?>> board) {
   return sb.toString();
 }
 
-enum OnlineStatus { active, finished }
+enum OnlineStatus { active, finished, cancelled }
 
 /// A snapshot of an online game from the Firestore `games/{id}` document. The
 /// board is reconstructed into a [ReversiGame] so the shared rules engine drives
@@ -60,6 +60,10 @@ class OnlineGame {
   final int moveCount;
 
   bool get isFinished => status == OnlineStatus.finished;
+
+  /// Aborted before play started (e.g. a player left the opponent preview).
+  /// Neither side is penalised and no rewards are granted.
+  bool get isCancelled => status == OnlineStatus.cancelled;
 
   Disc colorFor(String uid) => uid == blackUid ? Disc.black : Disc.white;
 
@@ -94,9 +98,11 @@ class OnlineGame {
       playerUids:
           (d['playerUids'] as List<dynamic>? ?? const []).cast<String>(),
       playerInfo: d['playerInfo'] as Map<String, dynamic>? ?? const {},
-      status: (d['status'] as String?) == 'finished'
-          ? OnlineStatus.finished
-          : OnlineStatus.active,
+      status: switch (d['status'] as String?) {
+        'finished' => OnlineStatus.finished,
+        'cancelled' => OnlineStatus.cancelled,
+        _ => OnlineStatus.active,
+      },
       winner: winnerStr == 'black'
           ? Disc.black
           : (winnerStr == 'white' ? Disc.white : null),

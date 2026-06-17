@@ -52,6 +52,26 @@ class OnlineGameService {
     await _doc(g.id).update(data);
   }
 
+  /// Aborts a game that never started (no moves yet) — used when a player leaves
+  /// the opponent preview or the game screen before moving. Neither side is
+  /// penalised; both clients return to the menu when they observe the
+  /// `cancelled` status. A transaction guards against cancelling a game that has
+  /// already begun or finished.
+  Future<void> cancel(String gameId) async {
+    final ref = _doc(gameId);
+    try {
+      await _db.runTransaction((tx) async {
+        final data = (await tx.get(ref)).data();
+        if (data == null) return;
+        final status = data['status'] as String?;
+        final moveCount = (data['moveCount'] as num?)?.toInt() ?? 0;
+        if (status == 'active' && moveCount == 0) {
+          tx.update(ref, {'status': 'cancelled'});
+        }
+      });
+    } catch (_) {}
+  }
+
   /// Forfeits the game so the opponent wins. Refined (timeouts/disconnect) in
   /// REV-48.
   Future<void> resign(OnlineGame g, String byUid) async {

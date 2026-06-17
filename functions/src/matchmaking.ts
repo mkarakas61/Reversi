@@ -5,25 +5,26 @@ import {
   DocumentData,
 } from "firebase-admin/firestore";
 import {logger} from "firebase-functions/v2";
-import {onDocumentCreated} from "firebase-functions/v2/firestore";
+import {onDocumentWritten} from "firebase-functions/v2/firestore";
 
 // The Admin app is initialized once in index.ts.
 
 /// Initial per-move window. The full disconnect/forfeit handling is REV-48.
 const TURN_SECONDS = 40;
 
-/// Pairs waiting players into a game. Triggered when a player writes their
-/// matchmaking ticket (`matchmaking/{uid}` with status "waiting"). Runs a
-/// transaction so two near-simultaneous tickets can never create two games:
-/// only the newer ticket initiates, and both tickets are re-read inside the
-/// transaction and must still be "waiting" to be paired.
-export const onMatchmakingTicketCreated = onDocumentCreated(
+/// Pairs waiting players into a game. Triggered on any write to a matchmaking
+/// ticket (`matchmaking/{uid}`) — the initial create or a periodic client
+/// "ping" — so a simultaneous join whose first trigger missed its partner
+/// self-heals on the next ping. Runs a transaction: either ticket may initiate,
+/// and because both attempts write the same two ticket docs, the loser retries,
+/// sees a now-"matched" ticket and bails — exactly one game is created.
+export const onMatchmakingTicketWritten = onDocumentWritten(
   "matchmaking/{uid}",
   async (event) => {
-    const snap = event.data;
-    if (!snap) return;
+    const after = event.data?.after;
+    if (!after?.exists) return; // ticket deleted (e.g. cancelled)
     const myUid = event.params.uid;
-    if (snap.data().status !== "waiting") return;
+    if (after.data()!.status !== "waiting") return;
 
     const db = getFirestore();
     const mm = db.collection("matchmaking");

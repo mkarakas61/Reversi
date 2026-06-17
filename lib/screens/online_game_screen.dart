@@ -36,6 +36,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   BoardMove? _move;
   // Transient "forced pass" popup message, or null when none is showing.
   String? _infoMessage;
+  // Guards a one-time auto-exit when the opponent cancels an un-started match.
+  bool _exited = false;
 
   /// Folds each new snapshot into local UI state: plays the move chime, derives
   /// the flip animation by diffing the board, and surfaces a forced-pass popup.
@@ -97,9 +99,15 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   }
 
   Future<void> _confirmLeave(OnlineGame? g, String myUid) async {
-    // Nothing to resign once the game is over (or before it loads): just leave.
-    if (g == null || g.isFinished) {
+    // Finished, cancelled, or not yet loaded: just leave, no action.
+    if (g == null || g.isFinished || g.isCancelled) {
       Navigator.of(context).pop();
+      return;
+    }
+    // The game hasn't started (no moves yet): abort it for both — no penalty.
+    if (g.moveCount == 0) {
+      await OnlineGameService.instance.cancel(g.id);
+      if (mounted) Navigator.of(context).pop();
       return;
     }
     final strings = AppStrings.of(context);
@@ -142,11 +150,20 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       stream: OnlineGameService.instance.watch(widget.gameId),
       builder: (context, snapshot) {
         final g = snapshot.data;
-        if (g != null) _sync(g, myUid, strings);
+        if (g != null) {
+          _sync(g, myUid, strings);
+          // The opponent aborted an un-started match — leave too, no penalty.
+          if (g.isCancelled && !_exited) {
+            _exited = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) Navigator.of(context).maybePop();
+            });
+          }
+        }
         return PopScope(
-          // Finished (or not-yet-loaded) games leave freely; an in-progress
-          // game intercepts back to confirm the resignation.
-          canPop: g == null || g.isFinished,
+          // Finished / cancelled (or not-yet-loaded) games leave freely; an
+          // active game intercepts back to cancel (pre-move) or resign.
+          canPop: g == null || g.isFinished || g.isCancelled,
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) _confirmLeave(g, myUid);
           },

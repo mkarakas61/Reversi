@@ -31,6 +31,15 @@ class MatchmakingService {
     });
   }
 
+  /// Re-stamps the waiting ticket so the pairing function re-runs (it listens to
+  /// ticket writes, not just creates). Lets a simultaneous join that missed its
+  /// initial pairing self-heal within a few seconds. No-op if the ticket's gone.
+  Future<void> touch(String uid) async {
+    try {
+      await _ticket(uid).update({'pingAt': FieldValue.serverTimestamp()});
+    } catch (_) {}
+  }
+
   /// Streams the player's ticket so the UI reacts when it becomes "matched".
   Stream<DocumentSnapshot<Map<String, dynamic>>> watchTicket(String uid) =>
       _ticket(uid).snapshots();
