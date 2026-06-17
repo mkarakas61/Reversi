@@ -61,7 +61,11 @@ const COIN_WIN = 10;
 const COIN_DRAW = 5;
 const COIN_LOSS = 2;
 
-/** Coins earned for one online game. */
+/**
+ * Coins earned for one online game. Currently NOT wired into the reward
+ * function — coin awarding is disabled until the v1.1 IAP update (see
+ * finish_game.ts). Kept and unit-tested so it's ready to switch back on.
+ */
 export function earnedCoins(outcome: GameOutcome): number {
   return outcome === "win"
     ? COIN_WIN

@@ -9,7 +9,7 @@ import {logger} from "firebase-functions/v2";
 import {onDocumentUpdated} from "firebase-functions/v2/firestore";
 
 import {replay, ReplayMove, Disc} from "./reversi";
-import {earnedXp, earnedCoins, level, GameOutcome} from "./xp_level";
+import {earnedXp, level, GameOutcome} from "./xp_level";
 
 // The Admin app is initialized once in index.ts.
 
@@ -138,7 +138,6 @@ function applyReward(
   oppData: DocumentData | undefined
 ): void {
   const xp = (data?.xp as number) ?? 0;
-  const coins = (data?.coins as number) ?? 0;
   const online = (data?.online as Record<string, number>) ?? {};
   const wins = online.wins ?? 0;
   const losses = online.losses ?? 0;
@@ -167,7 +166,10 @@ function applyReward(
     {
       xp: newXp,
       level: level(newXp),
-      coins: coins + earnedCoins(outcome),
+      // Coins are intentionally NOT awarded yet — disabled until the v1.1 IAP
+      // update. To re-enable: re-read `coins`, re-import earnedCoins, and add
+      // `coins: coins + earnedCoins(outcome)` here; then decide whether to
+      // back-fill players who earned XP before coins existed.
       online: {
         wins: wins + (outcome === "win" ? 1 : 0),
         losses: losses + (outcome === "loss" ? 1 : 0),
