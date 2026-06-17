@@ -8,6 +8,7 @@ import '../models/online_game.dart';
 import '../services/online_game_service.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import '../widgets/info_popup.dart';
 import '../widgets/wood_board.dart';
 
 /// Live online match. Both clients render from the shared game document; the
@@ -26,21 +27,80 @@ class OnlineGameScreen extends StatefulWidget {
 
 class _OnlineGameScreenState extends State<OnlineGameScreen> {
   int _lastMoveCount = -1;
+  // The previous board, kept so each incoming snapshot can be diffed against it
+  // to recover the placed + flipped cells and drive the flip animation (the doc
+  // only carries the resulting board, not the move's captures).
+  List<List<Disc?>>? _lastBoard;
+  // The move to animate on the board, or null until the first real move lands.
+  BoardMove? _move;
+  // Transient "forced pass" popup message, or null when none is showing.
+  String? _infoMessage;
 
-  void _onMoveSound(OnlineGame g) {
+  /// Folds each new snapshot into local UI state: plays the move chime, derives
+  /// the flip animation by diffing the board, and surfaces a forced-pass popup.
+  /// Called during build (the snapshot already drives the rebuild), mirroring
+  /// the local game's per-move bookkeeping.
+  void _sync(OnlineGame g, String myUid, AppStrings strings) {
+    final board = g.game.board;
     if (_lastMoveCount < 0) {
+      // First snapshot: establish the baseline without animating or chiming.
       _lastMoveCount = g.moveCount;
+      _lastBoard = board;
       return;
     }
-    if (g.moveCount > _lastMoveCount) {
-      _lastMoveCount = g.moveCount;
-      SoundService.instance.playSfx(Sfx.place);
-      Future<void>.delayed(const Duration(milliseconds: 260),
-          () => SoundService.instance.playSfx(Sfx.flip));
+    if (g.moveCount <= _lastMoveCount) return;
+
+    SoundService.instance.playSfx(Sfx.place);
+    Future<void>.delayed(const Duration(milliseconds: 260),
+        () => SoundService.instance.playSfx(Sfx.flip));
+
+    final placed = g.game.lastMove;
+    final old = _lastBoard;
+    String? info;
+    if (placed != null && old != null) {
+      final color = board[placed.row][placed.col];
+      if (color != null) {
+        // Captured discs are the cells that changed to the mover's colour.
+        final flipped = <Position>{};
+        for (var r = 0; r < ReversiGame.size; r++) {
+          for (var c = 0; c < ReversiGame.size; c++) {
+            if (board[r][c] == color &&
+                old[r][c] != null &&
+                old[r][c] != color) {
+              flipped.add(Position(r, c));
+            }
+          }
+        }
+        _move = BoardMove(
+            id: g.moveCount, placed: placed, flipped: flipped, color: color);
+
+        // If it is the mover's turn again (and the game isn't over), the other
+        // side had no legal move and was skipped.
+        if (!g.isFinished && g.game.currentPlayer == color) {
+          final skipped = color == Disc.black ? Disc.white : Disc.black;
+          info = skipped == g.colorFor(myUid)
+              ? strings.passSkippedYou
+              : strings.passSkippedOpponent;
+        }
+      }
+    }
+    _infoMessage = info; // clears any stale popup on a non-pass move
+    _lastMoveCount = g.moveCount;
+    _lastBoard = board;
+  }
+
+  void _dismissInfo() {
+    if (_infoMessage != null && mounted) {
+      setState(() => _infoMessage = null);
     }
   }
 
   Future<void> _confirmLeave(OnlineGame? g, String myUid) async {
+    // Nothing to resign once the game is over (or before it loads): just leave.
+    if (g == null || g.isFinished) {
+      Navigator.of(context).pop();
+      return;
+    }
     final strings = AppStrings.of(context);
     final leave = await showDialog<bool>(
       context: context,
@@ -60,10 +120,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       ),
     );
     if (leave == true) {
-      if (g != null && !g.isFinished) {
-        await OnlineGameService.instance.resign(g, myUid);
-      }
-      if (mounted) Navigator.of(context).maybePop();
+      await OnlineGameService.instance.resign(g, myUid);
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
@@ -83,8 +141,11 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       stream: OnlineGameService.instance.watch(widget.gameId),
       builder: (context, snapshot) {
         final g = snapshot.data;
+        if (g != null) _sync(g, myUid, strings);
         return PopScope(
-          canPop: false,
+          // Finished (or not-yet-loaded) games leave freely; an in-progress
+          // game intercepts back to confirm the resignation.
+          canPop: g == null || g.isFinished,
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) _confirmLeave(g, myUid);
           },
@@ -100,7 +161,9 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         myUid: myUid,
                         settings: settings,
                         strings: strings,
-                        onSound: _onMoveSound,
+                        move: _move,
+                        infoMessage: _infoMessage,
+                        onInfoDismissed: _dismissInfo,
                         onLeave: () => _confirmLeave(g, myUid),
                       ),
               ),
@@ -118,7 +181,9 @@ class _GameBody extends StatelessWidget {
     required this.myUid,
     required this.settings,
     required this.strings,
-    required this.onSound,
+    required this.move,
+    required this.infoMessage,
+    required this.onInfoDismissed,
     required this.onLeave,
   });
 
@@ -126,13 +191,13 @@ class _GameBody extends StatelessWidget {
   final String myUid;
   final AppSettings settings;
   final AppStrings strings;
-  final void Function(OnlineGame) onSound;
+  final BoardMove? move;
+  final String? infoMessage;
+  final VoidCallback onInfoDismissed;
   final VoidCallback onLeave;
 
   @override
   Widget build(BuildContext context) {
-    onSound(game);
-
     final myColor = game.colorFor(myUid);
     final oppColor = myColor == Disc.black ? Disc.white : Disc.black;
     final isMyTurn = !game.isFinished && game.game.currentPlayer == myColor;
@@ -173,6 +238,7 @@ class _GameBody extends StatelessWidget {
                       theme: settings.board,
                       blackCoin: blackCoin,
                       whiteCoin: whiteCoin,
+                      move: move,
                       onCellTap: (pos) {
                         if (!isMyTurn) return;
                         OnlineGameService.instance.submitMove(game, pos, myUid);
@@ -205,6 +271,12 @@ class _GameBody extends StatelessWidget {
             ),
           ],
         ),
+        if (infoMessage != null)
+          InfoPopup(
+            key: ValueKey(game.moveCount),
+            message: infoMessage!,
+            onDismissed: onInfoDismissed,
+          ),
         if (game.isFinished)
           _ResultOverlay(
             game: game,
@@ -212,7 +284,7 @@ class _GameBody extends StatelessWidget {
             strings: strings,
             onMenu: () {
               SoundService.instance.playSfx(Sfx.button);
-              Navigator.of(context).maybePop();
+              Navigator.of(context).pop();
             },
           ),
       ],

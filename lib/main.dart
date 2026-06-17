@@ -28,6 +28,7 @@ import 'services/settings_storage.dart';
 import 'services/sound_service.dart';
 import 'services/stats_storage.dart';
 import 'theme/game_theme.dart';
+import 'widgets/info_popup.dart';
 import 'widgets/wood_board.dart';
 
 /// Lets screens react to navigation (to switch background music per screen).
@@ -886,7 +887,7 @@ class _ReversiHomePageState extends State<ReversiHomePage>
             ),
             if (_timeUpVisible) _TimeUpOverlay(message: strings.timeUp),
             if (_infoMessage != null)
-              _InfoPopup(
+              InfoPopup(
                 key: ValueKey(_infoMessage),
                 message: _infoMessage!,
                 duration: _infoPopupDuration,
@@ -1598,85 +1599,6 @@ class _TimeUpOverlay extends StatelessWidget {
 /// A short-lived, centered popup for transient game messages (invalid move,
 /// forced pass). Auto-dismisses after [duration], or immediately if the
 /// player taps anywhere on the screen — built for impatient players.
-class _InfoPopup extends StatefulWidget {
-  const _InfoPopup({
-    super.key,
-    required this.message,
-    required this.onDismissed,
-    this.duration = const Duration(seconds: 2),
-  });
-
-  final String message;
-  final Duration duration;
-  final VoidCallback onDismissed;
-
-  @override
-  State<_InfoPopup> createState() => _InfoPopupState();
-}
-
-class _InfoPopupState extends State<_InfoPopup> {
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(widget.duration, widget.onDismissed);
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: widget.onDismissed,
-        child: Center(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutBack,
-            builder: (context, v, child) => Transform.scale(
-              scale: 0.85 + 0.15 * v.clamp(0.0, 1.0),
-              child: Opacity(opacity: v.clamp(0.0, 1.0), child: child),
-            ),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 36),
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x40000000),
-                    offset: Offset(0, 10),
-                    blurRadius: 26,
-                  ),
-                ],
-              ),
-              child: Text(
-                widget.message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17,
-                  height: 1.25,
-                  color: GameColors.ink,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Full-screen end-of-game celebration: a dimmed scrim, two confetti cannons
 /// firing from the bottom corners (for celebratory results), and a centred card
 /// with the result and the Play Again / Main Menu choices.
