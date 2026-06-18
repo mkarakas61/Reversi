@@ -124,6 +124,7 @@ class OnlineGame {
           : (winnerStr == 'white' ? Disc.white : null),
       isDraw: winnerStr == 'draw',
       moveCount: (d['moveCount'] as num?)?.toInt() ?? 0,
+      lastSeen: lastSeen,
     );
   }
 }

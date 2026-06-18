@@ -91,13 +91,13 @@ class OnlineGameService {
     } catch (_) {}
   }
 
-  /// Claims the win when the opponent has stopped sending heartbeats — i.e. has
-  /// disconnected (REV-48). Compares the two server-written `lastSeen` stamps
-  /// (so it's free of client-clock skew) inside a transaction, and only
-  /// finishes if the opponent is still [staleThreshold] behind. There is no
-  /// per-turn time limit; a connected player may think as long as they like.
+  /// Claims the win when the opponent has stopped sending heartbeats — i.e.
+  /// has disconnected (REV-48). Uses the opponent's server-written `lastSeen`
+  /// stamp compared to device clock (NTP skew is negligible vs. the 10 s
+  /// threshold). There is no per-turn time limit; a connected player may think
+  /// as long as they like.
   Future<void> claimDisconnectWin(OnlineGame g, String myUid) async {
-    const staleThreshold = Duration(seconds: 30);
+    const staleThreshold = Duration(seconds: 10);
     final ref = _doc(g.id);
     final myColor = g.colorFor(myUid);
     final oppUid = g.opponentUid(myUid);
@@ -106,15 +106,31 @@ class OnlineGameService {
         final d = (await tx.get(ref)).data();
         if (d == null || d['status'] != 'active') return;
         final ls = d['lastSeen'] as Map<String, dynamic>?;
-        final mine = (ls?[myUid] as Timestamp?)?.toDate();
         final opp = (ls?[oppUid] as Timestamp?)?.toDate();
-        if (mine == null || opp == null) return;
-        if (mine.difference(opp) < staleThreshold) return; // not stale yet
+        if (opp == null) return;
+        if (DateTime.now().difference(opp) < staleThreshold) return;
         tx.update(ref, {
           'status': 'finished',
           'winner': myColor == Disc.black ? 'black' : 'white',
         });
       });
     } catch (_) {}
+  }
+
+  /// Returns the id of an active game the player is currently in, or null if
+  /// none. Used to redirect a reconnecting player back to their ongoing match
+  /// instead of opening a new matchmaking session (REV-48).
+  Future<String?> findActiveGame(String uid) async {
+    try {
+      final snap = await _db
+          .collection('games')
+          .where('playerUids', arrayContains: uid)
+          .where('status', isEqualTo: 'active')
+          .limit(1)
+          .get();
+      return snap.docs.isEmpty ? null : snap.docs.first.id;
+    } catch (_) {
+      return null;
+    }
   }
 }

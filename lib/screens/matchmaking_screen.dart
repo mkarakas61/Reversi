@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../services/matchmaking_service.dart';
+import '../services/online_game_service.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import 'online_game_screen.dart';
 import 'opponent_preview_screen.dart';
 
 /// "Finding an opponent…" lobby. On open it joins the matchmaking queue and
@@ -41,6 +43,20 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
       return;
     }
     _uid = profile.uid;
+
+    // If the player has an ongoing active game (e.g. returned after a
+    // disconnect), send them back instead of opening a new match (REV-48).
+    final existingGameId =
+        await OnlineGameService.instance.findActiveGame(_uid!);
+    if (existingGameId != null && mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => OnlineGameScreen(gameId: existingGameId),
+        ),
+      );
+      return;
+    }
+
     try {
       await MatchmakingService.instance.joinQueue(profile, profile.online);
     } catch (_) {

@@ -164,7 +164,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       _heartbeatStarted = true;
       OnlineGameService.instance.heartbeat(widget.gameId, myUid);
       _heartbeat = Timer.periodic(
-        const Duration(seconds: 10),
+        const Duration(seconds: 3),
         (_) => OnlineGameService.instance.heartbeat(widget.gameId, myUid),
       );
     }
@@ -185,13 +185,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
               if (mounted) Navigator.of(context).maybePop();
             });
           } else if (!g.isFinished && !g.isCancelled && !_claiming) {
-            // Opponent's heartbeat has gone stale (>30s behind ours) — they
-            // disconnected, so claim the win.
-            final mine = g.lastSeenFor(myUid);
+            // Opponent's heartbeat is stale (>10 s ago) — they disconnected.
             final opp = g.lastSeenFor(g.opponentUid(myUid));
-            if (mine != null &&
-                opp != null &&
-                mine.difference(opp) > const Duration(seconds: 30)) {
+            if (opp != null &&
+                DateTime.now().difference(opp) > const Duration(seconds: 10)) {
               _claiming = true;
               OnlineGameService.instance.claimDisconnectWin(g, myUid);
             }
