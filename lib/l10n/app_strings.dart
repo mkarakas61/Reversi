@@ -112,6 +112,7 @@ class AppStrings {
       'youLost': 'You Lost',
       'leaveOnlineBody': "If you leave, you'll forfeit this match.",
       'statistics': 'Statistics',
+      'singlePlayerStatistics': 'Single Player Statistics',
       'statsTotalGames': 'Total games',
       'statsWins': 'Wins',
       'statsLosses': 'Losses',
@@ -234,6 +235,7 @@ class AppStrings {
       'youLost': 'Kaybettin',
       'leaveOnlineBody': 'Çıkarsan bu maçı kaybedersin.',
       'statistics': 'İstatistikler',
+      'singlePlayerStatistics': 'Tek Oyuncu İstatistikleri',
       'statsTotalGames': 'Toplam oyun',
       'statsWins': 'Galibiyet',
       'statsLosses': 'Mağlubiyet',
@@ -331,6 +333,7 @@ class AppStrings {
   String get youLost => _get('youLost');
   String get leaveOnlineBody => _get('leaveOnlineBody');
   String get statistics => _get('statistics');
+  String get singlePlayerStatistics => _get('singlePlayerStatistics');
   String get statsTotalGames => _get('statsTotalGames');
   String get statsWins => _get('statsWins');
   String get statsLosses => _get('statsLosses');

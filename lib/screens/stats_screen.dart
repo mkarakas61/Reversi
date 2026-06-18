@@ -88,7 +88,7 @@ class _StatsScreenState extends State<StatsScreen> {
               child: Column(
                 children: [
                   _Header(
-                    title: strings.statistics,
+                    title: strings.singlePlayerStatistics,
                     onBack: () => Navigator.of(context).maybePop(),
                   ),
                   Expanded(
@@ -519,17 +519,20 @@ class _Header extends StatelessWidget {
           _RoundButton(icon: Icons.chevron_left, onTap: onBack),
           Expanded(
             child: Center(
-              child: Text(
-                title.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  letterSpacing: 2.2,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
-                  ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    letterSpacing: 2.2,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
+                    ],
+                  ),
                 ),
               ),
             ),

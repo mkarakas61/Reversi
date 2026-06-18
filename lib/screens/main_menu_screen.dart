@@ -124,27 +124,6 @@ class _MainMenuScreenState extends State<MainMenuScreen>
           child: Stack(
             children: [
               Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: _PillButton(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const StatsScreen(),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.bar_chart_rounded, size: 18),
-                        const SizedBox(width: 6),
-                        Text(strings.statistics),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Align(
                 alignment: Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -236,6 +215,17 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                         _BackLink(
                           label: strings.back,
                           onTap: () => setState(() => _showDifficulty = false),
+                        ),
+                        const SizedBox(height: 28),
+                        _MenuButton(
+                          label: strings.singlePlayerStatistics,
+                          icon: Icons.bar_chart_rounded,
+                          primary: true,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const StatsScreen(),
+                            ),
+                          ),
                         ),
                       ] else if (_showTimeLimit) ...[
                         Text(
