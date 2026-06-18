@@ -26,3 +26,7 @@ export {onMatchmakingTicketWritten} from "./matchmaking";
 // End-of-game rewards: replays the move log to validate the result, then awards
 // XP, level, ranked stats and coins to both players (REV-50).
 export {onGameFinished} from "./finish_game";
+
+// Cleanup sweep: cancels games stuck `active` after both players disconnected,
+// so an abandoned match doesn't linger forever (REV-48 edge case).
+export {sweepAbandonedGames} from "./sweep";
