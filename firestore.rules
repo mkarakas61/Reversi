@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Reversi online security rules (draft — tightened in REV-51).
+// Reversi online security rules (tightened in REV-51).
 //
 // Core principle: clients may only write the "safe" identity fields of their
 // own profile. Everything that affects ranking — xp, level and the online
@@ -18,8 +18,7 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      // Any signed-in user can read profiles — needed later to show an
-      // opponent's basic stats before a match (REV-45).
+      // Any signed-in user can read profiles.
       allow read: if signedIn();
 
       // Owner may create their profile with only identity fields.
@@ -27,8 +26,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(
              ['displayName', 'photoUrl', 'createdAt', 'updatedAt']);
 
-      // Owner may update only identity fields. xp / level / online are owned by
-      // Cloud Functions, so the client can never touch them.
+      // Owner may update only identity fields. xp / level / online.* are
+      // owned by Cloud Functions and can never be touched by the client.
       allow update: if isOwner(uid)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
              ['displayName', 'photoUrl', 'updatedAt']);
@@ -42,17 +41,39 @@ service cloud.firestore {
       allow read, create, update, delete: if isOwner(uid);
     }
 
-    // Games: only the two participants may read. The game doc is created by the
-    // matchmaking function (Admin). During an active game either participant may
-    // update it to record their move; the server validates the result and awards
-    // XP by replaying the move log (REV-50), and REV-51 tightens this to
-    // turn-and-field-level checks. Game docs carry a `playerUids` array.
+    // Returns true when the update touches any board-state field, i.e. it
+    // is a move submission rather than a heartbeat, resign, or cancel.
+    function isMoveWrite() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasAny(['board', 'moves', 'moveCount', 'currentPlayer',
+                             'lastMove', 'turnDeadline']);
+    }
+
+    // Returns true when it is the requesting player's turn.
+    function isMyTurn() {
+      return (resource.data.currentPlayer == 'black'
+              && request.auth.uid == resource.data.players.black)
+          || (resource.data.currentPlayer == 'white'
+              && request.auth.uid == resource.data.players.white);
+    }
+
+    // Games: only the two participants may read. The game doc is created by
+    // the matchmaking function (Admin SDK — bypasses these rules).
+    // During an active game:
+    //   - Any participant may do a non-board write (heartbeat, resign,
+    //     claimDisconnectWin, cancel).
+    //   - Board-changing writes (move submissions) are additionally
+    //     restricted to the player whose turn it is (REV-51 anti-cheat).
+    // Finished or cancelled games are read-only.
     match /games/{gameId} {
       allow read: if signedIn()
         && request.auth.uid in resource.data.playerUids;
+
       allow update: if signedIn()
         && request.auth.uid in resource.data.playerUids
-        && resource.data.status == 'active';
+        && resource.data.status == 'active'
+        && (!isMoveWrite() || isMyTurn());
+
       allow create, delete: if false;
     }
   }
