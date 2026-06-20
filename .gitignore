@@ -23,3 +23,6 @@ firestore-debug.log
 firebase-debug.log
 ui-debug.log
 .firebase/
+
+# Release APK deliverable (not versioned)
+reversi.apk

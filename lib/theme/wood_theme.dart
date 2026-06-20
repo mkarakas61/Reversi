@@ -376,22 +376,27 @@ class _WoodButtonState extends State<WoodButton> {
           ],
         ),
         child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.icon != null) ...[
-                Icon(widget.icon, color: textColor, size: 20),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                widget.label,
-                style: WoodText.heading(
-                  widget.fontSize,
-                  color: textColor,
-                  spacing: 1,
+          // Shrink the label to fit a fixed-width button instead of
+          // overflowing when the text is wider than the button.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(widget.icon, color: textColor, size: 20),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  widget.label,
+                  style: WoodText.heading(
+                    widget.fontSize,
+                    color: textColor,
+                    spacing: 1,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

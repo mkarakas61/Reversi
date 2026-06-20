@@ -475,14 +475,23 @@ class _CoinRow extends StatelessWidget {
         ),
         Expanded(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // Each swatch gets an equal slot; FittedBox.scaleDown keeps the
+              // natural size on wide layouts but shrinks it just enough to
+              // avoid a few-pixel overflow on the narrowest screens.
               for (final color in CoinColor.values)
-                _CoinSwatch(
-                  color: color,
-                  active: color == selected,
-                  disabled: color == disabled,
-                  onTap: () => onSelect(color),
+                Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _CoinSwatch(
+                        color: color,
+                        active: color == selected,
+                        disabled: color == disabled,
+                        onTap: () => onSelect(color),
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),
