@@ -9,7 +9,7 @@ import '../l10n/app_strings.dart';
 import '../models/online_game.dart';
 import '../services/online_game_service.dart';
 import '../services/sound_service.dart';
-import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 import '../widgets/info_popup.dart';
 import '../widgets/wood_board.dart';
 import 'settings_screen.dart';
@@ -203,11 +203,11 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           },
           child: Scaffold(
             body: DecoratedBox(
-              decoration: BoxDecoration(gradient: bannerGradient),
+              decoration: const BoxDecoration(gradient: WoodDeco.darkBackground),
               child: SafeArea(
                 child: g == null
                     ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white))
+                        child: CircularProgressIndicator(color: Wood.gold))
                     : _GameBody(
                         game: g,
                         myUid: myUid,
@@ -265,61 +265,58 @@ class _GameBody extends StatelessWidget {
 
     return Stack(
       children: [
-        Column(
-          children: [
-            _TopBar(title: strings.onlinePlay, onLeave: onLeave),
-            _PlayerStrip(
-              name: opp['name'] as String? ?? '—',
-              photoUrl: opp['photo'] as String?,
-              score: game.game.scoreFor(oppColor),
-              coin: settings.opponentCoin,
-              active: !game.isFinished && !isMyTurn,
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: WoodBoard(
-                      board: game.game.board,
-                      validMoves: isMyTurn ? game.game.validMoves : const {},
-                      lastMove: game.game.lastMove,
-                      theme: settings.board,
-                      blackCoin: blackCoin,
-                      whiteCoin: whiteCoin,
-                      move: move,
-                      onCellTap: (pos) {
-                        if (!isMyTurn) return;
-                        OnlineGameService.instance.submitMove(game, pos, myUid);
-                      },
+        Scaffold(
+          appBar: _TopBar(title: strings.onlinePlay, onLeave: onLeave),
+          body: Column(
+            children: [
+              _PlayerStrip(
+                name: opp['name'] as String? ?? '—',
+                photoUrl: opp['photo'] as String?,
+                score: game.game.scoreFor(oppColor),
+                coin: settings.opponentCoin,
+                active: !game.isFinished && !isMyTurn,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: WoodBoard(
+                        board: game.game.board,
+                        validMoves: isMyTurn ? game.game.validMoves : const {},
+                        lastMove: game.game.lastMove,
+                        theme: settings.board,
+                        blackCoin: blackCoin,
+                        whiteCoin: whiteCoin,
+                        move: move,
+                        onCellTap: (pos) {
+                          if (!isMyTurn) return;
+                          OnlineGameService.instance.submitMove(game, pos, myUid);
+                        },
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            _PlayerStrip(
-              name: me?.displayName ?? strings.playerYou,
-              photoUrl: me?.photoUrl,
-              score: game.game.scoreFor(myColor),
-              coin: settings.yourCoin,
-              active: isMyTurn,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Text(
-                game.isFinished
-                    ? ''
-                    : (isMyTurn ? strings.yourMove : strings.opponentTurn),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                  color: Colors.white,
+              _PlayerStrip(
+                name: me?.displayName ?? strings.playerYou,
+                photoUrl: me?.photoUrl,
+                score: game.game.scoreFor(myColor),
+                coin: settings.yourCoin,
+                active: isMyTurn,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Text(
+                  game.isFinished
+                      ? ''
+                      : (isMyTurn ? strings.yourMove : strings.opponentTurn),
+                  style: WoodText.heading(18, color: Wood.cream2, spacing: 1),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (infoMessage != null)
           InfoPopup(
@@ -342,82 +339,30 @@ class _GameBody extends StatelessWidget {
   }
 }
 
-class _TopBar extends StatelessWidget {
+class _TopBar extends StatelessWidget implements PreferredSizeWidget {
   const _TopBar({required this.title, required this.onLeave});
 
   final String title;
   final VoidCallback onLeave;
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          _RoundIconButton(
-            icon: Icons.chevron_left,
-            iconSize: 26,
-            onTap: onLeave,
-          ),
-          Expanded(
-            child: Center(
-              child: Text(
-                title.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                  letterSpacing: 2,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          // Mid-match access to board / coin / sound settings (changes apply
-          // live since the board reads them from [SettingsScope]).
-          _RoundIconButton(
-            icon: Icons.settings,
-            iconSize: 20,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-    );
-  }
-}
-
-class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({
-    required this.icon,
-    required this.onTap,
-    this.iconSize = 22,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-  final double iconSize;
+  Size get preferredSize => const Size.fromHeight(60);
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.18),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: () {
-          SoundService.instance.playSfx(Sfx.button);
-          onTap();
-        },
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(icon, color: Colors.white, size: iconSize),
+    return WoodAppBar(
+      title: title.toUpperCase(),
+      height: 60,
+      spacing: 4,
+      onBack: onLeave,
+      actions: [
+        WoodBarAction(
+          icon: Icons.settings,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -441,67 +386,54 @@ class _PlayerStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
-    final palette = coinPalettes[coin]!;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: active ? 0.96 : 0.82),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: active ? GameColors.accent : Colors.transparent,
-          width: 2.5,
-        ),
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+      decoration: WoodDeco.card(radius: 16),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-            backgroundImage: hasUrl ? NetworkImage(url) : null,
-            child: hasUrl
-                ? null
-                : Icon(Icons.person_rounded,
-                    size: 18, color: GameColors.onAccent),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                color: GameColors.ink,
-              ),
-            ),
-          ),
           Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [palette.faceTop, palette.faceBottom],
-              ),
+              image: hasUrl
+                  ? DecorationImage(
+                      image: NetworkImage(url),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+              color: hasUrl ? null : const Color(0xFFF5EAD4),
             ),
-            child: Text(
-              '$score',
-              style: TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                color: ThemeData.estimateBrightnessForColor(palette.faceMid) ==
-                        Brightness.light
-                    ? GameColors.ink
-                    : Colors.white,
-              ),
+            child: !hasUrl
+                ? const Icon(Icons.person_rounded,
+                    size: 22, color: Color(0xFF6B5235))
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: WoodText.body(16, color: const Color(0xFF2E1F14), weight: FontWeight.w700),
+                ),
+                if (active)
+                  Text(
+                    'Sıranız',
+                    style: WoodText.body(12, color: Wood.accent, weight: FontWeight.w600),
+                  ),
+              ],
             ),
+          ),
+          Text(
+            '$score',
+            style: WoodText.heading(28, color: Wood.ink),
           ),
         ],
       ),
@@ -537,11 +469,23 @@ class _ResultOverlay extends StatelessWidget {
         color: const Color(0x99000000),
         child: Center(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 40),
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 30),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFF7ECD7), Color(0xFFEAD9BC)],
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Wood.goldSoft, width: 1.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x4D3E2A1E),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -549,43 +493,22 @@ class _ResultOverlay extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
-                    color: GameColors.ink,
-                  ),
+                  style: WoodText.heading(28, color: Wood.ink),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   '${game.game.scoreFor(Disc.black)} - ${game.game.scoreFor(Disc.white)}',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    color: GameColors.inkSoft,
-                  ),
+                  style: WoodText.heading(42, color: const Color(0xFF7A5224)),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 22),
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: GameColors.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    onPressed: onMenu,
-                    child: Text(
-                      strings.mainMenu,
-                      style: const TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
-                    ),
+                  child: WoodButton(
+                    label: strings.mainMenu,
+                    onTap: onMenu,
+                    variant: WoodButtonVariant.dark,
+                    height: 50,
+                    fontSize: 16,
                   ),
                 ),
               ],

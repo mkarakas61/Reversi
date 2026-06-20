@@ -7,7 +7,7 @@ import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../services/online_game_service.dart';
 import '../services/sound_service.dart';
-import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 import 'online_game_screen.dart';
 
 /// Shown once matched: the opponent's name, photo, level and basic online
@@ -66,8 +66,9 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
         if (!didPop) _leaveToMenu();
       },
       child: Scaffold(
-        body: DecoratedBox(
-          decoration: BoxDecoration(gradient: bannerGradient),
+        backgroundColor: Wood.cream,
+        body: Container(
+          decoration: const BoxDecoration(gradient: WoodDeco.darkBackground),
           child: SafeArea(
             child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance
@@ -77,9 +78,10 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData || !snapshot.data!.exists) {
                   return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
+                    child: CircularProgressIndicator(color: Wood.cream2),
                   );
                 }
+
                 final data = snapshot.data!.data()!;
                 // Opponent aborted the match before it started — leave too.
                 if (data['status'] == 'cancelled' && !_left) {
@@ -104,12 +106,28 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                       const Spacer(),
                       Text(
                         strings.opponentFound.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                          letterSpacing: 2,
-                          color: Colors.white,
+                        style: WoodText.heading(
+                          19,
+                          color: Wood.cream2,
+                          spacing: 3,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          width: 120,
+                          height: 2,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Color(0x00B8860B),
+                                Wood.gold,
+                                Color(0x00B8860B),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -120,18 +138,12 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                         strings: strings,
                         highlight: true,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        child: Text(
-                          'VS',
-                          style: TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 26,
-                            color: Colors.white,
-                          ),
-                        ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'VS',
+                        style: WoodText.heading(26, color: Wood.goldSoft),
                       ),
+                      const SizedBox(height: 14),
                       _PlayerLine(
                         name: opponent['name'] as String? ?? '—',
                         photoUrl: opponent['photo'] as String?,
@@ -145,24 +157,11 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                       const Spacer(),
                       SizedBox(
                         width: double.infinity,
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: GameColors.onAccent,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                          ),
-                          onPressed: _start,
-                          child: Text(
-                            strings.startGame,
-                            style: const TextStyle(
-                              fontFamily: 'Baloo2',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                            ),
-                          ),
+                        child: WoodButton(
+                          label: strings.startGame,
+                          onTap: _start,
+                          variant: WoodButtonVariant.dark,
+                          height: 54,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -170,11 +169,7 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                         onPressed: _leaveToMenu,
                         child: Text(
                           strings.mainMenu,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          style: WoodText.body(15, color: const Color(0xFFE9CF94), weight: FontWeight.w700),
                         ),
                       ),
                     ],
@@ -216,22 +211,33 @@ class _PlayerLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
+    final isMyCard = highlight;
+    final gradient = isMyCard ? WoodDeco.cardGradient : const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFEEE1C6), Color(0xFFE0CFAE)],
+    );
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: highlight ? 0.95 : 0.88),
+        gradient: gradient,
+        border: Border.all(color: const Color(0x4D7A5634), width: 1.5),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+            backgroundColor: const Color(0x1F5A3D26),
             backgroundImage: hasUrl ? NetworkImage(url) : null,
             child: hasUrl
                 ? null
-                : Icon(Icons.person_rounded,
-                    size: 26, color: GameColors.onAccent),
+                : const Icon(
+                    Icons.person_rounded,
+                    size: 26,
+                    color: Color(0xFF5A3D26),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -242,31 +248,16 @@ class _PlayerLine extends StatelessWidget {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    color: GameColors.ink,
-                  ),
+                  style: WoodText.heading(18, color: Wood.ink),
                 ),
                 Text(
                   '${strings.level} $level',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: GameColors.inkSoft,
-                  ),
+                  style: WoodText.body(13, color: Wood.inkSoft2, weight: FontWeight.w600),
                 ),
                 if (showRecord)
                   Text(
                     '${strings.statsWins}: $wins · ${strings.statsLosses}: $losses · ${strings.statsDraws}: $draws',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      color: GameColors.inkSoft,
-                    ),
+                    style: WoodText.body(12, color: Wood.inkSoft2, weight: FontWeight.w600),
                   ),
               ],
             ),

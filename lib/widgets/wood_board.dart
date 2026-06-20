@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../game/app_settings.dart';
 import '../game/reversi_game.dart';
 import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 import 'coin_view.dart';
 
 /// The tilted wooden Reversi table. The slab (frame + felt + engraved grid) is
@@ -128,7 +129,12 @@ class _WoodBoardState extends State<WoodBoard>
         // Slab is described in its own local square of side [s]; the homography
         // maps that square onto the on-screen trapezoid.
         const s = 1000.0;
-        final feltSize = s - _framePad * 2;
+        // The textured board-crop.png ("wood") already bakes in its own frame,
+        // so the playable grid sits ~6% inside the image (per the design).
+        // Flat-colour slabs use the thin engraved frame instead.
+        final isWood = palette == null;
+        final framePad = isWood ? s * 0.062 : _framePad;
+        final feltSize = s - framePad * 2;
         final cell = feltSize / ReversiGame.size;
 
         // Target trapezoid corners (TL, TR, BR, BL) in stage space. A square
@@ -154,7 +160,7 @@ class _WoodBoardState extends State<WoodBoard>
         // Projected centre and on-screen diameter for cell (r, c).
         (Offset, double) cellGeometry(int r, int c) {
           final centerLocal = Offset(
-              _framePad + (c + 0.5) * cell, _framePad + (r + 0.5) * cell);
+              framePad + (c + 0.5) * cell, framePad + (r + 0.5) * cell);
           final center = project(centerLocal);
           final edge = project(centerLocal + Offset(cell / 2, 0));
           final coinW = (edge.dx - center.dx).abs() * 2 * 0.86;
@@ -193,6 +199,14 @@ class _WoodBoardState extends State<WoodBoard>
                   continue;
                 }
 
+                if (isWood) {
+                  coinWidgets.add(Positioned(
+                    left: center.dx - coinW / 2,
+                    top: center.dy - coinW / 2,
+                    child: _WoodDisc(disc: disc!, size: coinW),
+                  ));
+                  continue;
+                }
                 final faceHeight = coinW * _faceSquash;
                 final totalH = faceHeight + coinW * _thicknessFactor;
                 coinWidgets.add(Positioned(
@@ -235,15 +249,18 @@ class _WoodBoardState extends State<WoodBoard>
                   final opacity = (p / 0.10).clamp(0.0, 1.0);
                   coinWidgets.add(Positioned(
                     left: center.dx - coinW / 2,
-                    top: center.dy - totalH / 2 - yUp,
+                    top: (isWood ? center.dy - coinW / 2 : center.dy - totalH / 2) -
+                        yUp,
                     child: Opacity(
                       opacity: opacity,
-                      child: CoinView(
-                        palette: newPalette,
-                        width: coinW,
-                        faceSquash: _faceSquash,
-                        thicknessFactor: _thicknessFactor,
-                      ),
+                      child: isWood
+                          ? _WoodDisc(disc: anim.color, size: coinW)
+                          : CoinView(
+                              palette: newPalette,
+                              width: coinW,
+                              faceSquash: _faceSquash,
+                              thicknessFactor: _thicknessFactor,
+                            ),
                     ),
                   ));
                 } else {
@@ -255,18 +272,32 @@ class _WoodBoardState extends State<WoodBoard>
                   final angle = p <= _riseFrac
                       ? (3 * pi) * Curves.easeInOut.transform(riseP)
                       : 3 * pi;
-                  // Align the flip coin's face centre with a settled coin's.
-                  final faceCenterY = center.dy - coinW * _thicknessFactor / 2;
-                  coinWidgets.add(Positioned(
-                    left: center.dx - coinW / 2,
-                    top: faceCenterY - coinW / 2 - yUp,
-                    child: _FlipCoin(
-                      width: coinW,
-                      angle: angle,
-                      front: oldPalette,
-                      back: newPalette,
-                    ),
-                  ));
+                  if (isWood) {
+                    coinWidgets.add(Positioned(
+                      left: center.dx - coinW / 2,
+                      top: center.dy - coinW / 2 - yUp,
+                      child: _WoodFlipDisc(
+                        size: coinW,
+                        angle: angle,
+                        front: oldDisc,
+                        back: anim.color,
+                      ),
+                    ));
+                  } else {
+                    // Align the flip coin's face centre with a settled coin's.
+                    final faceCenterY =
+                        center.dy - coinW * _thicknessFactor / 2;
+                    coinWidgets.add(Positioned(
+                      left: center.dx - coinW / 2,
+                      top: faceCenterY - coinW / 2 - yUp,
+                      child: _FlipCoin(
+                        width: coinW,
+                        angle: angle,
+                        front: oldPalette,
+                        back: newPalette,
+                      ),
+                    ));
+                  }
                 }
               }
             }
@@ -279,8 +310,8 @@ class _WoodBoardState extends State<WoodBoard>
                 onTapUp: (details) {
                   final boardPt = MatrixUtils.transformPoint(
                       inverse, details.localPosition);
-                  final fx = (boardPt.dx - _framePad) / cell;
-                  final fy = (boardPt.dy - _framePad) / cell;
+                  final fx = (boardPt.dx - framePad) / cell;
+                  final fy = (boardPt.dy - framePad) / cell;
                   if (fx < 0 || fy < 0 || fx >= 8 || fy >= 8) return;
                   widget.onCellTap(Position(fy.floor(), fx.floor()));
                 },
@@ -296,8 +327,9 @@ class _WoodBoardState extends State<WoodBoard>
                         maxHeight: s,
                         alignment: Alignment.topLeft,
                         child: _Slab(
+                          slabSize: s,
                           feltSize: feltSize,
-                          framePad: _framePad,
+                          framePad: framePad,
                           palette: palette,
                         ),
                       ),
@@ -468,40 +500,113 @@ class _FlipCoinPainter extends CustomPainter {
       old.angle != angle || old.front != front || old.back != back;
 }
 
+/// A flat wooden disc image (walnut for [Disc.black], maple for [Disc.white])
+/// dropped on the textured board, matching the design's `disc-*.png` pieces.
+class _WoodDisc extends StatelessWidget {
+  const _WoodDisc({required this.disc, required this.size});
+
+  final Disc disc;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x66000000),
+            blurRadius: size * 0.10,
+            offset: Offset(0, size * 0.05),
+          ),
+        ],
+        image: DecorationImage(
+          image: AssetImage(
+            disc == Disc.black ? Wood.discWalnut : Wood.discMaple,
+          ),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+}
+
+/// A wooden disc caught mid-flip — rotates about its horizontal axis and swaps
+/// the walnut/maple face as it passes edge-on.
+class _WoodFlipDisc extends StatelessWidget {
+  const _WoodFlipDisc({
+    required this.size,
+    required this.angle,
+    required this.front,
+    required this.back,
+  });
+
+  final double size;
+  final double angle;
+  final Disc front;
+  final Disc back;
+
+  @override
+  Widget build(BuildContext context) {
+    final cosA = cos(angle);
+    final face = cosA >= 0 ? front : back;
+    // Foreshorten vertically as the disc turns edge-on.
+    final scaleY = cosA.abs().clamp(0.06, 1.0);
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()..scaleByDouble(1.0, scaleY, 1.0, 1.0),
+      child: _WoodDisc(disc: face, size: size),
+    );
+  }
+}
+
 class _Slab extends StatelessWidget {
   const _Slab({
+    required this.slabSize,
     required this.feltSize,
     required this.framePad,
     required this.palette,
   });
 
+  final double slabSize;
   final double feltSize;
   final double framePad;
 
-  /// `null` renders the original wooden textures; otherwise a flat-colour slab.
+  /// `null` renders the textured walnut/maple board-crop image (with its own
+  /// baked-in frame and checkerboard); otherwise a flat-colour slab.
   final BoardPalette? palette;
 
   @override
   Widget build(BuildContext context) {
     final p = palette;
 
-    final BoxDecoration frameDecoration = p == null
-        ? const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-            image: DecorationImage(
-              image: AssetImage('assets/wood/wood-frame.png'),
-              fit: BoxFit.cover,
-              repeat: ImageRepeat.repeat,
+    // Wooden board: a single textured image (frame + checkerboard baked in),
+    // matching the "board-crop.png" design asset. Coins are placed on top by
+    // the parent using [framePad]; no grid is drawn here.
+    if (p == null) {
+      return Container(
+        width: slabSize,
+        height: slabSize,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(18)),
+          image: DecorationImage(
+            image: AssetImage('assets/wood/board-crop.png'),
+            fit: BoxFit.cover,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x8C000000),
+              blurRadius: 30,
+              offset: Offset(0, 22),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x59000000),
-                blurRadius: 22,
-                offset: Offset(0, 12),
-              ),
-            ],
-          )
-        : BoxDecoration(
+          ],
+        ),
+      );
+    }
+
+    final BoxDecoration frameDecoration = BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(10)),
             gradient: p.frameGradient,
             boxShadow: const [
@@ -513,34 +618,18 @@ class _Slab extends StatelessWidget {
             ],
           );
 
-    final BoxDecoration surfaceDecoration = p == null
-        ? const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-            image: DecorationImage(
-              image: AssetImage('assets/wood/wood-surface.png'),
-              fit: BoxFit.cover,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x61000000),
-                blurRadius: 9,
-                spreadRadius: -2,
-                offset: Offset(0, 3),
-              ),
-            ],
-          )
-        : BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(4)),
-            gradient: p.surfaceGradient,
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x61000000),
-                blurRadius: 9,
-                spreadRadius: -2,
-                offset: Offset(0, 3),
-              ),
-            ],
-          );
+    final BoxDecoration surfaceDecoration = BoxDecoration(
+      borderRadius: const BorderRadius.all(Radius.circular(4)),
+      gradient: p.surfaceGradient,
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x61000000),
+          blurRadius: 9,
+          spreadRadius: -2,
+          offset: Offset(0, 3),
+        ),
+      ],
+    );
 
     return Container(
       padding: EdgeInsets.all(framePad),
@@ -615,10 +704,10 @@ class _HintState extends State<_Hint> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final p = widget.palette;
-    // Wood keeps the cream-on-walnut engraved spot; colour boards reuse their
-    // own engraved-line palette so the hint reads against any felt.
-    final fill = p == null ? const Color(0x2E281709) : p.line;
-    final ring = p == null ? const Color(0x73FFF0D2) : p.lineHi;
+    // Wood uses the design's soft-gold pulse; colour boards reuse their own
+    // engraved-line palette so the hint reads against any felt.
+    final fill = p == null ? const Color(0x80C9A66B) : p.line;
+    final ring = p == null ? const Color(0x8CFFF6E4) : p.lineHi;
     return ScaleTransition(
       scale: Tween(begin: 0.8, end: 1.0).animate(
         CurvedAnimation(parent: _c, curve: Curves.easeInOut),

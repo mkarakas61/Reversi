@@ -21,6 +21,7 @@ class AppStrings {
   static const _values = {
     'en': {
       'appTitle': 'Reversi',
+      'appSubtitle': 'The classic game of strategy',
       'newGame': 'New game',
       'language': 'Language',
       'black': 'Black',
@@ -66,9 +67,6 @@ class AppStrings {
       'newGameTitle': 'New Game',
       'gameMode': 'Game mode',
       'settings': 'Settings',
-      'theme': 'Theme',
-      'appThemeClassic': 'Classic',
-      'appThemeWood': 'Wood',
       'boardColor': 'Board color',
       'coinColor': 'Coin color',
       'yourCoin': 'Your coin',
@@ -149,6 +147,7 @@ class AppStrings {
     },
     'tr': {
       'appTitle': 'Reversi',
+      'appSubtitle': 'Klasik strateji oyunu',
       'newGame': 'Yeni oyun',
       'language': 'Dil',
       'black': 'Siyah',
@@ -192,9 +191,6 @@ class AppStrings {
       'newGameTitle': 'Yeni Oyun',
       'gameMode': 'Oyun modu',
       'settings': 'Ayarlar',
-      'theme': 'Tema',
-      'appThemeClassic': 'Eski Tema',
-      'appThemeWood': 'Ahşap Tema',
       'boardColor': 'Tahta rengi',
       'coinColor': 'Taş rengi',
       'yourCoin': 'Senin taşın',
@@ -276,6 +272,7 @@ class AppStrings {
   };
 
   String get appTitle => _get('appTitle');
+  String get appSubtitle => _get('appSubtitle');
   String get newGame => _get('newGame');
   String get language => _get('language');
   String get black => _get('black');
@@ -311,7 +308,6 @@ class AppStrings {
   String get newGameTitle => _get('newGameTitle');
   String get gameMode => _get('gameMode');
   String get settings => _get('settings');
-  String get theme => _get('theme');
   String get boardColor => _get('boardColor');
   String get coinColor => _get('coinColor');
   String get yourCoin => _get('yourCoin');
@@ -376,15 +372,6 @@ class AppStrings {
 
   String winnerTitle(String name) {
     return _get('winnerTitle').replaceAll('{name}', name);
-  }
-
-  String appThemeLabel(AppTheme theme) {
-    switch (theme) {
-      case AppTheme.classic:
-        return _get('appThemeClassic');
-      case AppTheme.wood:
-        return _get('appThemeWood');
-    }
   }
 
   String boardThemeLabel(BoardTheme theme) {

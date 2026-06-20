@@ -2,53 +2,33 @@ import 'package:flutter/material.dart';
 
 import '../game/app_settings.dart';
 
-/// Whether the wood app theme is currently active. The shell tokens below
-/// switch on this; the rest are theme-independent.
-bool get _wood => activeAppTheme == AppTheme.wood;
-
 /// Palette and shared styling for the wooden "Ahşap v2" design.
-///
-/// The shell tokens (accents, banner, background, text) are getters that
-/// resolve against [activeAppTheme], so flipping the app theme re-skins every
-/// screen on the next rebuild without touching the ~100 call sites. The
-/// player-customisation colours below (avatars, chips, coins, grid) are the
-/// same in both themes and stay `const`.
 class GameColors {
   GameColors._();
 
-  // Brand accents. classic = turquoise/orange · wood = gold/copper.
-  static Color get accent =>
-      _wood ? const Color(0xFFBE8B3D) : const Color(0xFF13A99C);
-  static Color get accent2 =>
-      _wood ? const Color(0xFFB5612F) : const Color(0xFFF4552C);
+  // Brand accents — remapped to the walnut/maple wooden palette.
+  static const accent = Color(0xFF9A6B2F); // warm accent (dark side / "Sen")
+  static const accent2 = Color(0xFFB78A4A); // maple-gold (light side / "Aria")
 
-  // App-shell background gradient endpoints (cream vs. warm parchment).
-  static Color get creamTop =>
-      _wood ? const Color(0xFFF5E8D0) : const Color(0xFFFFF6E9);
-  static Color get creamBottom =>
-      _wood ? const Color(0xFFE9D4AC) : const Color(0xFFFFEDD6);
+  // Cream app shell.
+  static const creamTop = Color(0xFFFBF6EE);
+  static const creamBottom = Color(0xFFEFE5D5);
 
-  // Banner gradient (top of the game screen / whole menu bg).
-  static Color get bannerTop =>
-      _wood ? const Color(0xFF7B5734) : const Color(0xFF2FD4C2);
-  static Color get bannerMid =>
-      _wood ? const Color(0xFF5E3F22) : const Color(0xFF14B3A6);
-  static Color get bannerBottom =>
-      _wood ? const Color(0xFF432A15) : const Color(0xFF0E9C91);
+  // Dark walnut banner gradient (top of the game screen / whole menu bg).
+  static const bannerTop = Color(0xFF4A3220);
+  static const bannerMid = Color(0xFF3E2A1E);
+  static const bannerBottom = Color(0xFF38240F);
 
   // Text.
-  static Color get ink =>
-      _wood ? const Color(0xFF2E2014) : const Color(0xFF20302E);
-  static Color get inkSoft =>
-      _wood ? const Color(0xFF57442F) : const Color(0xFF3A4A48);
-  static Color get onAccent =>
-      _wood ? const Color(0xFF6B4A22) : const Color(0xFF1F6F67);
+  static const ink = Color(0xFF3E2A1E);
+  static const inkSoft = Color(0xFF6B5235);
+  static const onAccent = Color(0xFF3E2A1E);
 
-  // Avatars.
-  static const avatarDarkTop = Color(0xFF19C2B2);
-  static const avatarDarkBottom = Color(0xFF0E9C91);
-  static const avatarLightTop = Color(0xFFFF9A4D);
-  static const avatarLightBottom = Color(0xFFF4552C);
+  // Avatars (walnut / maple).
+  static const avatarDarkTop = Color(0xFF7A5638);
+  static const avatarDarkBottom = Color(0xFF3E2A1E);
+  static const avatarLightTop = Color(0xFFE9D6B4);
+  static const avatarLightBottom = Color(0xFFC9A05A);
 
   // Chips (small score discs).
   static const chipDarkTop = Color(0xFF4A5468);
@@ -89,24 +69,20 @@ class GameText {
   );
 }
 
-/// The vertical shell background gradient (theme-aware).
-LinearGradient get creamShellGradient => LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [GameColors.creamTop, GameColors.creamBottom],
-    );
+/// The cream → cream vertical shell background.
+const creamShellGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [GameColors.creamTop, GameColors.creamBottom],
+);
 
-/// The banner gradient (135deg in the design; theme-aware).
-LinearGradient get bannerGradient => LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        GameColors.bannerTop,
-        GameColors.bannerMid,
-        GameColors.bannerBottom,
-      ],
-      stops: const [0.0, 0.6, 1.0],
-    );
+/// The turquoise banner gradient (135deg in the design).
+const bannerGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [GameColors.bannerTop, GameColors.bannerMid, GameColors.bannerBottom],
+  stops: [0.0, 0.6, 1.0],
+);
 
 // ─────────────────────────────────────────────────────────────────────────
 // Board palettes — flat colour slabs from the "Renkli Tahta" design. [wood]

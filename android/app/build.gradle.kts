@@ -3,6 +3,10 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    // builtInKotlin is disabled in gradle.properties, so the Kotlin Android
+    // plugin must be applied explicitly for the `kotlin { compilerOptions }`
+    // block below to resolve.
+    id("org.jetbrains.kotlin.android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }

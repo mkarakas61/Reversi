@@ -8,6 +8,7 @@ import 'online_stats_screen.dart';
 import '../services/auth_service.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
 /// record, plus sign-out. Reached from the menu profile chip. Level/XP and the
@@ -33,18 +34,19 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: GameColors.creamTop,
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: creamShellGradient),
+        decoration: const BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
-            Positioned(
+            const Positioned(
               top: 0,
               left: 0,
               right: 0,
-              height: 150,
-              child: ClipPath(
-                clipper: _HeaderClipper(),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+              height: 130,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: WoodDeco.barGradient,
+                  border:
+                      Border(bottom: BorderSide(color: Wood.gold, width: 2)),
                 ),
               ),
             ),
@@ -64,12 +66,7 @@ class ProfileScreen extends StatelessWidget {
                         Text(
                           profile.displayName ?? '',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 24,
-                            color: GameColors.ink,
-                          ),
+                          style: WoodText.heading(24, color: Wood.ink),
                         ),
                         const SizedBox(height: 14),
                         _LevelCard(
@@ -111,23 +108,23 @@ class _Avatar extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white,
+          gradient: WoodDeco.cardGradient,
           boxShadow: [
             BoxShadow(
-              color: Color(0x1F000000),
-              offset: Offset(0, 6),
-              blurRadius: 16,
+              color: Color(0x2E3E2A1E),
+              offset: Offset(0, 4),
+              blurRadius: 12,
             ),
           ],
         ),
         child: CircleAvatar(
           radius: 48,
-          backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+          backgroundColor: const Color(0x1F5A3D26),
           backgroundImage: hasUrl ? NetworkImage(url) : null,
           child: hasUrl
               ? null
-              : Icon(Icons.person_rounded,
-                  size: 48, color: GameColors.onAccent),
+              : const Icon(Icons.person_rounded,
+                  size: 48, color: Color(0xFF5A3D26)),
         ),
       ),
     );
@@ -162,7 +159,7 @@ class _LevelCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -172,12 +169,7 @@ class _LevelCard extends StatelessWidget {
                 ),
                 child: Text(
                   '$level',
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
+                  style: WoodText.heading(20, color: Colors.white),
                 ),
               ),
               const SizedBox(width: 12),
@@ -187,21 +179,12 @@ class _LevelCard extends StatelessWidget {
                   children: [
                     Text(
                       '$label $level',
-                      style: TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                        color: GameColors.ink,
-                      ),
+                      style: WoodText.heading(18, color: Wood.ink),
                     ),
                     Text(
                       '$xp XP',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: GameColors.inkSoft,
-                      ),
+                      style: WoodText.body(13,
+                          color: Wood.inkSoft, weight: FontWeight.w700),
                     ),
                   ],
                 ),
@@ -215,7 +198,7 @@ class _LevelCard extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-              valueColor: AlwaysStoppedAnimation(GameColors.accent),
+              valueColor: const AlwaysStoppedAnimation(GameColors.accent),
             ),
           ),
         ],
@@ -242,12 +225,7 @@ class _OnlineRecordCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   strings.onlineStatistics,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: GameColors.ink,
-                  ),
+                  style: WoodText.heading(16, color: Wood.ink),
                 ),
               ),
               GestureDetector(
@@ -262,14 +240,10 @@ class _OnlineRecordCard extends StatelessWidget {
                   children: [
                     Text(
                       strings.viewAll,
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                        color: GameColors.accent,
-                      ),
+                      style: WoodText.body(12,
+                          color: Wood.accent, weight: FontWeight.w700),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.chevron_right,
                       size: 16,
                       color: GameColors.accent,
@@ -320,23 +294,14 @@ class _Stat extends StatelessWidget {
         children: [
           Text(
             value,
-            style: TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-              color: GameColors.accent,
-            ),
+            style: WoodText.heading(22, color: Wood.accent),
           ),
           const SizedBox(height: 2),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w700,
-              fontSize: 11.5,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(11.5,
+                color: Wood.inkSoft, weight: FontWeight.w600),
           ),
         ],
       ),
@@ -351,27 +316,34 @@ class _SignOutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      child: FilledButton.icon(
-        style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFFE0312B),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        onPressed: () {
-          SoundService.instance.playSfx(Sfx.button);
-          AuthService.instance.signOut();
-        },
-        icon: const Icon(Icons.logout_rounded),
-        label: Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'Baloo2',
-            fontWeight: FontWeight.w800,
-            fontSize: 16,
+      height: 52,
+      decoration: BoxDecoration(
+        color: Wood.danger,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(color: Wood.dangerShadow, offset: Offset(0, 5)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            SoundService.instance.playSfx(Sfx.button);
+            AuthService.instance.signOut();
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 9),
+              Text(
+                label,
+                style: WoodText.heading(16, color: Colors.white),
+              ),
+            ],
           ),
         ),
       ),
@@ -388,17 +360,7 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            offset: Offset(0, 8),
-            blurRadius: 20,
-          ),
-        ],
-      ),
+      decoration: WoodDeco.card(),
       child: child,
     );
   }
@@ -422,16 +384,7 @@ class _Header extends StatelessWidget {
             child: Center(
               child: Text(
                 title.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  letterSpacing: 2.2,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
-                  ],
-                ),
+                style: WoodText.heading(22, color: Colors.white, spacing: 2.2),
               ),
             ),
           ),
@@ -452,21 +405,13 @@ class _RoundButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-          BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 5),
-            blurRadius: 12,
-          ),
-        ],
+        color: const Color(0x29ECD9BB),
+        borderRadius: BorderRadius.circular(11),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(11),
           onTap: () {
             SoundService.instance.playSfx(Sfx.button);
             onTap();
@@ -474,26 +419,10 @@ class _RoundButton extends StatelessWidget {
           child: SizedBox(
             width: 42,
             height: 38,
-            child: Icon(icon, color: GameColors.onAccent, size: 24),
+            child: Icon(icon, color: Wood.creamDim, size: 22),
           ),
         ),
       ),
     );
   }
-}
-
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path()
-      ..lineTo(0, size.height - 36)
-      ..quadraticBezierTo(
-          size.width / 2, size.height, size.width, size.height - 36)
-      ..lineTo(size.width, 0)
-      ..close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(_HeaderClipper old) => false;
 }

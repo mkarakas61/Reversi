@@ -5,8 +5,7 @@ import '../game/profile_scope.dart';
 import '../l10n/app_strings.dart';
 import '../models/online_stats.dart';
 import '../models/xp_level.dart';
-import '../services/sound_service.dart';
-import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 
 /// Detailed online ranked statistics screen. Reached from the profile screen's
 /// online record card. Reads live from [ProfileScope] so it stays in sync with
@@ -24,46 +23,19 @@ class OnlineStatsScreen extends StatelessWidget {
     final level = profile?.level ?? 1;
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
-      body: DecoratedBox(
-        decoration: BoxDecoration(gradient: creamShellGradient),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 150,
-              child: ClipPath(
-                clipper: _HeaderClipper(),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  _Header(
-                    title: strings.onlineStatistics,
-                    onBack: () => Navigator.of(context).maybePop(),
-                  ),
-                  Expanded(
-                    child: stats.totalGames == 0
-                        ? _EmptyState(message: strings.statsOnlineEmpty)
-                        : _Body(
-                            stats: stats,
-                            xp: xp,
-                            level: level,
-                            strings: strings,
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      backgroundColor: Wood.cream,
+      appBar: WoodAppBar(
+        title: strings.onlineStatistics,
+        onBack: () => Navigator.of(context).maybePop(),
       ),
+      body: stats.totalGames == 0
+          ? _EmptyState(message: strings.statsOnlineEmpty)
+          : _Body(
+              stats: stats,
+              xp: xp,
+              level: level,
+              strings: strings,
+            ),
     );
   }
 }
@@ -129,22 +101,17 @@ class _XpProgressRow extends StatelessWidget {
               width: 44,
               height: 44,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [GameColors.accent, GameColors.onAccent],
+                  begin: Alignment(0.7, -0.7),
+                  end: Alignment(-0.7, 0.7),
+                  colors: [Color(0xFFC9A05A), Color(0xFF8A5E22)],
                 ),
               ),
               child: Text(
                 '$level',
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 20,
-                  color: Colors.white,
-                ),
+                style: WoodText.heading(20, color: Colors.white),
               ),
             ),
             const SizedBox(width: 12),
@@ -154,21 +121,11 @@ class _XpProgressRow extends StatelessWidget {
                 children: [
                   Text(
                     '$xp XP',
-                    style: TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: GameColors.ink,
-                    ),
+                    style: WoodText.heading(18, color: Wood.ink),
                   ),
                   Text(
                     '$into / $range XP',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      color: GameColors.inkSoft,
-                    ),
+                    style: WoodText.body(12, color: Wood.inkSoft, weight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -181,8 +138,8 @@ class _XpProgressRow extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: 8,
-            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-            valueColor: AlwaysStoppedAnimation(GameColors.accent),
+            backgroundColor: const Color(0x245A3D26),
+            valueColor: const AlwaysStoppedAnimation(Wood.gold),
           ),
         ),
         const SizedBox(height: 4),
@@ -190,12 +147,7 @@ class _XpProgressRow extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Text(
             '${strings.level} ${level + 1}',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(11, color: Wood.inkSoft, weight: FontWeight.w600),
           ),
         ),
       ],
@@ -259,8 +211,9 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F2E7),
-        borderRadius: BorderRadius.circular(14),
+        color: const Color(0xFFEFE3CC),
+        border: Border.all(color: const Color(0x297A5634), width: 1),
+        borderRadius: BorderRadius.circular(13),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -268,25 +221,14 @@ class _StatTile extends StatelessWidget {
         children: [
           Text(
             value,
-            style: TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-              height: 1.1,
-              color: GameColors.ink,
-            ),
+            style: WoodText.heading(22, color: Wood.ink),
           ),
           const SizedBox(height: 2),
           Text(
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w700,
-              fontSize: 11.5,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(11.5, color: Wood.inkSoft, weight: FontWeight.w600),
           ),
         ],
       ),
@@ -300,9 +242,9 @@ class _ResultPieChart extends StatelessWidget {
   final OnlineStats stats;
   final AppStrings strings;
 
-  static Color get _winColor => GameColors.accent;
-  static Color get _lossColor => GameColors.accent2;
-  static const _drawColor = Color(0xFFFFC83D);
+  static const _winColor = Wood.accent;
+  static const _lossColor = Wood.danger;
+  static const _drawColor = Wood.warmGold;
 
   @override
   Widget build(BuildContext context) {
@@ -328,12 +270,7 @@ class _ResultPieChart extends StatelessWidget {
                     color: entry.color,
                     radius: 52,
                     title: '${(entry.value / total * 100).round()}%',
-                    titleStyle: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: Colors.white,
-                    ),
+                    titleStyle: WoodText.body(13, color: Colors.white, weight: FontWeight.w800),
                   ),
               ],
             ),
@@ -373,12 +310,7 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontWeight: FontWeight.w800,
-            fontSize: 12.5,
-            color: GameColors.inkSoft,
-          ),
+          style: WoodText.body(12.5, color: Wood.inkSoft, weight: FontWeight.w800),
         ),
       ],
     );
@@ -398,12 +330,7 @@ class _EmptyState extends StatelessWidget {
         child: Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
-            color: GameColors.inkSoft,
-          ),
+          style: WoodText.body(15, color: Wood.inkSoft, weight: FontWeight.w700),
         ),
       ),
     );
@@ -421,29 +348,13 @@ class _Section extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
-          BoxShadow(
-            color: Color(0x14000000),
-            offset: Offset(0, 10),
-            blurRadius: 22,
-          ),
-        ],
-      ),
+      decoration: WoodDeco.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: GameColors.ink,
-            ),
+            style: WoodText.heading(16, color: Wood.ink),
           ),
           const SizedBox(height: 12),
           child,
@@ -453,96 +364,3 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.title, required this.onBack});
-
-  final String title;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          _RoundButton(icon: Icons.chevron_left, onTap: onBack),
-          Expanded(
-            child: Center(
-              child: Text(
-                title.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                  letterSpacing: 1.8,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 54),
-        ],
-      ),
-    );
-  }
-}
-
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-          BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 5),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(13),
-          onTap: () {
-            SoundService.instance.playSfx(Sfx.button);
-            onTap();
-          },
-          child: SizedBox(
-            width: 42,
-            height: 38,
-            child: Icon(icon, color: GameColors.onAccent, size: 24),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path()
-      ..lineTo(0, size.height - 36)
-      ..quadraticBezierTo(
-          size.width / 2, size.height, size.width, size.height - 36)
-      ..lineTo(size.width, 0)
-      ..close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(_HeaderClipper old) => false;
-}

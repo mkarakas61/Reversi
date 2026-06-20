@@ -5,6 +5,7 @@ import '../game/reversi_game.dart';
 import '../l10n/app_strings.dart';
 import '../services/sound_service.dart';
 import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 
 /// Settings sheet: language, board colour and coin colours. Changes apply live
 /// (via [SettingsScope]) and are persisted immediately.
@@ -21,18 +22,19 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: GameColors.creamTop,
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: creamShellGradient),
+        decoration: const BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
-            Positioned(
+            const Positioned(
               top: 0,
               left: 0,
               right: 0,
-              height: 150,
-              child: ClipPath(
-                clipper: _HeaderClipper(),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+              height: 130,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: WoodDeco.barGradient,
+                  border:
+                      Border(bottom: BorderSide(color: Wood.gold, width: 2)),
                 ),
               ),
             ),
@@ -53,13 +55,6 @@ class SettingsScreen extends StatelessWidget {
                             current: lang,
                             onSelect: (code) =>
                                 controller.setLocale(Locale(code)),
-                          ),
-                        ),
-                        _Section(
-                          title: strings.theme,
-                          child: _ThemeRow(
-                            current: settings.appTheme,
-                            onSelect: controller.setAppTheme,
                           ),
                         ),
                         _Section(
@@ -120,21 +115,6 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height * 0.62)
-      ..lineTo(0, size.height * 0.82)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(_HeaderClipper old) => false;
-}
-
 class _Header extends StatelessWidget {
   const _Header({required this.title, required this.onBack});
 
@@ -153,16 +133,7 @@ class _Header extends StatelessWidget {
             child: Center(
               child: Text(
                 title.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  letterSpacing: 2.2,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
-                  ],
-                ),
+                style: WoodText.heading(22, color: Colors.white, spacing: 2.2),
               ),
             ),
           ),
@@ -183,21 +154,13 @@ class _RoundButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-          BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 5),
-            blurRadius: 12,
-          ),
-        ],
+        color: const Color(0x29ECD9BB), // rgba(236,217,187,.16)
+        borderRadius: BorderRadius.circular(11),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(11),
           onTap: () {
             SoundService.instance.playSfx(Sfx.button);
             onTap();
@@ -205,7 +168,7 @@ class _RoundButton extends StatelessWidget {
           child: SizedBox(
             width: 42,
             height: 38,
-            child: Icon(icon, color: GameColors.onAccent, size: 24),
+            child: Icon(icon, color: Wood.creamDim, size: 22),
           ),
         ),
       ),
@@ -224,29 +187,13 @@ class _Section extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
-          BoxShadow(
-            color: Color(0x14000000),
-            offset: Offset(0, 10),
-            blurRadius: 22,
-          ),
-        ],
-      ),
+      decoration: WoodDeco.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: GameColors.ink,
-            ),
+            style: WoodText.heading(16, color: Wood.ink),
           ),
           const SizedBox(height: 12),
           child,
@@ -279,11 +226,10 @@ class _LanguageRow extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                color: active ? Colors.white : GameColors.inkSoft,
+              style: WoodText.body(
+                15,
+                weight: FontWeight.w700,
+                color: active ? Colors.white : const Color(0xFF6B5235),
               ),
             ),
           ),
@@ -302,64 +248,6 @@ class _LanguageRow extends StatelessWidget {
           seg('tr', 'Türkçe'),
           const SizedBox(width: 4),
           seg('en', 'English'),
-        ],
-      ),
-    );
-  }
-}
-
-/// Two-option segmented switch for the whole-app theme (classic vs. wood).
-class _ThemeRow extends StatelessWidget {
-  const _ThemeRow({required this.current, required this.onSelect});
-
-  final AppTheme current;
-  final ValueChanged<AppTheme> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = AppStrings.of(context);
-
-    Widget seg(AppTheme theme) {
-      final active = current == theme;
-      return Expanded(
-        child: GestureDetector(
-          onTap: () {
-            SoundService.instance.playSfx(Sfx.button);
-            onSelect(theme);
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: active ? GameColors.accent : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              strings.appThemeLabel(theme),
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                color: active ? Colors.white : GameColors.inkSoft,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0ECE3),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          seg(AppTheme.classic),
-          const SizedBox(width: 4),
-          seg(AppTheme.wood),
         ],
       ),
     );
@@ -433,11 +321,10 @@ class _BoardTile extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w800,
-                fontSize: 11.5,
-                color: active ? GameColors.onAccent : GameColors.inkSoft,
+              style: WoodText.body(
+                11.5,
+                weight: FontWeight.w600,
+                color: active ? Wood.accent : const Color(0xFF6B5235),
               ),
             ),
           ),
@@ -539,19 +426,19 @@ class _ToggleRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w800,
-              fontSize: 14.5,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(14.5,
+                weight: FontWeight.w600, color: const Color(0xFF6B5235)),
           ),
         ),
         Switch(
           value: value,
           onChanged: onChanged,
           activeThumbColor: Colors.white,
-          activeTrackColor: GameColors.accent,
+          activeTrackColor: Wood.accent,
+          inactiveThumbColor: Colors.white,
+          inactiveTrackColor: const Color(0xFFD8CDBA),
+          trackOutlineColor:
+              WidgetStateProperty.all(Colors.transparent),
         ),
       ],
     );
@@ -582,24 +469,29 @@ class _CoinRow extends StatelessWidget {
           width: 96,
           child: Text(
             label,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w800,
-              fontSize: 13.5,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(13.5,
+                weight: FontWeight.w600, color: const Color(0xFF6B5235)),
           ),
         ),
         Expanded(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // Each swatch gets an equal slot; FittedBox.scaleDown keeps the
+              // natural size on wide layouts but shrinks it just enough to
+              // avoid a few-pixel overflow on the narrowest screens.
               for (final color in CoinColor.values)
-                _CoinSwatch(
-                  color: color,
-                  active: color == selected,
-                  disabled: color == disabled,
-                  onTap: () => onSelect(color),
+                Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _CoinSwatch(
+                        color: color,
+                        active: color == selected,
+                        disabled: color == disabled,
+                        onTap: () => onSelect(color),
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),

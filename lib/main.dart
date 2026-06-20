@@ -28,6 +28,7 @@ import 'services/settings_storage.dart';
 import 'services/sound_service.dart';
 import 'services/stats_storage.dart';
 import 'theme/game_theme.dart';
+import 'theme/wood_theme.dart';
 import 'widgets/info_popup.dart';
 import 'widgets/wood_board.dart';
 
@@ -957,7 +958,7 @@ class _CreamShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(gradient: creamShellGradient),
+      decoration: const BoxDecoration(gradient: creamShellGradient),
       child: Stack(
         children: [
           Positioned(
@@ -973,7 +974,7 @@ class _CreamShell extends StatelessWidget {
                   child: SizedBox(
                     height: bandH,
                     width: double.infinity,
-                    child: DecoratedBox(
+                    child: const DecoratedBox(
                       decoration: BoxDecoration(gradient: bannerGradient),
                     ),
                   ),
@@ -1000,15 +1001,13 @@ class _BannerClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    // At t=1: polygon(0 0, 100% 0, 100% 60%, 0 80%). At t=0 the bottom corners
-    // drop to the full height, so the band clips to a plain rectangle.
-    final brY = lerpDouble(size.height, size.height * 0.60, t)!;
-    final blY = lerpDouble(size.height, size.height * 0.80, t)!;
+    // The wooden design uses a flat app-bar band (no diagonal cut), so the
+    // band clips to a plain rectangle at all animation phases.
     return Path()
       ..moveTo(0, 0)
       ..lineTo(size.width, 0)
-      ..lineTo(size.width, brY)
-      ..lineTo(0, blY)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
       ..close();
   }
 
@@ -1036,21 +1035,13 @@ class _BarButton extends StatelessWidget {
       opacity: enabled ? 1.0 : 0.4,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(13),
-          boxShadow: const [
-            BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-            BoxShadow(
-              color: Color(0x1F000000),
-              offset: Offset(0, 5),
-              blurRadius: 12,
-            ),
-          ],
+          color: const Color(0x29ECD9BB), // rgba(236,217,187,.16)
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(13),
+            borderRadius: BorderRadius.circular(10),
             onTap: enabled
                 ? () {
                     SoundService.instance.playSfx(Sfx.button);
@@ -1058,20 +1049,15 @@ class _BarButton extends StatelessWidget {
                   }
                 : null,
             child: Container(
-              height: 38,
-              constraints: const BoxConstraints(minWidth: 38),
-              padding: const EdgeInsets.symmetric(horizontal: 11),
+              height: 36,
+              constraints: const BoxConstraints(minWidth: 36),
+              padding: const EdgeInsets.symmetric(horizontal: 9),
               alignment: Alignment.center,
               child: DefaultTextStyle(
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12.5,
-                  color: GameColors.onAccent,
-                ),
+                style: WoodText.body(12.5,
+                    color: Wood.creamDim, weight: FontWeight.w700),
                 child: IconTheme(
-                  data:
-                      IconThemeData(color: GameColors.onAccent, size: 20),
+                  data: const IconThemeData(color: Wood.creamDim, size: 20),
                   child: child,
                 ),
               ),
@@ -1124,7 +1110,7 @@ class _SpeedMenuButton extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   strings.gameSpeedLabel(option),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
@@ -1137,26 +1123,18 @@ class _SpeedMenuButton extends StatelessWidget {
       ],
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(13),
-          boxShadow: const [
-            BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-            BoxShadow(
-              color: Color(0x1F000000),
-              offset: Offset(0, 5),
-              blurRadius: 12,
-            ),
-          ],
+          color: const Color(0x29ECD9BB),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Container(
-          height: 38,
-          constraints: const BoxConstraints(minWidth: 38),
-          padding: const EdgeInsets.symmetric(horizontal: 11),
+          height: 36,
+          constraints: const BoxConstraints(minWidth: 36),
+          padding: const EdgeInsets.symmetric(horizontal: 9),
           alignment: Alignment.center,
-          child: Icon(
+          child: const Icon(
             Icons.speed_rounded,
             size: 20,
-            color: GameColors.onAccent,
+            color: Wood.creamDim,
           ),
         ),
       ),
@@ -1207,14 +1185,11 @@ class _GameTopBar extends StatelessWidget {
                 child: Text(
                   strings.appTitle.toUpperCase(),
                   maxLines: 1,
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 23,
-                    letterSpacing: 3.4,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
+                  style: WoodText.heading(23, color: Wood.cream2, spacing: 6)
+                      .copyWith(
+                    shadows: const [
+                      Shadow(
+                          color: Color(0x38FFE8C4), offset: Offset(0, 1)),
                     ],
                   ),
                 ),
@@ -1293,31 +1268,24 @@ class _PlayerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = side == Disc.black;
     final accent = isDark ? GameColors.accent : GameColors.accent2;
-    final palette = coinPalettes[coin]!;
-    // Light coins (white) need dark text on the avatar to stay legible.
-    final monoColor = ThemeData.estimateBrightnessForColor(palette.faceMid) ==
-            Brightness.light
-        ? GameColors.ink
-        : Colors.white;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      margin: const EdgeInsets.symmetric(vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
+        gradient: WoodDeco.cardGradient,
+        borderRadius: BorderRadius.circular(16),
         // Always reserve the border so toggling active doesn't resize the
         // card (which would otherwise nudge the board between turns).
         border: Border.all(
-          color: active ? accent : Colors.transparent,
-          width: 3,
+          color: active ? accent : const Color(0x247A5634),
+          width: active ? 2 : 1.5,
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
           BoxShadow(
-            color: Color(0x1A000000),
-            offset: Offset(0, 10),
-            blurRadius: 22,
+            color: Color(0x213E2A1E),
+            offset: Offset(0, 2),
+            blurRadius: 7,
           ),
         ],
       ),
@@ -1330,11 +1298,8 @@ class _PlayerCard extends StatelessWidget {
               duration: const Duration(milliseconds: 220),
               child: Text(
                 countdown!,
-                style: TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 24,
-                  height: 1,
+                style: WoodText.heading(
+                  24,
                   color: countdownUrgent
                       ? const Color(0xFFE0312B)
                       : (side == Disc.black
@@ -1346,26 +1311,23 @@ class _PlayerCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [palette.faceTop, palette.faceBottom],
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: AssetImage(
+                      isDark ? Wood.discWalnut : Wood.discMaple,
+                    ),
+                    fit: BoxFit.cover,
                   ),
-                  border: Border.all(color: const Color(0x14000000), width: 1),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  mono,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                    color: monoColor,
-                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x40000000),
+                      blurRadius: 3,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 12),
@@ -1378,75 +1340,35 @@ class _PlayerCard extends StatelessWidget {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                        color: GameColors.ink,
-                      ),
+                      style: WoodText.body(16,
+                          color: const Color(0xFF2E1F14),
+                          weight: FontWeight.w700),
                     ),
                     SizedBox(
-                      height: 15,
+                      height: 16,
                       child: Text(
                         active ? statusText.toLowerCase() : '',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          color: accent,
-                        ),
+                        style: WoodText.body(12,
+                            color: Wood.accent, weight: FontWeight.w600),
                       ),
                     ),
                   ],
                 ),
               ),
-              _ScoreChip(coin: coin),
               const SizedBox(width: 8),
               SizedBox(
-                width: 44,
+                width: 46,
                 child: Text(
                   '$score',
                   textAlign: TextAlign.right,
                   maxLines: 1,
                   softWrap: false,
                   overflow: TextOverflow.visible,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 28,
-                    height: 1,
-                    color: GameColors.ink,
-                  ),
+                  style: WoodText.heading(30, color: Wood.ink),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScoreChip extends StatelessWidget {
-  const _ScoreChip({required this.coin});
-
-  final CoinColor coin;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = coinPalettes[coin]!;
-    return Container(
-      width: 19,
-      height: 19,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          center: const Alignment(-0.3, -0.4),
-          colors: [palette.faceTop, palette.faceBottom],
-          stops: const [0.0, 0.72],
-        ),
-        boxShadow: const [
-          BoxShadow(color: Color(0x40000000), blurRadius: 2, spreadRadius: -1),
         ],
       ),
     );
@@ -1461,18 +1383,17 @@ class _TurnPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = side == Disc.black ? GameColors.accent : GameColors.accent2;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: WoodDeco.cardGradient,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0x477A5634), width: 1.5),
         boxShadow: const [
-          BoxShadow(color: Color(0x12000000), offset: Offset(0, 4)),
           BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 8),
-            blurRadius: 16,
+            color: Color(0x1F3E2A1E),
+            offset: Offset(0, 2),
+            blurRadius: 6,
           ),
         ],
       ),
@@ -1480,28 +1401,23 @@ class _TurnPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 11,
-            height: 11,
+            width: 14,
+            height: 14,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: accent,
-              boxShadow: [
-                BoxShadow(
-                    color: accent.withValues(alpha: 0.25),
-                    blurRadius: 4,
-                    spreadRadius: 4),
-              ],
+              image: DecorationImage(
+                image: AssetImage(
+                  side == Disc.black ? Wood.discWalnut : Wood.discMaple,
+                ),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Text(
             text,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w800,
-              fontSize: 13.5,
-              color: GameColors.onAccent,
-            ),
+            style: WoodText.body(14,
+                color: const Color(0xFF4A3220), weight: FontWeight.w600),
           ),
         ],
       ),
@@ -1577,7 +1493,7 @@ class _TimeUpOverlay extends StatelessWidget {
                     Text(
                       message,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Baloo2',
                         fontWeight: FontWeight.w800,
                         fontSize: 19,
@@ -1773,15 +1689,20 @@ class _GameOverCard extends StatelessWidget {
     return Container(
       width: 320,
       margin: const EdgeInsets.symmetric(horizontal: 28),
-      padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
+      padding: const EdgeInsets.fromLTRB(26, 30, 26, 26),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFF7ECD7), Color(0xFFEAD9BC)],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Wood.goldSoft, width: 1.5),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x40000000),
-            offset: Offset(0, 16),
-            blurRadius: 40,
+            color: Color(0x73281A0E),
+            offset: Offset(0, 20),
+            blurRadius: 48,
           ),
         ],
       ),
@@ -1792,25 +1713,14 @@ class _GameOverCard extends StatelessWidget {
             Text(
               title!,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 26,
-                height: 1.1,
-                color: titleColor,
-              ),
+              style: WoodText.heading(28, color: titleColor),
             ),
           if (message != null)
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-                height: 1.35,
-                color: GameColors.inkSoft,
-              ),
+              style: WoodText.body(16, color: Wood.inkSoft, weight: FontWeight.w500)
+                  .copyWith(height: 1.4),
             ),
           const SizedBox(height: 18),
           Row(
@@ -1820,12 +1730,7 @@ class _GameOverCard extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 '–',
-                style: TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  color: GameColors.inkSoft,
-                ),
+                style: WoodText.heading(22, color: Wood.inkSoft),
               ),
               const SizedBox(width: 10),
               _ScoreBadge(coin: opponentCoin, score: whiteScore),
@@ -1859,19 +1764,18 @@ class _ScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = coinPalettes[coin]!;
+    final isDark = coin == CoinColor.black;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 22,
-          height: 22,
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              center: const Alignment(-0.3, -0.4),
-              colors: [palette.faceTop, palette.faceBottom],
-              stops: const [0.0, 0.72],
+            image: DecorationImage(
+              image: AssetImage(isDark ? Wood.discWalnut : Wood.discMaple),
+              fit: BoxFit.cover,
             ),
             boxShadow: const [
               BoxShadow(
@@ -1882,13 +1786,7 @@ class _ScoreBadge extends StatelessWidget {
         const SizedBox(width: 7),
         Text(
           '$score',
-          style: TextStyle(
-            fontFamily: 'Baloo2',
-            fontWeight: FontWeight.w700,
-            fontSize: 26,
-            height: 1,
-            color: GameColors.ink,
-          ),
+          style: WoodText.heading(26, color: const Color(0xFF7A5224)),
         ),
       ],
     );
@@ -1910,29 +1808,28 @@ class _GameOverButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = primary ? Colors.white : GameColors.onAccent;
-    final bg = primary ? GameColors.accent2 : const Color(0xFFF0ECE3);
+    final fg = primary ? Wood.cream2 : const Color(0xFF7A5224);
     return SizedBox(
       width: double.infinity,
       height: 54,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(15),
+          gradient: primary ? WoodDeco.btnDarkGradient : null,
+          borderRadius: BorderRadius.circular(14),
+          border: primary
+              ? Border.all(color: Wood.goldSoft, width: 1.5)
+              : null,
           boxShadow: primary
               ? const [
-                  BoxShadow(color: Color(0x1F000000), offset: Offset(0, 4)),
                   BoxShadow(
-                      color: Color(0x24000000),
-                      offset: Offset(0, 8),
-                      blurRadius: 16),
+                      color: Color(0x59281A0E), offset: Offset(0, 3)),
                 ]
               : null,
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(14),
             onTap: () {
               SoundService.instance.playSfx(Sfx.button);
               onTap();
@@ -1940,16 +1837,15 @@ class _GameOverButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: fg, size: 21),
-                const SizedBox(width: 9),
+                if (primary) ...[
+                  Icon(icon, color: fg, size: 20),
+                  const SizedBox(width: 9),
+                ],
                 Text(
                   label,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17,
-                    color: fg,
-                  ),
+                  style: primary
+                      ? WoodText.heading(17, color: fg, spacing: 0.5)
+                      : WoodText.body(15, color: fg, weight: FontWeight.w700),
                 ),
               ],
             ),
