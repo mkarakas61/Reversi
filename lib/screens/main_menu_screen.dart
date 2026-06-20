@@ -119,7 +119,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: bannerGradient),
+        decoration: BoxDecoration(gradient: bannerGradient),
         child: SafeArea(
           child: Stack(
             children: [
@@ -456,14 +456,14 @@ class _PillButton extends StatelessWidget {
             height: 38,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: DefaultTextStyle(
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Nunito',
                 fontWeight: FontWeight.w800,
                 fontSize: 12.5,
                 color: GameColors.onAccent,
               ),
               child: IconTheme(
-                data: const IconThemeData(color: GameColors.onAccent, size: 20),
+                data: IconThemeData(color: GameColors.onAccent, size: 20),
                 child: child,
               ),
             ),
@@ -520,7 +520,7 @@ class _ProfileChipState extends State<_ProfileChip> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (_busy)
-              const SizedBox(
+              SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(

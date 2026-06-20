@@ -21,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: GameColors.creamTop,
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
             Positioned(
@@ -31,7 +31,7 @@ class SettingsScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
+                child: DecoratedBox(
                   decoration: BoxDecoration(gradient: bannerGradient),
                 ),
               ),
@@ -53,6 +53,13 @@ class SettingsScreen extends StatelessWidget {
                             current: lang,
                             onSelect: (code) =>
                                 controller.setLocale(Locale(code)),
+                          ),
+                        ),
+                        _Section(
+                          title: strings.theme,
+                          child: _ThemeRow(
+                            current: settings.appTheme,
+                            onSelect: controller.setAppTheme,
                           ),
                         ),
                         _Section(
@@ -234,7 +241,7 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
               fontSize: 16,
@@ -295,6 +302,64 @@ class _LanguageRow extends StatelessWidget {
           seg('tr', 'Türkçe'),
           const SizedBox(width: 4),
           seg('en', 'English'),
+        ],
+      ),
+    );
+  }
+}
+
+/// Two-option segmented switch for the whole-app theme (classic vs. wood).
+class _ThemeRow extends StatelessWidget {
+  const _ThemeRow({required this.current, required this.onSelect});
+
+  final AppTheme current;
+  final ValueChanged<AppTheme> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
+    Widget seg(AppTheme theme) {
+      final active = current == theme;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () {
+            SoundService.instance.playSfx(Sfx.button);
+            onSelect(theme);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? GameColors.accent : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              strings.appThemeLabel(theme),
+              style: TextStyle(
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+                color: active ? Colors.white : GameColors.inkSoft,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0ECE3),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        children: [
+          seg(AppTheme.classic),
+          const SizedBox(width: 4),
+          seg(AppTheme.wood),
         ],
       ),
     );
@@ -474,7 +539,7 @@ class _ToggleRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w800,
               fontSize: 14.5,
@@ -517,7 +582,7 @@ class _CoinRow extends StatelessWidget {
           width: 96,
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w800,
               fontSize: 13.5,

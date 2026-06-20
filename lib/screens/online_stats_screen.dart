@@ -26,7 +26,7 @@ class OnlineStatsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: GameColors.creamTop,
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
             Positioned(
@@ -36,7 +36,7 @@ class OnlineStatsScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
+                child: DecoratedBox(
                   decoration: BoxDecoration(gradient: bannerGradient),
                 ),
               ),
@@ -129,7 +129,7 @@ class _XpProgressRow extends StatelessWidget {
               width: 44,
               height: 44,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -154,7 +154,7 @@ class _XpProgressRow extends StatelessWidget {
                 children: [
                   Text(
                     '$xp XP',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Baloo2',
                       fontWeight: FontWeight.w800,
                       fontSize: 18,
@@ -163,7 +163,7 @@ class _XpProgressRow extends StatelessWidget {
                   ),
                   Text(
                     '$into / $range XP',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
@@ -182,7 +182,7 @@ class _XpProgressRow extends StatelessWidget {
             value: progress,
             minHeight: 8,
             backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-            valueColor: const AlwaysStoppedAnimation(GameColors.accent),
+            valueColor: AlwaysStoppedAnimation(GameColors.accent),
           ),
         ),
         const SizedBox(height: 4),
@@ -190,7 +190,7 @@ class _XpProgressRow extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Text(
             '${strings.level} ${level + 1}',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w700,
               fontSize: 11,
@@ -268,7 +268,7 @@ class _StatTile extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
               fontSize: 22,
@@ -281,7 +281,7 @@ class _StatTile extends StatelessWidget {
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w700,
               fontSize: 11.5,
@@ -300,8 +300,8 @@ class _ResultPieChart extends StatelessWidget {
   final OnlineStats stats;
   final AppStrings strings;
 
-  static const _winColor = GameColors.accent;
-  static const _lossColor = GameColors.accent2;
+  static Color get _winColor => GameColors.accent;
+  static Color get _lossColor => GameColors.accent2;
   static const _drawColor = Color(0xFFFFC83D);
 
   @override
@@ -373,7 +373,7 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Nunito',
             fontWeight: FontWeight.w800,
             fontSize: 12.5,
@@ -398,7 +398,7 @@ class _EmptyState extends StatelessWidget {
         child: Text(
           message,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Nunito',
             fontWeight: FontWeight.w700,
             fontSize: 15,
@@ -438,7 +438,7 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
               fontSize: 16,

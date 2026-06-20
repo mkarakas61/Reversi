@@ -203,7 +203,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           },
           child: Scaffold(
             body: DecoratedBox(
-              decoration: const BoxDecoration(gradient: bannerGradient),
+              decoration: BoxDecoration(gradient: bannerGradient),
               child: SafeArea(
                 child: g == null
                     ? const Center(
@@ -461,7 +461,7 @@ class _PlayerStrip extends StatelessWidget {
             backgroundImage: hasUrl ? NetworkImage(url) : null,
             child: hasUrl
                 ? null
-                : const Icon(Icons.person_rounded,
+                : Icon(Icons.person_rounded,
                     size: 18, color: GameColors.onAccent),
           ),
           const SizedBox(width: 10),
@@ -470,7 +470,7 @@ class _PlayerStrip extends StatelessWidget {
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Baloo2',
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
@@ -549,7 +549,7 @@ class _ResultOverlay extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Baloo2',
                     fontWeight: FontWeight.w800,
                     fontSize: 24,
@@ -559,7 +559,7 @@ class _ResultOverlay extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   '${game.game.scoreFor(Disc.black)} - ${game.game.scoreFor(Disc.white)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.w800,
                     fontSize: 18,

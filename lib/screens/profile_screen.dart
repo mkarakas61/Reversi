@@ -33,7 +33,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: GameColors.creamTop,
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
             Positioned(
@@ -43,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
+                child: DecoratedBox(
                   decoration: BoxDecoration(gradient: bannerGradient),
                 ),
               ),
@@ -64,7 +64,7 @@ class ProfileScreen extends StatelessWidget {
                         Text(
                           profile.displayName ?? '',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Baloo2',
                             fontWeight: FontWeight.w800,
                             fontSize: 24,
@@ -126,7 +126,7 @@ class _Avatar extends StatelessWidget {
           backgroundImage: hasUrl ? NetworkImage(url) : null,
           child: hasUrl
               ? null
-              : const Icon(Icons.person_rounded,
+              : Icon(Icons.person_rounded,
                   size: 48, color: GameColors.onAccent),
         ),
       ),
@@ -162,7 +162,7 @@ class _LevelCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -187,7 +187,7 @@ class _LevelCard extends StatelessWidget {
                   children: [
                     Text(
                       '$label $level',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Baloo2',
                         fontWeight: FontWeight.w800,
                         fontSize: 18,
@@ -196,7 +196,7 @@ class _LevelCard extends StatelessWidget {
                     ),
                     Text(
                       '$xp XP',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -215,7 +215,7 @@ class _LevelCard extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-              valueColor: const AlwaysStoppedAnimation(GameColors.accent),
+              valueColor: AlwaysStoppedAnimation(GameColors.accent),
             ),
           ),
         ],
@@ -242,7 +242,7 @@ class _OnlineRecordCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   strings.onlineStatistics,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Baloo2',
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
@@ -262,14 +262,14 @@ class _OnlineRecordCard extends StatelessWidget {
                   children: [
                     Text(
                       strings.viewAll,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         color: GameColors.accent,
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right,
                       size: 16,
                       color: GameColors.accent,
@@ -320,7 +320,7 @@ class _Stat extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
               fontSize: 22,
@@ -331,7 +331,7 @@ class _Stat extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w700,
               fontSize: 11.5,

@@ -69,7 +69,7 @@ class _StatsScreenState extends State<StatsScreen> {
     return Scaffold(
       backgroundColor: GameColors.creamTop,
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
             Positioned(
@@ -79,7 +79,7 @@ class _StatsScreenState extends State<StatsScreen> {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
+                child: DecoratedBox(
                   decoration: BoxDecoration(gradient: bannerGradient),
                 ),
               ),
@@ -126,7 +126,7 @@ class _StatsBody extends StatelessWidget {
           child: Text(
             strings.statsEmpty,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w700,
               fontSize: 15,
@@ -232,7 +232,7 @@ class _StatTile extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
               fontSize: 22,
@@ -245,7 +245,7 @@ class _StatTile extends StatelessWidget {
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w700,
               fontSize: 11.5,
@@ -264,8 +264,8 @@ class _ResultPieChart extends StatelessWidget {
 
   final GameStats stats;
 
-  static const _winColor = GameColors.accent;
-  static const _lossColor = GameColors.accent2;
+  static Color get _winColor => GameColors.accent;
+  static Color get _lossColor => GameColors.accent2;
   static const _drawColor = Color(0xFFFFC83D);
 
   @override
@@ -340,7 +340,7 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Nunito',
             fontWeight: FontWeight.w800,
             fontSize: 12.5,
@@ -406,7 +406,7 @@ class _ModeBarChart extends StatelessWidget {
                     child: Text(
                       strings.statsModeLabel(modes[index].mode),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w800,
                         fontSize: 9.5,
@@ -473,7 +473,7 @@ class _ResetButton extends StatelessWidget {
         label: Text(strings.statsReset),
         style: OutlinedButton.styleFrom(
           foregroundColor: GameColors.accent2,
-          side: const BorderSide(color: GameColors.accent2),
+          side: BorderSide(color: GameColors.accent2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -612,7 +612,7 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
               fontSize: 16,
