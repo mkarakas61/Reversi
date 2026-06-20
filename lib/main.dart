@@ -957,7 +957,7 @@ class _CreamShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: creamShellGradient),
+      decoration: BoxDecoration(gradient: creamShellGradient),
       child: Stack(
         children: [
           Positioned(
@@ -973,7 +973,7 @@ class _CreamShell extends StatelessWidget {
                   child: SizedBox(
                     height: bandH,
                     width: double.infinity,
-                    child: const DecoratedBox(
+                    child: DecoratedBox(
                       decoration: BoxDecoration(gradient: bannerGradient),
                     ),
                   ),
@@ -1063,7 +1063,7 @@ class _BarButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 11),
               alignment: Alignment.center,
               child: DefaultTextStyle(
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Nunito',
                   fontWeight: FontWeight.w800,
                   fontSize: 12.5,
@@ -1071,7 +1071,7 @@ class _BarButton extends StatelessWidget {
                 ),
                 child: IconTheme(
                   data:
-                      const IconThemeData(color: GameColors.onAccent, size: 20),
+                      IconThemeData(color: GameColors.onAccent, size: 20),
                   child: child,
                 ),
               ),
@@ -1124,7 +1124,7 @@ class _SpeedMenuButton extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   strings.gameSpeedLabel(option),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
@@ -1153,7 +1153,7 @@ class _SpeedMenuButton extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 38),
           padding: const EdgeInsets.symmetric(horizontal: 11),
           alignment: Alignment.center,
-          child: const Icon(
+          child: Icon(
             Icons.speed_rounded,
             size: 20,
             color: GameColors.onAccent,
@@ -1378,7 +1378,7 @@ class _PlayerCard extends StatelessWidget {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
@@ -1410,7 +1410,7 @@ class _PlayerCard extends StatelessWidget {
                   maxLines: 1,
                   softWrap: false,
                   overflow: TextOverflow.visible,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Baloo2',
                     fontWeight: FontWeight.w700,
                     fontSize: 28,
@@ -1496,7 +1496,7 @@ class _TurnPill extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w800,
               fontSize: 13.5,
@@ -1577,7 +1577,7 @@ class _TimeUpOverlay extends StatelessWidget {
                     Text(
                       message,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Baloo2',
                         fontWeight: FontWeight.w800,
                         fontSize: 19,
@@ -1804,7 +1804,7 @@ class _GameOverCard extends StatelessWidget {
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Nunito',
                 fontWeight: FontWeight.w700,
                 fontSize: 17,
@@ -1818,7 +1818,7 @@ class _GameOverCard extends StatelessWidget {
             children: [
               _ScoreBadge(coin: yourCoin, score: blackScore),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 '–',
                 style: TextStyle(
                   fontFamily: 'Baloo2',
@@ -1882,7 +1882,7 @@ class _ScoreBadge extends StatelessWidget {
         const SizedBox(width: 7),
         Text(
           '$score',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Baloo2',
             fontWeight: FontWeight.w700,
             fontSize: 26,

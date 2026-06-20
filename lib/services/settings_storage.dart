@@ -7,6 +7,7 @@ import '../game/game_settings.dart';
 /// Persists [AppSettings] (language, board theme, coin colours) across launches.
 class SettingsStorage {
   static const _localeKey = 'settings_locale';
+  static const _appThemeKey = 'settings_app_theme';
   static const _boardKey = 'settings_board';
   static const _yourCoinKey = 'settings_your_coin';
   static const _opponentCoinKey = 'settings_opponent_coin';
@@ -25,6 +26,8 @@ class SettingsStorage {
 
     return AppSettings(
       locale: locale,
+      appTheme: _enumByName(AppTheme.values, prefs.getString(_appThemeKey)) ??
+          AppTheme.classic,
       board: _enumByName(BoardTheme.values, prefs.getString(_boardKey)) ??
           BoardTheme.wood,
       yourCoin: _enumByName(CoinColor.values, prefs.getString(_yourCoinKey)) ??
@@ -48,6 +51,7 @@ class SettingsStorage {
     } else {
       await prefs.setString(_localeKey, locale.languageCode);
     }
+    await prefs.setString(_appThemeKey, settings.appTheme.name);
     await prefs.setString(_boardKey, settings.board.name);
     await prefs.setString(_yourCoinKey, settings.yourCoin.name);
     await prefs.setString(_opponentCoinKey, settings.opponentCoin.name);

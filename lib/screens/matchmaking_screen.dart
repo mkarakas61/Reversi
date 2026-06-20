@@ -117,7 +117,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
       },
       child: Scaffold(
         body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: bannerGradient),
+          decoration: BoxDecoration(gradient: bannerGradient),
           child: SafeArea(
             child: Center(
               child: Padding(
@@ -149,7 +149,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                             Text(
                               strings.signInError,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Nunito',
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
@@ -157,7 +157,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                               ),
                             ),
                           ] else ...[
-                            const SizedBox(
+                            SizedBox(
                               width: 54,
                               height: 54,
                               child: CircularProgressIndicator(
@@ -169,7 +169,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                             Text(
                               strings.searchingOpponent,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Baloo2',
                                 fontWeight: FontWeight.w800,
                                 fontSize: 19,

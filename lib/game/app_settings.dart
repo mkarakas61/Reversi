@@ -3,6 +3,19 @@ import 'package:flutter/widgets.dart';
 import '../services/settings_storage.dart';
 import 'game_settings.dart';
 
+/// App-wide visual theme. [classic] is the original turquoise/cream look;
+/// [wood] re-skins the whole shell (banner, background, accents, text) in warm
+/// walnut tones to match the wooden board.
+enum AppTheme { classic, wood }
+
+/// The theme currently in effect, read by the static palette getters in
+/// `game_theme.dart`. Mutated by [SettingsController] *before* it notifies
+/// listeners so the next rebuild resolves the right colours. Kept as a plain
+/// global (rather than threaded through [BuildContext]) so the hundreds of
+/// existing `GameColors.x` call sites keep working untouched. Lives here, not
+/// in `game_theme.dart`, to avoid a circular import.
+AppTheme activeAppTheme = AppTheme.classic;
+
 /// Visual palette chosen for the board slab. [wood] keeps the original
 /// image-textured table; the rest are the flat colour schemes from the
 /// "Renkli Tahta" design.
@@ -18,6 +31,7 @@ enum CoinColor { black, white, turquoise, orange }
 class AppSettings {
   const AppSettings({
     this.locale,
+    this.appTheme = AppTheme.classic,
     this.board = BoardTheme.wood,
     this.yourCoin = CoinColor.black,
     this.opponentCoin = CoinColor.white,
@@ -28,6 +42,9 @@ class AppSettings {
 
   /// Explicit language override. `null` follows the device locale.
   final Locale? locale;
+
+  /// Overall app skin (classic turquoise vs. wood).
+  final AppTheme appTheme;
   final BoardTheme board;
 
   /// Skin for the bottom side ([Disc.black] / "Sen").
@@ -48,6 +65,7 @@ class AppSettings {
   AppSettings copyWith({
     Locale? locale,
     bool clearLocale = false,
+    AppTheme? appTheme,
     BoardTheme? board,
     CoinColor? yourCoin,
     CoinColor? opponentCoin,
@@ -57,6 +75,7 @@ class AppSettings {
   }) {
     return AppSettings(
       locale: clearLocale ? null : (locale ?? this.locale),
+      appTheme: appTheme ?? this.appTheme,
       board: board ?? this.board,
       yourCoin: yourCoin ?? this.yourCoin,
       opponentCoin: opponentCoin ?? this.opponentCoin,
@@ -71,7 +90,9 @@ class AppSettings {
 /// [MaterialApp] (see [SettingsScope]) so the menu, the game screen, and even
 /// an open settings sheet all react to a change immediately.
 class SettingsController extends ChangeNotifier {
-  SettingsController(this._settings, this._storage);
+  SettingsController(this._settings, this._storage) {
+    activeAppTheme = _settings.appTheme;
+  }
 
   AppSettings _settings;
   final SettingsStorage _storage;
@@ -81,6 +102,16 @@ class SettingsController extends ChangeNotifier {
   void setLocale(Locale locale) {
     if (_settings.locale?.languageCode == locale.languageCode) return;
     _update(_settings.copyWith(locale: locale));
+  }
+
+  /// Switches the whole-app skin. The board follows the theme (wood theme →
+  /// wooden board, classic → the turquoise slab) so the two never look mixed;
+  /// players can still fine-tune the board afterwards from the board grid.
+  void setAppTheme(AppTheme theme) {
+    if (_settings.appTheme == theme) return;
+    final board =
+        theme == AppTheme.wood ? BoardTheme.wood : BoardTheme.turkuaz;
+    _update(_settings.copyWith(appTheme: theme, board: board));
   }
 
   void setBoard(BoardTheme board) {
@@ -123,6 +154,7 @@ class SettingsController extends ChangeNotifier {
 
   void _update(AppSettings next) {
     _settings = next;
+    activeAppTheme = next.appTheme;
     notifyListeners();
     _storage.save(next);
   }

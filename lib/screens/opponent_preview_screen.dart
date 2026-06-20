@@ -67,7 +67,7 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
       },
       child: Scaffold(
         body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: bannerGradient),
+          decoration: BoxDecoration(gradient: bannerGradient),
           child: SafeArea(
             child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance
@@ -230,7 +230,7 @@ class _PlayerLine extends StatelessWidget {
             backgroundImage: hasUrl ? NetworkImage(url) : null,
             child: hasUrl
                 ? null
-                : const Icon(Icons.person_rounded,
+                : Icon(Icons.person_rounded,
                     size: 26, color: GameColors.onAccent),
           ),
           const SizedBox(width: 12),
@@ -242,7 +242,7 @@ class _PlayerLine extends StatelessWidget {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Baloo2',
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
@@ -251,7 +251,7 @@ class _PlayerLine extends StatelessWidget {
                 ),
                 Text(
                   '${strings.level} $level',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
@@ -261,7 +261,7 @@ class _PlayerLine extends StatelessWidget {
                 if (showRecord)
                   Text(
                     '${strings.statsWins}: $wins · ${strings.statsLosses}: $losses · ${strings.statsDraws}: $draws',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.w700,
                       fontSize: 12,

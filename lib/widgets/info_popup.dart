@@ -70,7 +70,7 @@ class _InfoPopupState extends State<InfoPopup> {
               child: Text(
                 widget.message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Baloo2',
                   fontWeight: FontWeight.w800,
                   fontSize: 17,
