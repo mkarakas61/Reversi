@@ -6,29 +6,29 @@ import '../game/app_settings.dart';
 class GameColors {
   GameColors._();
 
-  // Brand accents.
-  static const accent = Color(0xFF13A99C); // turquoise (dark side / "Sen")
-  static const accent2 = Color(0xFFF4552C); // orange (light side / "Aria")
+  // Brand accents — remapped to the walnut/maple wooden palette.
+  static const accent = Color(0xFF9A6B2F); // warm accent (dark side / "Sen")
+  static const accent2 = Color(0xFFB78A4A); // maple-gold (light side / "Aria")
 
   // Cream app shell.
-  static const creamTop = Color(0xFFFFF6E9);
-  static const creamBottom = Color(0xFFFFEDD6);
+  static const creamTop = Color(0xFFFBF6EE);
+  static const creamBottom = Color(0xFFEFE5D5);
 
-  // Turquoise banner gradient (top of the game screen / whole menu bg).
-  static const bannerTop = Color(0xFF2FD4C2);
-  static const bannerMid = Color(0xFF14B3A6);
-  static const bannerBottom = Color(0xFF0E9C91);
+  // Dark walnut banner gradient (top of the game screen / whole menu bg).
+  static const bannerTop = Color(0xFF4A3220);
+  static const bannerMid = Color(0xFF3E2A1E);
+  static const bannerBottom = Color(0xFF38240F);
 
   // Text.
-  static const ink = Color(0xFF20302E);
-  static const inkSoft = Color(0xFF3A4A48);
-  static const onAccent = Color(0xFF1F6F67);
+  static const ink = Color(0xFF3E2A1E);
+  static const inkSoft = Color(0xFF6B5235);
+  static const onAccent = Color(0xFF3E2A1E);
 
-  // Avatars.
-  static const avatarDarkTop = Color(0xFF19C2B2);
-  static const avatarDarkBottom = Color(0xFF0E9C91);
-  static const avatarLightTop = Color(0xFFFF9A4D);
-  static const avatarLightBottom = Color(0xFFF4552C);
+  // Avatars (walnut / maple).
+  static const avatarDarkTop = Color(0xFF7A5638);
+  static const avatarDarkBottom = Color(0xFF3E2A1E);
+  static const avatarLightTop = Color(0xFFE9D6B4);
+  static const avatarLightBottom = Color(0xFFC9A05A);
 
   // Chips (small score discs).
   static const chipDarkTop = Color(0xFF4A5468);

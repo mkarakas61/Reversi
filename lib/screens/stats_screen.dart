@@ -6,6 +6,7 @@ import '../models/game_stats.dart';
 import '../services/sound_service.dart';
 import '../services/stats_storage.dart';
 import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 
 /// Lifetime statistics screen, reached from the main menu. Shows totals,
 /// streaks, a win/loss/draw pie chart and a per-mode breakdown, plus a
@@ -72,15 +73,16 @@ class _StatsScreenState extends State<StatsScreen> {
         decoration: const BoxDecoration(gradient: creamShellGradient),
         child: Stack(
           children: [
-            Positioned(
+            const Positioned(
               top: 0,
               left: 0,
               right: 0,
-              height: 150,
-              child: ClipPath(
-                clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+              height: 130,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: WoodDeco.barGradient,
+                  border:
+                      Border(bottom: BorderSide(color: Wood.gold, width: 2)),
                 ),
               ),
             ),
@@ -126,12 +128,8 @@ class _StatsBody extends StatelessWidget {
           child: Text(
             strings.statsEmpty,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(15,
+                color: Wood.inkSoft, weight: FontWeight.w600),
           ),
         ),
       );
@@ -221,10 +219,11 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F2E7),
-        borderRadius: BorderRadius.circular(14),
+        color: const Color(0xFFEFE3CC),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: const Color(0x297A5634)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -232,25 +231,15 @@ class _StatTile extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-              height: 1.1,
-              color: GameColors.ink,
-            ),
+            style: WoodText.heading(22, color: Wood.ink),
           ),
           const SizedBox(height: 2),
           Text(
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w700,
-              fontSize: 11.5,
-              color: GameColors.inkSoft,
-            ),
+            style: WoodText.body(11.5,
+                color: Wood.inkSoft, weight: FontWeight.w600),
           ),
         ],
       ),
@@ -264,9 +253,9 @@ class _ResultPieChart extends StatelessWidget {
 
   final GameStats stats;
 
-  static const _winColor = GameColors.accent;
-  static const _lossColor = GameColors.accent2;
-  static const _drawColor = Color(0xFFFFC83D);
+  static const _winColor = Wood.accent; // #9A6B2F
+  static const _lossColor = Wood.danger; // #A8442A
+  static const _drawColor = Wood.warmGold; // #D8B36A
 
   @override
   Widget build(BuildContext context) {
@@ -295,12 +284,7 @@ class _ResultPieChart extends StatelessWidget {
                     color: entry.color,
                     radius: 52,
                     title: '${(entry.value / total * 100).round()}%',
-                    titleStyle: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: Colors.white,
-                    ),
+                    titleStyle: WoodText.heading(13, color: Colors.white),
                   ),
               ],
             ),
@@ -340,12 +324,8 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
-            fontFamily: 'Nunito',
-            fontWeight: FontWeight.w800,
-            fontSize: 12.5,
-            color: GameColors.inkSoft,
-          ),
+          style: WoodText.body(12.5,
+              color: Wood.inkSoft, weight: FontWeight.w600),
         ),
       ],
     );
@@ -406,12 +386,8 @@ class _ModeBarChart extends StatelessWidget {
                     child: Text(
                       strings.statsModeLabel(modes[index].mode),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 9.5,
-                        color: GameColors.inkSoft,
-                      ),
+                      style: WoodText.body(9.5,
+                          color: Wood.inkSoft, weight: FontWeight.w600),
                     ),
                   );
                 },
@@ -472,35 +448,16 @@ class _ResetButton extends StatelessWidget {
         icon: const Icon(Icons.delete_outline_rounded, size: 20),
         label: Text(strings.statsReset),
         style: OutlinedButton.styleFrom(
-          foregroundColor: GameColors.accent2,
-          side: const BorderSide(color: GameColors.accent2),
+          foregroundColor: Wood.danger,
+          side: const BorderSide(color: Wood.danger, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: const TextStyle(
-            fontFamily: 'Baloo2',
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
-          ),
+          textStyle: WoodText.heading(15, color: Wood.danger),
         ),
       ),
     );
   }
-}
-
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height * 0.62)
-      ..lineTo(0, size.height * 0.82)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(_HeaderClipper old) => false;
 }
 
 class _Header extends StatelessWidget {
@@ -523,16 +480,7 @@ class _Header extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: Text(
                   title.toUpperCase(),
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22,
-                    letterSpacing: 2.2,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
-                    ],
-                  ),
+                  style: WoodText.heading(22, color: Colors.white, spacing: 2.2),
                 ),
               ),
             ),
@@ -554,21 +502,13 @@ class _RoundButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
-          BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 5),
-            blurRadius: 12,
-          ),
-        ],
+        color: const Color(0x29ECD9BB),
+        borderRadius: BorderRadius.circular(11),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(11),
           onTap: () {
             SoundService.instance.playSfx(Sfx.button);
             onTap();
@@ -576,7 +516,7 @@ class _RoundButton extends StatelessWidget {
           child: SizedBox(
             width: 42,
             height: 38,
-            child: Icon(icon, color: GameColors.onAccent, size: 24),
+            child: Icon(icon, color: Wood.creamDim, size: 22),
           ),
         ),
       ),
@@ -595,29 +535,13 @@ class _Section extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
-          BoxShadow(
-            color: Color(0x14000000),
-            offset: Offset(0, 10),
-            blurRadius: 22,
-          ),
-        ],
-      ),
+      decoration: WoodDeco.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: GameColors.ink,
-            ),
+            style: WoodText.heading(16, color: Wood.ink),
           ),
           const SizedBox(height: 12),
           child,

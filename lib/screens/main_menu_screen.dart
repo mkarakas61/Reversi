@@ -9,7 +9,7 @@ import '../main.dart' show routeObserver;
 import '../services/auth_service.dart';
 import '../services/game_storage.dart';
 import '../services/sound_service.dart';
-import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 import 'matchmaking_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -118,183 +118,190 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     final isSignedIn = ProfileScope.of(context).profile != null;
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: bannerGradient),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: _PillButton(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SettingsScreen(),
+      body: Container(
+        decoration: const BoxDecoration(color: Wood.cream),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(gradient: WoodDeco.pageWash),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: _PillButton(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const SettingsScreen(),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.settings, size: 18),
-                        const SizedBox(width: 6),
-                        Text(strings.settings),
-                      ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.settings, size: 16),
+                          const SizedBox(width: 6),
+                          Text(strings.settings),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: _ProfileChip(),
+                const Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: _ProfileChip(),
+                  ),
                 ),
-              ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _Logo(),
-                      const SizedBox(height: 10),
-                      Text(
-                        strings.appTitle.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontWeight: FontWeight.w800,
-                          fontSize: 44,
-                          letterSpacing: 6,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                                color: Color(0x29000000), offset: Offset(0, 3)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 44),
-                      if (_showDifficulty) ...[
-                        Text(
-                          strings.chooseDifficulty,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _MenuButton(
-                          label: strings.easy,
-                          icon: Icons.sentiment_satisfied_rounded,
-                          onTap: () => unawaited(
-                            _start(GameMode.singlePlayer, Difficulty.easy,
-                                TimeLimit.none),
-                          ),
-                        ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _Logo(),
                         const SizedBox(height: 14),
-                        _MenuButton(
-                          label: strings.normal,
-                          icon: Icons.sentiment_neutral_rounded,
-                          onTap: () => unawaited(
-                            _start(GameMode.singlePlayer, Difficulty.normal,
-                                TimeLimit.none),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        _MenuButton(
-                          label: strings.hard,
-                          icon: Icons.sentiment_very_dissatisfied_rounded,
-                          onTap: () => unawaited(
-                            _start(GameMode.singlePlayer, Difficulty.hard,
-                                TimeLimit.none),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _BackLink(
-                          label: strings.back,
-                          onTap: () => setState(() => _showDifficulty = false),
-                        ),
-                        const SizedBox(height: 28),
-                        _MenuButton(
-                          label: strings.singlePlayerStatistics,
-                          icon: Icons.bar_chart_rounded,
-                          primary: true,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const StatsScreen(),
-                            ),
-                          ),
-                        ),
-                      ] else if (_showTimeLimit) ...[
                         Text(
-                          strings.chooseTimeLimit,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                            color: Colors.white,
+                          strings.appTitle.toUpperCase(),
+                          style: WoodText.heading(
+                            48,
+                            color: Wood.ink,
+                            spacing: 8,
+                          ).copyWith(
+                            shadows: const [
+                              Shadow(
+                                color: Color(0x80FFFAF0),
+                                offset: Offset(0, 1),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        for (final limit in TimeLimit.values) ...[
-                          _MenuButton(
-                            label: strings.timeLimitLabel(limit),
-                            icon: limit == TimeLimit.none
-                                ? Icons.all_inclusive_rounded
-                                : Icons.timer_outlined,
-                            onTap: () => unawaited(
-                              _start(GameMode.twoPlayer, null, limit),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                        ],
                         const SizedBox(height: 6),
-                        _BackLink(
-                          label: strings.back,
-                          onTap: () => setState(() => _showTimeLimit = false),
-                        ),
-                      ] else ...[
-                        if (_savedGame != null) ...[
-                          _MenuButton(
-                            label: strings.continueGame,
-                            icon: Icons.play_arrow_rounded,
-                            primary: true,
-                            onTap: () => unawaited(_continueSaved()),
+                        // Gold divider.
+                        Container(
+                          width: 120,
+                          height: 2,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0x00B8860B),
+                                Wood.gold,
+                                Color(0x00B8860B),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 14),
-                        ],
-                        _MenuButton(
-                          label: strings.onePlayer,
-                          icon: Icons.person_rounded,
-                          onTap: () => setState(() => _showDifficulty = true),
                         ),
-                        const SizedBox(height: 14),
-                        _MenuButton(
-                          label: strings.twoPlayer,
-                          icon: Icons.people_rounded,
-                          onTap: () => setState(() => _showTimeLimit = true),
+                        const SizedBox(height: 10),
+                        Text(
+                          strings.appSubtitle,
+                          style: WoodText.body(
+                            14,
+                            color: Wood.inkSoft2,
+                            italic: true,
+                          ),
                         ),
-                        if (isSignedIn) ...[
-                          const SizedBox(height: 14),
+                        const SizedBox(height: 34),
+                        if (_showDifficulty) ...[
+                          Text(
+                            strings.chooseDifficulty,
+                            style: WoodText.heading(16, color: Wood.ink),
+                          ),
+                          const SizedBox(height: 18),
                           _MenuButton(
-                            label: strings.onlinePlay,
-                            icon: Icons.public_rounded,
-                            primary: true,
+                            label: strings.easy,
+                            onTap: () => unawaited(
+                              _start(GameMode.singlePlayer, Difficulty.easy,
+                                  TimeLimit.none),
+                            ),
+                          ),
+                          const SizedBox(height: 13),
+                          _MenuButton(
+                            label: strings.normal,
+                            onTap: () => unawaited(
+                              _start(GameMode.singlePlayer, Difficulty.normal,
+                                  TimeLimit.none),
+                            ),
+                          ),
+                          const SizedBox(height: 13),
+                          _MenuButton(
+                            label: strings.hard,
+                            onTap: () => unawaited(
+                              _start(GameMode.singlePlayer, Difficulty.hard,
+                                  TimeLimit.none),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _BackLink(
+                            label: strings.back,
+                            onTap: () => setState(() => _showDifficulty = false),
+                          ),
+                          const SizedBox(height: 22),
+                          _MenuButton(
+                            label: strings.singlePlayerStatistics,
+                            variant: WoodButtonVariant.dark,
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
-                                builder: (_) => const MatchmakingScreen(),
+                                builder: (_) => const StatsScreen(),
                               ),
                             ),
                           ),
+                        ] else if (_showTimeLimit) ...[
+                          Text(
+                            strings.chooseTimeLimit,
+                            style: WoodText.heading(16, color: Wood.ink),
+                          ),
+                          const SizedBox(height: 18),
+                          for (final limit in TimeLimit.values) ...[
+                            _MenuButton(
+                              label: strings.timeLimitLabel(limit),
+                              onTap: () => unawaited(
+                                _start(GameMode.twoPlayer, null, limit),
+                              ),
+                            ),
+                            const SizedBox(height: 13),
+                          ],
+                          const SizedBox(height: 6),
+                          _BackLink(
+                            label: strings.back,
+                            onTap: () => setState(() => _showTimeLimit = false),
+                          ),
+                        ] else ...[
+                          if (_savedGame != null) ...[
+                            _MenuButton(
+                              label: strings.continueGame,
+                              variant: WoodButtonVariant.dark,
+                              onTap: () => unawaited(_continueSaved()),
+                            ),
+                            const SizedBox(height: 13),
+                          ],
+                          _MenuButton(
+                            label: strings.onePlayer,
+                            onTap: () => setState(() => _showDifficulty = true),
+                          ),
+                          const SizedBox(height: 13),
+                          _MenuButton(
+                            label: strings.twoPlayer,
+                            onTap: () => setState(() => _showTimeLimit = true),
+                          ),
+                          if (isSignedIn) ...[
+                            const SizedBox(height: 13),
+                            _MenuButton(
+                              label: strings.onlinePlay,
+                              variant: WoodButtonVariant.gold,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const MatchmakingScreen(),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -302,39 +309,41 @@ class _MainMenuScreenState extends State<MainMenuScreen>
   }
 }
 
-/// The 2×2 opening-position motif from the app icon, as a small logo.
+/// The 2×2 opening-position motif, rendered in the dark wooden frame.
 class _Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget tile(bool dark) => Container(
-          margin: const EdgeInsets.all(3),
-          width: 30,
-          height: 30,
+          margin: const EdgeInsets.all(3.5),
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
-            color: const Color(0xFFFCE9C8),
+            color: const Color(0x1AF2E6D0), // rgba(242,230,208,.10)
             borderRadius: BorderRadius.circular(7),
           ),
           alignment: Alignment.center,
           child: Container(
-            width: 20,
-            height: 20,
+            width: 26,
+            height: 26,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4),
-                colors: dark
-                    ? const [Color(0xFF4A5468), Color(0xFF11141D)]
-                    : const [Colors.white, Color(0xFFC4C8D2)],
-                stops: const [0.0, 0.75],
+              image: DecorationImage(
+                image: AssetImage(dark ? Wood.discWalnut : Wood.discMaple),
+                fit: BoxFit.cover,
               ),
             ),
           ),
         );
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF56391F), Color(0xFF3A2410)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Wood.gold, width: 1.5),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -354,75 +363,30 @@ class _Logo extends StatelessWidget {
 class _MenuButton extends StatelessWidget {
   const _MenuButton({
     required this.label,
-    required this.icon,
     required this.onTap,
-    this.primary = false,
+    this.variant = WoodButtonVariant.light,
   });
 
   final String label;
-  final IconData icon;
   final VoidCallback onTap;
-  final bool primary;
+  final WoodButtonVariant variant;
 
   @override
   Widget build(BuildContext context) {
-    final fg = primary ? Colors.white : GameColors.onAccent;
-    final bg = primary ? GameColors.accent2 : Colors.white;
-    return SizedBox(
-      width: 260,
-      height: 58,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              offset: const Offset(0, 4),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.14),
-              offset: const Offset(0, 8),
-              blurRadius: 16,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              SoundService.instance.playSfx(Sfx.button);
-              onTap();
-            },
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: fg, size: 22),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        color: fg,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return WoodButton(
+      label: label,
+      variant: variant,
+      width: 262,
+      height: 56,
+      onTap: () {
+        SoundService.instance.playSfx(Sfx.button);
+        onTap();
+      },
     );
   }
 }
 
+/// Small cream chip used for the Profile / Settings shortcuts at the top.
 class _PillButton extends StatelessWidget {
   const _PillButton({required this.child, required this.onTap});
 
@@ -433,14 +397,14 @@ class _PillButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: WoodDeco.cardGradient,
         borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: const Color(0x4D7A5634)), // rgba(122,86,52,.3)
         boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
           BoxShadow(
-            color: Color(0x1F000000),
-            offset: Offset(0, 5),
-            blurRadius: 12,
+            color: Color(0x213E2A1E),
+            offset: Offset(0, 2),
+            blurRadius: 6,
           ),
         ],
       ),
@@ -454,16 +418,11 @@ class _PillButton extends StatelessWidget {
           },
           child: Container(
             height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 13),
             child: DefaultTextStyle(
-              style: const TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w800,
-                fontSize: 12.5,
-                color: GameColors.onAccent,
-              ),
+              style: WoodText.body(13, color: Wood.ink, weight: FontWeight.w700),
               child: IconTheme(
-                data: const IconThemeData(color: GameColors.onAccent, size: 20),
+                data: const IconThemeData(color: Wood.ink, size: 18),
                 child: child,
               ),
             ),
@@ -525,7 +484,7 @@ class _ProfileChipState extends State<_ProfileChip> {
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: GameColors.onAccent,
+                  color: Wood.accent,
                 ),
               )
             else
@@ -566,12 +525,12 @@ class _Avatar extends StatelessWidget {
     final hasUrl = url != null && url.isNotEmpty;
     return CircleAvatar(
       radius: radius,
-      backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+      backgroundColor: const Color(0x1F5A3D26), // rgba(90,61,38,.12)
       backgroundImage: hasUrl ? NetworkImage(url) : null,
       child: hasUrl
           ? null
           : Icon(Icons.person_rounded,
-              size: radius, color: GameColors.onAccent),
+              size: radius, color: const Color(0xFF5A3D26)),
     );
   }
 }
@@ -585,15 +544,14 @@ class _BackLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      onPressed: () {
+        SoundService.instance.playSfx(Sfx.button);
+        onTap();
+      },
+      icon: const Icon(Icons.arrow_back, color: Wood.inkSoft, size: 18),
       label: Text(
         label,
-        style: const TextStyle(
-          fontFamily: 'Nunito',
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-        ),
+        style: WoodText.body(15, color: Wood.inkSoft, weight: FontWeight.w700),
       ),
     );
   }

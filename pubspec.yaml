@@ -41,6 +41,15 @@ flutter:
     - family: Nunito
       fonts:
         - asset: assets/fonts/Nunito.ttf
+    # Wood/walnut design system typefaces (Claude Design handoff).
+    - family: Marcellus
+      fonts:
+        - asset: assets/fonts/Marcellus-Regular.ttf
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-VariableFont_wght.ttf
+        - asset: assets/fonts/Lora-Italic-VariableFont_wght.ttf
+          style: italic
 
 # App icon: drop a 1024x1024 PNG at assets/icon/app_icon.png and an
 # adaptive foreground (transparent background, centered motif) at
@@ -48,7 +57,7 @@ flutter:
 #   dart run flutter_launcher_icons
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
   image_path: assets/icon/app_icon.png
   adaptive_icon_background: assets/icon/app_icon_background.png
   adaptive_icon_foreground: assets/icon/app_icon_foreground.png

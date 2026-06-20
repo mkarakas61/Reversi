@@ -8,7 +8,7 @@ import '../l10n/app_strings.dart';
 import '../services/matchmaking_service.dart';
 import '../services/online_game_service.dart';
 import '../services/sound_service.dart';
-import '../theme/game_theme.dart';
+import '../theme/wood_theme.dart';
 import 'online_game_screen.dart';
 import 'opponent_preview_screen.dart';
 
@@ -117,7 +117,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
       },
       child: Scaffold(
         body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: bannerGradient),
+          decoration: const BoxDecoration(gradient: WoodDeco.darkBackground),
           child: SafeArea(
             child: Center(
               child: Padding(
@@ -127,15 +127,16 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 32),
+                          horizontal: 30, vertical: 34),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        gradient: WoodDeco.cardGradient,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Wood.goldSoft, width: 1.5),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x33000000),
-                            offset: Offset(0, 12),
-                            blurRadius: 30,
+                            color: Color(0x4D3E2A1E),
+                            offset: Offset(0, 8),
+                            blurRadius: 16,
                           ),
                         ],
                       ),
@@ -149,12 +150,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                             Text(
                               strings.signInError,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontFamily: 'Nunito',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 15,
-                                color: GameColors.ink,
-                              ),
+                              style: WoodText.body(15, color: Wood.ink, weight: FontWeight.w700),
                             ),
                           ] else ...[
                             const SizedBox(
@@ -162,25 +158,20 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                               height: 54,
                               child: CircularProgressIndicator(
                                 strokeWidth: 4,
-                                color: GameColors.accent,
+                                color: Wood.gold,
                               ),
                             ),
                             const SizedBox(height: 22),
                             Text(
                               strings.searchingOpponent,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontFamily: 'Baloo2',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 19,
-                                color: GameColors.ink,
-                              ),
+                              style: WoodText.heading(20, color: Wood.ink),
                             ),
                           ],
                         ],
                       ),
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 24),
                     _CancelButton(
                       label: strings.cancel,
                       onTap: () {
@@ -207,23 +198,18 @@ class _CancelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.18),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0x24ECD9BB),
+        border: Border.all(color: const Color(0x4DECD9BB), width: 1.5),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: GestureDetector(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: Colors.white,
-            ),
-          ),
+        child: Text(
+          label,
+          style: WoodText.heading(16, color: Wood.cream2, spacing: 1),
         ),
       ),
     );

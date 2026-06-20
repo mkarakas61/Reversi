@@ -21,6 +21,7 @@ class AppStrings {
   static const _values = {
     'en': {
       'appTitle': 'Reversi',
+      'appSubtitle': 'The classic game of strategy',
       'newGame': 'New game',
       'language': 'Language',
       'black': 'Black',
@@ -146,6 +147,7 @@ class AppStrings {
     },
     'tr': {
       'appTitle': 'Reversi',
+      'appSubtitle': 'Klasik strateji oyunu',
       'newGame': 'Yeni oyun',
       'language': 'Dil',
       'black': 'Siyah',
@@ -270,6 +272,7 @@ class AppStrings {
   };
 
   String get appTitle => _get('appTitle');
+  String get appSubtitle => _get('appSubtitle');
   String get newGame => _get('newGame');
   String get language => _get('language');
   String get black => _get('black');
