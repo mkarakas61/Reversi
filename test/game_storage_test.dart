@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reversi/game/game_settings.dart';
-import 'package:reversi/game/reversi_game.dart';
-import 'package:reversi/services/game_storage.dart';
+import 'package:reversi/core/game/game_settings.dart';
+import 'package:reversi/core/game/reversi_game.dart';
+import 'package:reversi/core/services/game_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

@@ -16,12 +16,6 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.5
   confetti: ^0.8.0
-  audioplayers: ^6.1.0
-  fl_chart: ^1.2.0
-  firebase_auth: ^5.7.0
-  cloud_firestore: ^5.6.12
-  cloud_functions: ^5.6.2
-  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -33,7 +27,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/wood/
-    - assets/audio/
   fonts:
     - family: Baloo2
       fonts:
@@ -41,15 +34,6 @@ flutter:
     - family: Nunito
       fonts:
         - asset: assets/fonts/Nunito.ttf
-    # Wood/walnut design system typefaces (Claude Design handoff).
-    - family: Marcellus
-      fonts:
-        - asset: assets/fonts/Marcellus-Regular.ttf
-    - family: Lora
-      fonts:
-        - asset: assets/fonts/Lora-VariableFont_wght.ttf
-        - asset: assets/fonts/Lora-Italic-VariableFont_wght.ttf
-          style: italic
 
 # App icon: drop a 1024x1024 PNG at assets/icon/app_icon.png and an
 # adaptive foreground (transparent background, centered motif) at
@@ -57,7 +41,7 @@ flutter:
 #   dart run flutter_launcher_icons
 flutter_launcher_icons:
   android: true
-  ios: true
+  ios: false
   image_path: assets/icon/app_icon.png
   adaptive_icon_background: assets/icon/app_icon_background.png
   adaptive_icon_foreground: assets/icon/app_icon_foreground.png

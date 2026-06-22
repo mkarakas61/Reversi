@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reversi/game/reversi_game.dart';
+import 'package:reversi/core/game/reversi_game.dart';
 
 void main() {
   group('ReversiGame', () {

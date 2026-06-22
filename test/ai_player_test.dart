@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reversi/game/ai_player.dart';
-import 'package:reversi/game/game_settings.dart';
-import 'package:reversi/game/reversi_game.dart';
+import 'package:reversi/core/game/ai_player.dart';
+import 'package:reversi/core/game/game_settings.dart';
+import 'package:reversi/core/game/reversi_game.dart';
 
 ReversiGame _selfPlay(ReversiAi black, ReversiAi white) {
   var game = ReversiGame.newGame();
@@ -21,7 +21,8 @@ ReversiGame _selfPlay(ReversiAi black, ReversiAi white) {
 
 void main() {
   group('ReversiAi', () {
-    test('every difficulty returns a legal move from the opening position', () {
+    test('every difficulty returns a legal move from the opening position',
+        () {
       for (final difficulty in Difficulty.values) {
         final ai = ReversiAi(difficulty: difficulty, random: Random(1));
         final game = ReversiGame.newGame();
