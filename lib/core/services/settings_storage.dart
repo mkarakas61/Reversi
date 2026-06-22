@@ -1,9 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../game/app_settings.dart';
+import '../settings/app_settings.dart';
 
-/// Persists [AppSettings] (language, board theme, coin colours) across launches.
 class SettingsStorage {
   static const _localeKey = 'settings_locale';
   static const _boardKey = 'settings_board';

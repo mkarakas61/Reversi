@@ -2,17 +2,10 @@ import 'package:flutter/widgets.dart';
 
 import '../services/settings_storage.dart';
 
-/// Visual palette chosen for the board slab. [wood] keeps the original
-/// image-textured table; the rest are the flat colour schemes from the
-/// "Renkli Tahta" design.
 enum BoardTheme { wood, turkuaz, gece, antrasit, petrol }
 
-/// The four coin skins a player can wear. The engine still uses
-/// [Disc.black]/[Disc.white] for the two sides; these only re-colour them.
 enum CoinColor { black, white, turquoise, orange }
 
-/// App-wide visual preferences. Defaults reproduce the original look (wooden
-/// board, black vs white coins) so existing players see no change.
 @immutable
 class AppSettings {
   const AppSettings({
@@ -22,14 +15,9 @@ class AppSettings {
     this.opponentCoin = CoinColor.white,
   });
 
-  /// Explicit language override. `null` follows the device locale.
   final Locale? locale;
   final BoardTheme board;
-
-  /// Skin for the bottom side ([Disc.black] / "Sen").
   final CoinColor yourCoin;
-
-  /// Skin for the top side ([Disc.white] / "Aria").
   final CoinColor opponentCoin;
 
   AppSettings copyWith({
@@ -48,9 +36,6 @@ class AppSettings {
   }
 }
 
-/// Holds the live [AppSettings] and persists every change. Lives above the
-/// [MaterialApp] (see [SettingsScope]) so the menu, the game screen, and even
-/// an open settings sheet all react to a change immediately.
 class SettingsController extends ChangeNotifier {
   SettingsController(this._settings, this._storage);
 
@@ -69,8 +54,6 @@ class SettingsController extends ChangeNotifier {
     _update(_settings.copyWith(board: board));
   }
 
-  /// Sets the [Disc.black] side's coin. If it collides with the opponent's
-  /// colour, the two swap so the sides always stay distinct.
   void setYourCoin(CoinColor color) {
     if (_settings.yourCoin == color) return;
     final opponent =
@@ -92,8 +75,6 @@ class SettingsController extends ChangeNotifier {
   }
 }
 
-/// Exposes the [SettingsController] to the whole widget tree and rebuilds
-/// dependents when settings change.
 class SettingsScope extends InheritedNotifier<SettingsController> {
   const SettingsScope({
     super.key,

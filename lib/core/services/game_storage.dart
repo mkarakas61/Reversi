@@ -19,7 +19,6 @@ class SavedGame {
   final TimeLimit timeLimit;
 }
 
-/// Persists the in-progress game so it survives the app being killed.
 class GameStorage {
   static const _key = 'saved_game_v1';
 
@@ -37,9 +36,7 @@ class GameStorage {
   Future<SavedGame?> load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key);
-    if (raw == null) {
-      return null;
-    }
+    if (raw == null) return null;
     try {
       return _decode(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
@@ -97,7 +94,6 @@ class GameStorage {
     final lastMoveRow = data['lastMoveRow'] as int?;
     final lastMoveCol = data['lastMoveCol'] as int?;
     final difficultyName = data['difficulty'] as String?;
-    // Older saves predate timed games; treat them as untimed.
     final timeLimitName = data['timeLimit'] as String?;
 
     return SavedGame(

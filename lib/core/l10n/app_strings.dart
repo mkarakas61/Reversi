@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../game/app_settings.dart';
+import '../settings/app_settings.dart';
 import '../game/game_settings.dart';
 
 class AppStrings {
@@ -10,9 +10,8 @@ class AppStrings {
 
   static const supportedLocales = [Locale('en'), Locale('tr')];
 
-  static AppStrings of(BuildContext context) {
-    return Localizations.of<AppStrings>(context, AppStrings)!;
-  }
+  static AppStrings of(BuildContext context) =>
+      Localizations.of<AppStrings>(context, AppStrings)!;
 
   static const LocalizationsDelegate<AppStrings> delegate =
       _AppStringsDelegate();
@@ -26,8 +25,7 @@ class AppStrings {
       'white': 'White',
       'turn': '{player} to move',
       'score': 'Score',
-      'invalidMove':
-          'Choose a highlighted square to capture at least one disc.',
+      'invalidMove': 'Choose a highlighted square to capture at least one disc.',
       'forcedPass': '{player} has no legal move and passes.',
       'gameOver': 'Game over',
       'winner': '{player} wins',
@@ -94,8 +92,7 @@ class AppStrings {
       'white': 'Beyaz',
       'turn': 'Sıra {player}',
       'score': 'Skor',
-      'invalidMove':
-          'En az bir taşı çevirmek için işaretli karelerden birini seçin.',
+      'invalidMove': 'En az bir taşı çevirmek için işaretli karelerden birini seçin.',
       'forcedPass': '{player} için geçerli hamle yok, sıra pas geçildi.',
       'gameOver': 'Oyun bitti',
       'winner': '{player} kazandı',
@@ -206,87 +203,65 @@ class AppStrings {
 
   String timeLimitLabel(TimeLimit limit) {
     switch (limit) {
-      case TimeLimit.thirtySeconds:
-        return _get('time30s');
-      case TimeLimit.oneMinute:
-        return _get('time1m');
-      case TimeLimit.threeMinutes:
-        return _get('time3m');
-      case TimeLimit.none:
-        return _get('timeNone');
+      case TimeLimit.thirtySeconds: return _get('time30s');
+      case TimeLimit.oneMinute: return _get('time1m');
+      case TimeLimit.threeMinutes: return _get('time3m');
+      case TimeLimit.none: return _get('timeNone');
     }
   }
 
-  String winnerTitle(String name) {
-    return _get('winnerTitle').replaceAll('{name}', name);
-  }
+  String winnerTitle(String name) =>
+      _get('winnerTitle').replaceAll('{name}', name);
 
   String boardThemeLabel(BoardTheme theme) {
     switch (theme) {
-      case BoardTheme.wood:
-        return _get('themeWood');
-      case BoardTheme.turkuaz:
-        return _get('themeTurkuaz');
-      case BoardTheme.gece:
-        return _get('themeGece');
-      case BoardTheme.antrasit:
-        return _get('themeAntrasit');
-      case BoardTheme.petrol:
-        return _get('themePetrol');
+      case BoardTheme.wood: return _get('themeWood');
+      case BoardTheme.turkuaz: return _get('themeTurkuaz');
+      case BoardTheme.gece: return _get('themeGece');
+      case BoardTheme.antrasit: return _get('themeAntrasit');
+      case BoardTheme.petrol: return _get('themePetrol');
     }
   }
 
   String coinColorLabel(CoinColor color) {
     switch (color) {
-      case CoinColor.black:
-        return _get('coinBlack');
-      case CoinColor.white:
-        return _get('coinWhite');
-      case CoinColor.turquoise:
-        return _get('coinTurquoise');
-      case CoinColor.orange:
-        return _get('coinOrange');
+      case CoinColor.black: return _get('coinBlack');
+      case CoinColor.white: return _get('coinWhite');
+      case CoinColor.turquoise: return _get('coinTurquoise');
+      case CoinColor.orange: return _get('coinOrange');
     }
   }
 
   String playerName(String player) => player == 'black' ? black : white;
 
-  String turn(String player) {
-    return _get('turn').replaceAll('{player}', playerName(player));
-  }
+  String turn(String player) =>
+      _get('turn').replaceAll('{player}', playerName(player));
 
-  String forcedPass(String player) {
-    return _get('forcedPass').replaceAll('{player}', playerName(player));
-  }
+  String forcedPass(String player) =>
+      _get('forcedPass').replaceAll('{player}', playerName(player));
 
-  String winner(String player) {
-    return _get('winner').replaceAll('{player}', playerName(player));
-  }
+  String winner(String player) =>
+      _get('winner').replaceAll('{player}', playerName(player));
 
-  /// Like [winner] but takes an already-resolved display name.
-  String winnerNamed(String name) {
-    return _get('winner').replaceAll('{player}', name);
-  }
+  String winnerNamed(String name) =>
+      _get('winner').replaceAll('{player}', name);
 
-  String modeSinglePlayer(String difficulty) {
-    return _get('modeSinglePlayer').replaceAll('{difficulty}', difficulty);
-  }
+  String modeSinglePlayer(String difficulty) =>
+      _get('modeSinglePlayer').replaceAll('{difficulty}', difficulty);
 
   String difficultyLabel(Difficulty difficulty) {
     switch (difficulty) {
-      case Difficulty.easy:
-        return easy;
-      case Difficulty.normal:
-        return normal;
-      case Difficulty.hard:
-        return hard;
+      case Difficulty.easy: return easy;
+      case Difficulty.normal: return normal;
+      case Difficulty.hard: return hard;
     }
   }
 
   String _get(String key) {
-    final language =
-        _values.containsKey(locale.languageCode) ? locale.languageCode : 'en';
-    return _values[language]![key]!;
+    final lang = _values.containsKey(locale.languageCode)
+        ? locale.languageCode
+        : 'en';
+    return _values[lang]![key]!;
   }
 }
 
@@ -294,10 +269,8 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
   const _AppStringsDelegate();
 
   @override
-  bool isSupported(Locale locale) {
-    return AppStrings.supportedLocales
-        .any((supported) => supported.languageCode == locale.languageCode);
-  }
+  bool isSupported(Locale locale) => AppStrings.supportedLocales
+      .any((s) => s.languageCode == locale.languageCode);
 
   @override
   Future<AppStrings> load(Locale locale) async => AppStrings(locale);

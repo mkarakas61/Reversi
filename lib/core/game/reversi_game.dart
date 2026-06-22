@@ -90,9 +90,7 @@ class ReversiGame {
     var total = 0;
     for (final row in board) {
       for (final cell in row) {
-        if (cell == disc) {
-          total++;
-        }
+        if (cell == disc) total++;
       }
     }
     return total;
@@ -104,10 +102,7 @@ class ReversiGame {
       };
 
   Set<Position> get validMoves {
-    if (phase == GamePhase.gameOver) {
-      return {};
-    }
-
+    if (phase == GamePhase.gameOver) return {};
     final moves = <Position>{};
     for (var row = 0; row < size; row++) {
       for (var col = 0; col < size; col++) {
@@ -125,36 +120,24 @@ class ReversiGame {
   Set<Position> validMovesFor(Disc player) => _validMovesFor(board, player);
 
   Disc? get winner {
-    if (phase != GamePhase.gameOver) {
-      return null;
-    }
+    if (phase != GamePhase.gameOver) return null;
     final black = scoreFor(Disc.black);
     final white = scoreFor(Disc.white);
-    if (black == white) {
-      return null;
-    }
+    if (black == white) return null;
     return black > white ? Disc.black : Disc.white;
   }
 
-  bool get isDraw {
-    return phase == GamePhase.gameOver &&
-        scoreFor(Disc.black) == scoreFor(Disc.white);
-  }
+  bool get isDraw =>
+      phase == GamePhase.gameOver &&
+      scoreFor(Disc.black) == scoreFor(Disc.white);
 
-  /// Hands the turn to the opponent without a move being played — used when a
-  /// player's move timer runs out in timed games. Follows the pass rule: if
-  /// the opponent has no legal reply, the turn returns to the current player;
-  /// if neither side can move, the game ends.
   ReversiGame forfeitTurn() {
-    if (phase == GamePhase.gameOver) {
-      return this;
-    }
+    if (phase == GamePhase.gameOver) return this;
     final next = opponent;
     if (_validMovesFor(board, next).isNotEmpty) {
       return copyWith(currentPlayer: next, clearLastPassPlayer: true);
     }
     if (validMoves.isNotEmpty) {
-      // Opponent is stuck; the turn stays here (their forced pass).
       return copyWith(lastPassPlayer: next);
     }
     return copyWith(phase: GamePhase.gameOver);
@@ -179,9 +162,8 @@ class ReversiGame {
     );
   }
 
-  List<List<Disc?>> cloneBoard() {
-    return board.map((row) => List<Disc?>.of(row)).toList();
-  }
+  List<List<Disc?>> cloneBoard() =>
+      board.map((row) => List<Disc?>.of(row)).toList();
 
   ({ReversiGame game, MoveResult result}) play(Position position) {
     if (phase == GamePhase.gameOver) {
@@ -254,9 +236,8 @@ class ReversiGame {
     );
   }
 
-  List<Position> _flipsFor(Position position, Disc player) {
-    return _flipsForBoard(board, position, player);
-  }
+  List<Position> _flipsFor(Position position, Disc player) =>
+      _flipsForBoard(board, position, player);
 
   static Set<Position> _validMovesFor(List<List<Disc?>> board, Disc player) {
     final moves = <Position>{};
@@ -283,14 +264,9 @@ class ReversiGame {
 
     final opponent = player == Disc.black ? Disc.white : Disc.black;
     const directions = [
-      (-1, -1),
-      (-1, 0),
-      (-1, 1),
-      (0, -1),
-      (0, 1),
-      (1, -1),
-      (1, 0),
-      (1, 1),
+      (-1, -1), (-1, 0), (-1, 1),
+      (0, -1),           (0, 1),
+      (1, -1),  (1, 0),  (1, 1),
     ];
 
     final allFlips = <Position>[];
@@ -305,17 +281,13 @@ class ReversiGame {
         col += colStep;
       }
 
-      if (line.isNotEmpty &&
-          _isOnBoard(row, col) &&
-          board[row][col] == player) {
+      if (line.isNotEmpty && _isOnBoard(row, col) && board[row][col] == player) {
         allFlips.addAll(line);
       }
     }
-
     return allFlips;
   }
 
-  static bool _isOnBoard(int row, int col) {
-    return row >= 0 && row < size && col >= 0 && col < size;
-  }
+  static bool _isOnBoard(int row, int col) =>
+      row >= 0 && row < size && col >= 0 && col < size;
 }
