@@ -6,6 +6,7 @@ import '../core/services/analytics_service.dart';
 import '../core/settings/app_settings.dart';
 import '../features/game/game_screen.dart';
 import '../features/menu/main_menu_screen.dart';
+import '../features/online/online_match_screen.dart';
 import '../features/settings/settings_screen.dart';
 
 class ReversiApp extends StatelessWidget {
@@ -58,6 +59,15 @@ class ReversiApp extends StatelessWidget {
             ),
             home: Builder(
               builder: (context) => MainMenuScreen(
+                onStartOnline: () {
+                  return Navigator.of(context).push(
+                    _gameRoute(
+                      OnlineMatchScreen(
+                        onOpenSettings: () => openSettings(context),
+                      ),
+                    ),
+                  );
+                },
                 onStartGame: (mode, difficulty, timeLimit) {
                   return Navigator.of(context).push(
                     _gameRoute(

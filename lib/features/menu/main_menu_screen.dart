@@ -6,6 +6,7 @@ import '../../core/game/game_settings.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/services/game_storage.dart';
 import '../../core/theme/game_colors.dart' show bannerGradient;
+import '../../core/theme/wood_theme.dart';
 import '../settings/settings_screen.dart';
 import 'widgets/menu_button.dart';
 import 'widgets/menu_logo.dart';
@@ -16,12 +17,14 @@ class MainMenuScreen extends StatefulWidget {
     super.key,
     required this.onStartGame,
     required this.onContinueGame,
+    required this.onStartOnline,
   });
 
   final Future<void> Function(
           GameMode mode, Difficulty? difficulty, TimeLimit timeLimit)
       onStartGame;
   final Future<void> Function(SavedGame saved) onContinueGame;
+  final Future<void> Function() onStartOnline;
 
   @override
   State<MainMenuScreen> createState() => _MainMenuScreenState();
@@ -67,10 +70,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final wood = isWoodTheme(context);
+    final headingColor = wood ? WoodTheme.inkScore : Colors.white;
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: bannerGradient),
+        decoration: BoxDecoration(
+          gradient: wood ? WoodTheme.pageBackground : bannerGradient,
+        ),
         child: SafeArea(
           child: Stack(
             children: [
@@ -105,28 +112,35 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       const SizedBox(height: 10),
                       Text(
                         strings.appTitle.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontWeight: FontWeight.w800,
-                          fontSize: 44,
-                          letterSpacing: 6,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                                color: Color(0x29000000),
-                                offset: Offset(0, 3)),
-                          ],
-                        ),
+                        style: wood
+                            ? const TextStyle(
+                                fontFamily: WoodTheme.displayFont,
+                                fontSize: 42,
+                                letterSpacing: 6,
+                                color: WoodTheme.inkTitle,
+                              )
+                            : const TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 44,
+                                letterSpacing: 6,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                      color: Color(0x29000000),
+                                      offset: Offset(0, 3)),
+                                ],
+                              ),
                       ),
                       const SizedBox(height: 44),
                       if (_showDifficulty) ...[
                         Text(
                           strings.chooseDifficulty,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
+                          style: TextStyle(
+                            fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
-                            color: Colors.white,
+                            color: headingColor,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -165,11 +179,11 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       ] else if (_showTimeLimit) ...[
                         Text(
                           strings.chooseTimeLimit,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
+                          style: TextStyle(
+                            fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
-                            color: Colors.white,
+                            color: headingColor,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -213,6 +227,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           icon: Icons.people_rounded,
                           onTap: () =>
                               setState(() => _showTimeLimit = true),
+                        ),
+                        const SizedBox(height: 14),
+                        MenuButton(
+                          label: 'Online Oyna',
+                          icon: Icons.public_rounded,
+                          onTap: () => unawaited(widget.onStartOnline()),
                         ),
                       ],
                     ],

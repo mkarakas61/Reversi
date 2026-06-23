@@ -4,6 +4,7 @@ import '../../../core/game/reversi_game.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 
 class PlayerCard extends StatelessWidget {
   const PlayerCard({
@@ -33,8 +34,14 @@ class PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
     final isDark = side == Disc.black;
-    final accent = isDark ? GameColors.accent : GameColors.accent2;
+    final accent = wood
+        ? WoodTheme.gold
+        : (isDark ? GameColors.accent : GameColors.accent2);
+    final statusColor = wood ? WoodTheme.goldText : accent;
+    final nameColor = wood ? WoodTheme.inkName : GameColors.ink;
+    final scoreColor = wood ? WoodTheme.inkScore : GameColors.ink;
     final palette = coinPalettes[coin]!;
     final monoColor =
         ThemeData.estimateBrightnessForColor(palette.faceMid) == Brightness.light
@@ -45,11 +52,14 @@ class PlayerCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        gradient: wood ? WoodTheme.cardGradient : null,
+        color: wood ? null : Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: active ? accent : Colors.transparent,
-          width: 3,
+          color: active
+              ? accent
+              : (wood ? WoodTheme.cardIdleBorder : Colors.transparent),
+          width: wood ? 1.5 : 3,
         ),
         boxShadow: const [
           BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
@@ -70,42 +80,52 @@ class PlayerCard extends StatelessWidget {
               child: Text(
                 countdown!,
                 style: TextStyle(
-                  fontFamily: 'Baloo2',
+                  fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
                   fontWeight: FontWeight.w800,
                   fontSize: 24,
                   height: 1,
-                  color: countdownUrgent
-                      ? const Color(0xFFE0312B)
-                      : (isDark ? GameColors.accent : GameColors.accent2),
+                  color: countdownUrgent ? const Color(0xFFE0312B) : accent,
                 ),
               ),
             ),
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [palette.faceTop, palette.faceBottom],
+              if (wood)
+                SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: ClipOval(
+                    child: Image.asset(
+                      isDark ? WoodTheme.discWalnut : WoodTheme.discMaple,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  border:
-                      Border.all(color: const Color(0x14000000), width: 1),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  mono,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                    color: monoColor,
+                )
+              else
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [palette.faceTop, palette.faceBottom],
+                    ),
+                    border:
+                        Border.all(color: const Color(0x14000000), width: 1),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    mono,
+                    style: TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                      color: monoColor,
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -116,11 +136,11 @@ class PlayerCard extends StatelessWidget {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w800,
+                      style: TextStyle(
+                        fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                        fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: GameColors.ink,
+                        color: nameColor,
                       ),
                     ),
                     SizedBox(
@@ -128,18 +148,20 @@ class PlayerCard extends StatelessWidget {
                       child: Text(
                         active ? statusText.toLowerCase() : '',
                         style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontWeight: FontWeight.w700,
+                          fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                          fontWeight: FontWeight.w600,
                           fontSize: 12,
-                          color: accent,
+                          color: statusColor,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              ScoreChip(coin: coin),
-              const SizedBox(width: 8),
+              if (!wood) ...[
+                ScoreChip(coin: coin),
+                const SizedBox(width: 8),
+              ],
               SizedBox(
                 width: 44,
                 child: Text(
@@ -148,12 +170,12 @@ class PlayerCard extends StatelessWidget {
                   maxLines: 1,
                   softWrap: false,
                   overflow: TextOverflow.visible,
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
+                  style: TextStyle(
+                    fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
                     fontWeight: FontWeight.w700,
                     fontSize: 28,
                     height: 1,
-                    color: GameColors.ink,
+                    color: scoreColor,
                   ),
                 ),
               ),
@@ -200,12 +222,17 @@ class TurnPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = side == Disc.black ? GameColors.accent : GameColors.accent2;
+    final wood = isWoodTheme(context);
+    final accent = wood
+        ? WoodTheme.gold
+        : (side == Disc.black ? GameColors.accent : GameColors.accent2);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: wood ? WoodTheme.cardGradient : null,
+        color: wood ? null : Colors.white,
         borderRadius: BorderRadius.circular(999),
+        border: wood ? Border.all(color: WoodTheme.cardIdleBorder, width: 1.5) : null,
         boxShadow: const [
           BoxShadow(color: Color(0x12000000), offset: Offset(0, 4)),
           BoxShadow(
@@ -235,11 +262,11 @@ class TurnPill extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             text,
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w800,
+            style: TextStyle(
+              fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+              fontWeight: wood ? FontWeight.w600 : FontWeight.w800,
               fontSize: 13.5,
-              color: GameColors.onAccent,
+              color: wood ? WoodTheme.inkScore : GameColors.onAccent,
             ),
           ),
         ],

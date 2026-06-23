@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 
 class PillButton extends StatelessWidget {
   const PillButton({super.key, required this.child, required this.onTap});
@@ -10,10 +11,15 @@ class PillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
+    final fg = wood ? WoodTheme.inkScore : GameColors.onAccent;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: wood ? WoodTheme.cardTop : Colors.white,
         borderRadius: BorderRadius.circular(13),
+        border: wood
+            ? Border.all(color: WoodTheme.gold, width: 1.2)
+            : null,
         boxShadow: const [
           BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
           BoxShadow(
@@ -32,14 +38,14 @@ class PillButton extends StatelessWidget {
             height: 38,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: DefaultTextStyle(
-              style: const TextStyle(
-                fontFamily: 'Nunito',
+              style: TextStyle(
+                fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
                 fontWeight: FontWeight.w800,
                 fontSize: 12.5,
-                color: GameColors.onAccent,
+                color: fg,
               ),
               child: IconTheme(
-                data: const IconThemeData(color: GameColors.onAccent, size: 20),
+                data: IconThemeData(color: fg, size: 20),
                 child: child,
               ),
             ),
@@ -58,15 +64,17 @@ class BackLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
+    final fg = wood ? WoodTheme.inkScore : Colors.white;
     return TextButton.icon(
       onPressed: onTap,
-      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      icon: Icon(Icons.arrow_back, color: fg, size: 20),
       label: Text(
         label,
-        style: const TextStyle(
-          fontFamily: 'Nunito',
+        style: TextStyle(
+          fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
           fontWeight: FontWeight.w800,
-          color: Colors.white,
+          color: fg,
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 
 class SettingsHeader extends StatelessWidget {
   const SettingsHeader({super.key, required this.title, required this.onBack});
@@ -10,6 +11,7 @@ class SettingsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
     return SizedBox(
       height: 56,
       child: Row(
@@ -20,13 +22,13 @@ class SettingsHeader extends StatelessWidget {
             child: Center(
               child: Text(
                 title.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
+                style: TextStyle(
+                  fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+                  fontWeight: wood ? FontWeight.w400 : FontWeight.w800,
                   fontSize: 22,
-                  letterSpacing: 2.2,
-                  color: Colors.white,
-                  shadows: [
+                  letterSpacing: wood ? 3 : 2.2,
+                  color: wood ? WoodTheme.buttonText : Colors.white,
+                  shadows: const [
                     Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
                   ],
                 ),
@@ -48,10 +50,12 @@ class RoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: wood ? WoodTheme.cardTop : Colors.white,
         borderRadius: BorderRadius.circular(13),
+        border: wood ? Border.all(color: WoodTheme.gold, width: 1.2) : null,
         boxShadow: const [
           BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
           BoxShadow(
@@ -69,7 +73,9 @@ class RoundButton extends StatelessWidget {
           child: SizedBox(
             width: 42,
             height: 38,
-            child: Icon(icon, color: GameColors.onAccent, size: 24),
+            child: Icon(icon,
+                color: wood ? WoodTheme.inkScore : GameColors.onAccent,
+                size: 24),
           ),
         ),
       ),

@@ -1,0 +1,57 @@
+import 'package:flutter/material.dart';
+
+/// Design tokens for the "Online Oyna" match screen, taken verbatim from the
+/// design handoff (warm handcrafted wood + cream parchment, serif type).
+class OnlineTokens {
+  OnlineTokens._();
+
+  // Backgrounds
+  static const Color taupeBackground = Color(0xFFB7AB97);
+  static const Color phoneSurface = Color(0xFFEFE5D5);
+
+  // App bar
+  static const Color appBarTop = Color(0xFF4A3220);
+  static const Color appBarBottom = Color(0xFF38240F);
+  static const Color gold = Color(0xFFB8860B);
+  static const Color lightOnWood = Color(0xFFECD9BC);
+
+  // Cards / pill
+  static const Color cardTop = Color(0xFFF5EAD4);
+  static const Color cardBottom = Color(0xFFEBDBBE);
+  static const Color cardIdleBorder = Color(0x4D7A5634); // rgba(122,86,52,.30)
+  static const Color pillBorder = Color(0x477A5634); // rgba(122,86,52,.28)
+
+  // Result overlay
+  static const Color overlayScrim = Color(0x8C2E1F14); // rgba(46,31,20,.55)
+  static const Color overlayTop = Color(0xFFF7ECD7);
+  static const Color overlayBottom = Color(0xFFEAD9BC);
+  static const Color overlayBorder = Color(0xFFC9A66B);
+  static const Color resultScore = Color(0xFF7A5224);
+  static const Color buttonTop = Color(0xFF56391F);
+  static const Color buttonBottom = Color(0xFF3E2A1E);
+  static const Color buttonText = Color(0xFFF4E9D2);
+
+  // Text
+  static const Color inkTitle = Color(0xFF2E1B0E);
+  static const Color inkName = Color(0xFF2E1F14);
+  static const Color inkScore = Color(0xFF3E2A1E);
+  static const Color goldText = Color(0xFF9A6B2F);
+  static const Color pillText = Color(0xFF4A3220);
+
+  // Board accents
+  static const Color hintFill = Color(0x80C9A66B); // rgba(201,166,107,.5)
+  static const Color hintRing = Color(0x8CFFF6E4); // rgba(255,246,228,.55)
+  static const Color lastMoveRing = Color(0xE6C9A66B); // rgba(201,166,107,.9)
+
+  // Board geometry (board-crop.png is 754 x 713)
+  static const double boardAspect = 754 / 713;
+  static const double gridLeft = 0.0544;
+  static const double gridTop = 0.0715;
+  static const double gridRight = 0.0637;
+  static const double gridBottom = 0.0603;
+
+  // Assets
+  static const String boardImage = 'assets/wood/board-crop.png';
+  static const String discWalnut = 'assets/wood/disc-walnut.png'; // black / you
+  static const String discMaple = 'assets/wood/disc-maple.png'; // white / opponent
+}

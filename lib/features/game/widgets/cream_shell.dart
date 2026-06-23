@@ -3,6 +3,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 
 class CreamShell extends StatelessWidget {
   const CreamShell({super.key, required this.t, required this.child});
@@ -12,8 +13,11 @@ class CreamShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: creamShellGradient),
+      decoration: BoxDecoration(
+        gradient: wood ? WoodTheme.pageBackground : creamShellGradient,
+      ),
       child: Stack(
         children: [
           Positioned(
@@ -29,8 +33,11 @@ class CreamShell extends StatelessWidget {
                   child: SizedBox(
                     height: bandH,
                     width: double.infinity,
-                    child: const DecoratedBox(
-                      decoration: BoxDecoration(gradient: bannerGradient),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient:
+                            wood ? WoodTheme.cardGradient : bannerGradient,
+                      ),
                     ),
                   ),
                 );
