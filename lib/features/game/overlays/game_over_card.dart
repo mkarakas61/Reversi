@@ -4,6 +4,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 
 class GameOverCard extends StatelessWidget {
   const GameOverCard({
@@ -32,13 +33,16 @@ class GameOverCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final wood = isWoodTheme(context);
     return Container(
       width: 320,
       margin: const EdgeInsets.symmetric(horizontal: 28),
       padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: wood ? WoodTheme.cardGradient : null,
+        color: wood ? null : Colors.white,
         borderRadius: BorderRadius.circular(26),
+        border: wood ? Border.all(color: WoodTheme.gold, width: 1.5) : null,
         boxShadow: const [
           BoxShadow(
             color: Color(0x40000000),
@@ -55,23 +59,23 @@ class GameOverCard extends StatelessWidget {
               title!,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 26,
+                fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+                fontWeight: wood ? FontWeight.w400 : FontWeight.w800,
+                fontSize: 28,
                 height: 1.1,
-                color: titleColor,
+                color: wood ? WoodTheme.inkScore : titleColor,
               ),
             ),
           if (message != null)
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'Nunito',
+              style: TextStyle(
+                fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
                 fontWeight: FontWeight.w700,
                 fontSize: 17,
                 height: 1.35,
-                color: GameColors.inkSoft,
+                color: wood ? WoodTheme.goldText : GameColors.inkSoft,
               ),
             ),
           const SizedBox(height: 18),
@@ -80,13 +84,13 @@ class GameOverCard extends StatelessWidget {
             children: [
               ScoreBadge(coin: yourCoin, score: blackScore),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 '–',
                 style: TextStyle(
-                  fontFamily: 'Baloo2',
+                  fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
                   fontWeight: FontWeight.w800,
                   fontSize: 22,
-                  color: GameColors.inkSoft,
+                  color: wood ? WoodTheme.goldText : GameColors.inkSoft,
                 ),
               ),
               const SizedBox(width: 10),
@@ -121,6 +125,7 @@ class ScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
     final palette = coinPalettes[coin]!;
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -144,12 +149,12 @@ class ScoreBadge extends StatelessWidget {
         const SizedBox(width: 7),
         Text(
           '$score',
-          style: const TextStyle(
-            fontFamily: 'Baloo2',
+          style: TextStyle(
+            fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
             fontWeight: FontWeight.w700,
             fontSize: 26,
             height: 1,
-            color: GameColors.ink,
+            color: wood ? WoodTheme.inkScore : GameColors.ink,
           ),
         ),
       ],
@@ -173,15 +178,30 @@ class GameOverButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = primary ? Colors.white : GameColors.onAccent;
-    final bg = primary ? GameColors.accent2 : const Color(0xFFF0ECE3);
+    final wood = isWoodTheme(context);
+    final Color fg;
+    final Color? bg;
+    final Gradient? bgGradient;
+    if (wood) {
+      fg = primary ? WoodTheme.buttonText : WoodTheme.inkScore;
+      bgGradient = primary ? WoodTheme.buttonGradient : WoodTheme.cardGradient;
+      bg = null;
+    } else {
+      fg = primary ? Colors.white : GameColors.onAccent;
+      bg = primary ? GameColors.accent2 : const Color(0xFFF0ECE3);
+      bgGradient = null;
+    }
     return SizedBox(
       width: double.infinity,
       height: 54,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: bg,
+          gradient: bgGradient,
           borderRadius: BorderRadius.circular(15),
+          border: wood && !primary
+              ? Border.all(color: WoodTheme.gold, width: 1.2)
+              : null,
           boxShadow: primary
               ? const [
                   BoxShadow(color: Color(0x1F000000), offset: Offset(0, 4)),
@@ -205,7 +225,7 @@ class GameOverButton extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontFamily: 'Baloo2',
+                    fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
                     fontWeight: FontWeight.w700,
                     fontSize: 17,
                     color: fg,

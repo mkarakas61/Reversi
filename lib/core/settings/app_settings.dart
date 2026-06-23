@@ -6,16 +6,22 @@ enum BoardTheme { wood, turkuaz, gece, antrasit, petrol }
 
 enum CoinColor { black, white, turquoise, orange }
 
+/// App-wide visual theme. [original] is the classic teal/cream look; [wood] is
+/// the warm handcrafted wood + parchment aesthetic from the Online Oyna screen.
+enum AppThemeId { original, wood }
+
 @immutable
 class AppSettings {
   const AppSettings({
     this.locale,
+    this.appTheme = AppThemeId.original,
     this.board = BoardTheme.wood,
     this.yourCoin = CoinColor.black,
     this.opponentCoin = CoinColor.white,
   });
 
   final Locale? locale;
+  final AppThemeId appTheme;
   final BoardTheme board;
   final CoinColor yourCoin;
   final CoinColor opponentCoin;
@@ -23,12 +29,14 @@ class AppSettings {
   AppSettings copyWith({
     Locale? locale,
     bool clearLocale = false,
+    AppThemeId? appTheme,
     BoardTheme? board,
     CoinColor? yourCoin,
     CoinColor? opponentCoin,
   }) {
     return AppSettings(
       locale: clearLocale ? null : (locale ?? this.locale),
+      appTheme: appTheme ?? this.appTheme,
       board: board ?? this.board,
       yourCoin: yourCoin ?? this.yourCoin,
       opponentCoin: opponentCoin ?? this.opponentCoin,
@@ -47,6 +55,11 @@ class SettingsController extends ChangeNotifier {
   void setLocale(Locale locale) {
     if (_settings.locale?.languageCode == locale.languageCode) return;
     _update(_settings.copyWith(locale: locale));
+  }
+
+  void setAppTheme(AppThemeId theme) {
+    if (_settings.appTheme == theme) return;
+    _update(_settings.copyWith(appTheme: theme));
   }
 
   void setBoard(BoardTheme board) {

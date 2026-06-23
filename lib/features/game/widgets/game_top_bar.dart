@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 
 class GameTopBar extends StatelessWidget {
   const GameTopBar({
@@ -18,6 +19,7 @@ class GameTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final wood = isWoodTheme(context);
     return SizedBox(
       height: 46,
       child: Row(
@@ -34,13 +36,13 @@ class GameTopBar extends StatelessWidget {
                 child: Text(
                   strings.appTitle.toUpperCase(),
                   maxLines: 1,
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
+                  style: TextStyle(
+                    fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+                    fontWeight: wood ? FontWeight.w400 : FontWeight.w800,
                     fontSize: 23,
                     letterSpacing: 3.4,
-                    color: Colors.white,
-                    shadows: [
+                    color: wood ? WoodTheme.inkTitle : Colors.white,
+                    shadows: const [
                       Shadow(color: Color(0x1F000000), offset: Offset(0, 2)),
                     ],
                   ),
@@ -84,10 +86,13 @@ class BarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
+    final fg = wood ? WoodTheme.inkScore : GameColors.onAccent;
     final button = DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: wood ? WoodTheme.cardTop : Colors.white,
         borderRadius: BorderRadius.circular(13),
+        border: wood ? Border.all(color: WoodTheme.gold, width: 1.2) : null,
         boxShadow: const [
           BoxShadow(color: Color(0x1A000000), offset: Offset(0, 3)),
           BoxShadow(
@@ -108,15 +113,14 @@ class BarButton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 11),
             alignment: Alignment.center,
             child: DefaultTextStyle(
-              style: const TextStyle(
-                fontFamily: 'Nunito',
+              style: TextStyle(
+                fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
                 fontWeight: FontWeight.w800,
                 fontSize: 12.5,
-                color: GameColors.onAccent,
+                color: fg,
               ),
               child: IconTheme(
-                data: const IconThemeData(
-                    color: GameColors.onAccent, size: 20),
+                data: IconThemeData(color: fg, size: 20),
                 child: child,
               ),
             ),

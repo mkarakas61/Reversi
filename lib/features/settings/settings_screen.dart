@@ -4,6 +4,8 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/game_colors.dart'
     show GameColors, bannerGradient, creamShellGradient;
+import '../../core/theme/wood_theme.dart';
+import 'widgets/app_theme_row.dart';
 import 'widgets/board_theme_grid.dart';
 import 'widgets/coin_row.dart';
 import 'widgets/language_row.dart';
@@ -18,11 +20,14 @@ class SettingsScreen extends StatelessWidget {
     final controller = SettingsScope.of(context);
     final settings = controller.settings;
     final lang = Localizations.localeOf(context).languageCode;
+    final wood = settings.appTheme == AppThemeId.wood;
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
+      backgroundColor: wood ? WoodTheme.surface : GameColors.creamTop,
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(
+          gradient: wood ? WoodTheme.pageBackground : creamShellGradient,
+        ),
         child: Stack(
           children: [
             Positioned(
@@ -32,8 +37,10 @@ class SettingsScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: wood ? WoodTheme.buttonGradient : bannerGradient,
+                  ),
                 ),
               ),
             ),
@@ -48,6 +55,13 @@ class SettingsScreen extends StatelessWidget {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
                       children: [
+                        _Section(
+                          title: 'Tema',
+                          child: AppThemeRow(
+                            selected: settings.appTheme,
+                            onSelect: controller.setAppTheme,
+                          ),
+                        ),
                         _Section(
                           title: strings.language,
                           child: LanguageRow(
@@ -119,12 +133,15 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wood = isWoodTheme(context);
     return Container(
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
+        color: wood ? WoodTheme.cardTop : Colors.white.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(20),
+        border:
+            wood ? Border.all(color: WoodTheme.cardIdleBorder, width: 1) : null,
         boxShadow: const [
           BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
           BoxShadow(
@@ -139,11 +156,11 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: GameColors.ink,
+            style: TextStyle(
+              fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+              fontWeight: wood ? FontWeight.w400 : FontWeight.w800,
+              fontSize: wood ? 18 : 16,
+              color: wood ? WoodTheme.inkScore : GameColors.ink,
             ),
           ),
           const SizedBox(height: 12),

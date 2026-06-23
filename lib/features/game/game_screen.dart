@@ -14,6 +14,7 @@ import '../../core/services/game_storage.dart';
 import '../../core/settings/app_settings.dart';
 import '../board/board_move.dart';
 import '../board/wood_board.dart';
+import '../online/widgets/online_board.dart';
 import 'overlays/game_over_overlay.dart';
 import 'overlays/time_up_overlay.dart';
 import 'widgets/cream_shell.dart';
@@ -361,6 +362,7 @@ class _GameScreenState extends State<GameScreen>
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final settings = SettingsScope.of(context).settings;
+    final wood = settings.appTheme == AppThemeId.wood;
     final validMoves = _game.validMoves;
     final blackScore = _game.scoreFor(Disc.black);
     final whiteScore = _game.scoreFor(Disc.white);
@@ -443,16 +445,26 @@ class _GameScreenState extends State<GameScreen>
                           child: EntrySlide(
                             progress: camera,
                             beginOffset: const Offset(0, 0.35),
-                            child: WoodBoard(
-                              board: _game.board,
-                              validMoves: validMoves,
-                              lastMove: _game.lastMove,
-                              onCellTap: _play,
-                              theme: settings.board,
-                              blackCoin: settings.yourCoin,
-                              whiteCoin: settings.opponentCoin,
-                              move: _lastMove,
-                            ),
+                            child: wood
+                                ? Center(
+                                    child: OnlineBoard(
+                                      board: _game.board,
+                                      validMoves: validMoves,
+                                      lastMove: _game.lastMove,
+                                      showHints: !gameOver,
+                                      onCellTap: _play,
+                                    ),
+                                  )
+                                : WoodBoard(
+                                    board: _game.board,
+                                    validMoves: validMoves,
+                                    lastMove: _game.lastMove,
+                                    onCellTap: _play,
+                                    theme: settings.board,
+                                    blackCoin: settings.yourCoin,
+                                    whiteCoin: settings.opponentCoin,
+                                    move: _lastMove,
+                                  ),
                           ),
                         ),
                       ),

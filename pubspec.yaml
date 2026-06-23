@@ -34,6 +34,12 @@ flutter:
     - family: Nunito
       fonts:
         - asset: assets/fonts/Nunito.ttf
+    - family: Marcellus
+      fonts:
+        - asset: assets/fonts/Marcellus-Regular.ttf
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-VariableFont_wght.ttf
 
 # App icon: drop a 1024x1024 PNG at assets/icon/app_icon.png and an
 # adaptive foreground (transparent background, centered motif) at
