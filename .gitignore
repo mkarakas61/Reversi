@@ -26,3 +26,9 @@ ui-debug.log
 
 # Release APK deliverable (not versioned)
 reversi.apk
+
+# Kök dizindeki ekran görüntüleri / debug PNG'leri (assets/ içindekiler korunur)
+/*.png
+
+# Playwright MCP
+.playwright-mcp/
