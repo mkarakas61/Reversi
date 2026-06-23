@@ -56,6 +56,10 @@ class _GameScreenState extends State<GameScreen>
   final GameStorage _storage = GameStorage();
   final Random _random = Random();
 
+  // Undo history: the game state *before* each applied move/forfeit, newest
+  // last. Single-player undo rewinds past the AI's reply to the player's turn.
+  final List<ReversiGame> _history = [];
+
   late final AnimationController _entry;
   late final ConfettiController _confettiLeft;
   late final ConfettiController _confettiRight;
@@ -138,10 +142,44 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
+  /// Undo is available once there is history, the AI is not mid-think, and no
+  /// "time's up" overlay is showing.
+  bool get _canUndo => _history.isNotEmpty && !_aiThinking && !_timeUpVisible;
+
+  /// Steps the board back. Two-player undoes one ply; single-player rewinds
+  /// past the AI's reply to the player's own previous turn.
+  void _undo() {
+    if (!_canUndo) return;
+    _aiGeneration++; // cancel any pending AI turn
+    ReversiGame? target;
+    if (_isSinglePlayer) {
+      while (_history.isNotEmpty) {
+        target = _history.removeLast();
+        if (target.currentPlayer == _humanDisc) break;
+      }
+    } else {
+      target = _history.removeLast();
+    }
+    if (target == null) return;
+    _confettiLeft.stop();
+    _confettiRight.stop();
+    setState(() {
+      _game = target!;
+      _aiThinking = false;
+      _celebrated = false;
+      _timeUpVisible = false;
+      _lastMove = null; // no flip animation on undo
+    });
+    unawaited(_storage.save(_game, widget.mode, widget.difficulty,
+        timeLimit: widget.timeLimit));
+    _restartClock();
+  }
+
   Future<void> _onTimeExpired() async {
     setState(() => _timeUpVisible = true);
     await Future<void>.delayed(const Duration(seconds: 3));
     if (!mounted) return;
+    _history.add(_game);
     setState(() {
       _timeUpVisible = false;
       _game = _game.forfeitTurn();
@@ -183,6 +221,7 @@ class _GameScreenState extends State<GameScreen>
       return;
     }
 
+    _history.add(_game);
     _lastMove = BoardMove(
       id: ++_moveSeq,
       placed: position,
@@ -227,8 +266,14 @@ class _GameScreenState extends State<GameScreen>
         _game.phase == GamePhase.playing &&
         _game.currentPlayer == _aiDisc) {
       if (!_aiThinking) setState(() => _aiThinking = true);
+      // Deliberate pause so the AI feels like it is genuinely thinking. The base
+      // wait follows the player's chosen game speed (read fresh each move so a
+      // mid-game change takes effect immediately), with a small random jitter so
+      // moves don't feel mechanical.
+      final baseDelay =
+          SettingsScope.of(context).settings.gameSpeed.aiDelayMs;
       await Future<void>.delayed(
-          Duration(milliseconds: 3000 + _random.nextInt(800)));
+          Duration(milliseconds: baseDelay + _random.nextInt(500)));
       if (!mounted || generation != _aiGeneration) return;
       final position = await compute(
         _aiMoveTask,
@@ -237,6 +282,7 @@ class _GameScreenState extends State<GameScreen>
       if (!mounted || generation != _aiGeneration) return;
       final move = _game.play(position);
       if (!move.result.isValid) break;
+      _history.add(_game);
       _lastMove = BoardMove(
         id: ++_moveSeq,
         placed: position,
@@ -295,6 +341,7 @@ class _GameScreenState extends State<GameScreen>
     _aiGeneration++;
     _celebrated = false;
     _lastMove = null;
+    _history.clear();
     _confettiLeft.stop();
     _confettiRight.stop();
     setState(() {
@@ -419,6 +466,12 @@ class _GameScreenState extends State<GameScreen>
                           onBack: () => Navigator.of(context).maybePop(),
                           onNewGame: _confirmRestart,
                           onSettings: widget.onOpenSettings,
+                          onUndo: _undo,
+                          canUndo: _canUndo,
+                          showSpeed: _isSinglePlayer,
+                          gameSpeed: settings.gameSpeed,
+                          onSpeedChanged:
+                              SettingsScope.of(context).setGameSpeed,
                         ),
                       ),
                       EntrySlide(

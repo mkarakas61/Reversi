@@ -43,6 +43,11 @@ class AppStrings {
       'normal': 'Normal',
       'hard': 'Hard',
       'back': 'Back',
+      'undo': 'Undo',
+      'gameSpeed': 'Game speed',
+      'speedFast': 'Fast',
+      'speedNormal': 'Normal',
+      'speedSlow': 'Slow',
       'startGame': 'Start',
       'modeTwoPlayer': '2 Players',
       'modeSinglePlayer': '1 Player · {difficulty}',
@@ -111,6 +116,11 @@ class AppStrings {
       'normal': 'Normal',
       'hard': 'Zor',
       'back': 'Geri',
+      'undo': 'Geri Al',
+      'gameSpeed': 'Oyun hızı',
+      'speedFast': 'Hızlı',
+      'speedNormal': 'Normal',
+      'speedSlow': 'Yavaş',
       'startGame': 'Başla',
       'modeTwoPlayer': '2 Oyuncu',
       'modeSinglePlayer': '1 Oyuncu · {difficulty}',
@@ -177,6 +187,19 @@ class AppStrings {
   String get normal => _get('normal');
   String get hard => _get('hard');
   String get back => _get('back');
+  String get undo => _get('undo');
+  String get gameSpeed => _get('gameSpeed');
+
+  String gameSpeedLabel(GameSpeed speed) {
+    switch (speed) {
+      case GameSpeed.fast:
+        return _get('speedFast');
+      case GameSpeed.normal:
+        return _get('speedNormal');
+      case GameSpeed.slow:
+        return _get('speedSlow');
+    }
+  }
   String get startGame => _get('startGame');
   String get modeTwoPlayer => _get('modeTwoPlayer');
   String get aiThinking => _get('aiThinking');

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../game/game_settings.dart';
 import '../settings/app_settings.dart';
 
 class SettingsStorage {
@@ -9,6 +10,7 @@ class SettingsStorage {
   static const _boardKey = 'settings_board';
   static const _yourCoinKey = 'settings_your_coin';
   static const _opponentCoinKey = 'settings_opponent_coin';
+  static const _gameSpeedKey = 'settings_game_speed';
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -31,6 +33,9 @@ class SettingsStorage {
       opponentCoin:
           _enumByName(CoinColor.values, prefs.getString(_opponentCoinKey)) ??
               CoinColor.white,
+      gameSpeed:
+          _enumByName(GameSpeed.values, prefs.getString(_gameSpeedKey)) ??
+              GameSpeed.normal,
     );
   }
 
@@ -46,6 +51,7 @@ class SettingsStorage {
     await prefs.setString(_boardKey, settings.board.name);
     await prefs.setString(_yourCoinKey, settings.yourCoin.name);
     await prefs.setString(_opponentCoinKey, settings.opponentCoin.name);
+    await prefs.setString(_gameSpeedKey, settings.gameSpeed.name);
   }
 
   static T? _enumByName<T extends Enum>(List<T> values, String? name) {

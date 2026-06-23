@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../game/game_settings.dart';
 import '../services/settings_storage.dart';
 
 enum BoardTheme { wood, turkuaz, gece, antrasit, petrol, mermer }
@@ -18,6 +19,7 @@ class AppSettings {
     this.board = BoardTheme.wood,
     this.yourCoin = CoinColor.black,
     this.opponentCoin = CoinColor.white,
+    this.gameSpeed = GameSpeed.normal,
   });
 
   final Locale? locale;
@@ -26,6 +28,9 @@ class AppSettings {
   final CoinColor yourCoin;
   final CoinColor opponentCoin;
 
+  /// How long the AI pauses before each move in single-player.
+  final GameSpeed gameSpeed;
+
   AppSettings copyWith({
     Locale? locale,
     bool clearLocale = false,
@@ -33,6 +38,7 @@ class AppSettings {
     BoardTheme? board,
     CoinColor? yourCoin,
     CoinColor? opponentCoin,
+    GameSpeed? gameSpeed,
   }) {
     return AppSettings(
       locale: clearLocale ? null : (locale ?? this.locale),
@@ -40,6 +46,7 @@ class AppSettings {
       board: board ?? this.board,
       yourCoin: yourCoin ?? this.yourCoin,
       opponentCoin: opponentCoin ?? this.opponentCoin,
+      gameSpeed: gameSpeed ?? this.gameSpeed,
     );
   }
 }
@@ -89,6 +96,11 @@ class SettingsController extends ChangeNotifier {
     final your =
         color == _settings.yourCoin ? _settings.opponentCoin : _settings.yourCoin;
     _update(_settings.copyWith(opponentCoin: color, yourCoin: your));
+  }
+
+  void setGameSpeed(GameSpeed speed) {
+    if (_settings.gameSpeed == speed) return;
+    _update(_settings.copyWith(gameSpeed: speed));
   }
 
   void _update(AppSettings next) {
