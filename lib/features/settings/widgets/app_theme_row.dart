@@ -4,7 +4,7 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
 
-/// Two-option selector for the app-wide visual theme (Orijinal / Ahşap).
+/// Two-option selector for the app-wide visual theme (Orijinal / Özel).
 class AppThemeRow extends StatelessWidget {
   const AppThemeRow({
     super.key,
@@ -35,7 +35,7 @@ class AppThemeRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _Tile(
-            label: 'Ahşap',
+            label: 'Özel',
             preview: WoodTheme.cardGradient,
             previewDot: WoodTheme.gold,
             active: selected == AppThemeId.wood,

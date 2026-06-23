@@ -11,22 +11,31 @@ class BoardThemeGrid extends StatelessWidget {
     super.key,
     required this.selected,
     required this.onSelect,
+    this.themes,
+    this.labelOverrides,
   });
 
   final BoardTheme selected;
   final ValueChanged<BoardTheme> onSelect;
 
+  /// Which themes to show. Defaults to all [BoardTheme.values].
+  final List<BoardTheme>? themes;
+
+  /// Per-theme label overrides (e.g. wood shows as "Ahşap" in the custom theme).
+  final Map<BoardTheme, String>? labelOverrides;
+
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final items = themes ?? BoardTheme.values;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
-        for (final theme in BoardTheme.values)
+        for (final theme in items)
           _BoardTile(
             theme: theme,
-            label: strings.boardThemeLabel(theme),
+            label: labelOverrides?[theme] ?? strings.boardThemeLabel(theme),
             active: theme == selected,
             onTap: () => onSelect(theme),
           ),
@@ -148,6 +157,7 @@ class _MiniGridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final n = ReversiGame.size;
     final cell = size.width / n;
+    if (palette?.marble ?? false) paintMarbleVeins(canvas, size);
     final paint = Paint()
       ..color = palette == null
           ? GameColors.gridLine

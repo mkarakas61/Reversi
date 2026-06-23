@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../services/settings_storage.dart';
 
-enum BoardTheme { wood, turkuaz, gece, antrasit, petrol }
+enum BoardTheme { wood, turkuaz, gece, antrasit, petrol, mermer }
 
 enum CoinColor { black, white, turquoise, orange }
 
@@ -59,7 +59,17 @@ class SettingsController extends ChangeNotifier {
 
   void setAppTheme(AppThemeId theme) {
     if (_settings.appTheme == theme) return;
-    _update(_settings.copyWith(appTheme: theme));
+    // Keep the board selection valid for the theme: the custom (wood) theme
+    // only offers wood + mermer, while the original theme has no mermer.
+    var board = _settings.board;
+    if (theme == AppThemeId.wood) {
+      if (board != BoardTheme.wood && board != BoardTheme.mermer) {
+        board = BoardTheme.wood;
+      }
+    } else if (board == BoardTheme.mermer) {
+      board = BoardTheme.wood;
+    }
+    _update(_settings.copyWith(appTheme: theme, board: board));
   }
 
   void setBoard(BoardTheme board) {

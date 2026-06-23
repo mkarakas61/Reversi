@@ -43,15 +43,31 @@ class OnlineTokens {
   static const Color hintRing = Color(0x8CFFF6E4); // rgba(255,246,228,.55)
   static const Color lastMoveRing = Color(0xE6C9A66B); // rgba(201,166,107,.9)
 
-  // Board geometry (board-crop.png is 754 x 713)
+  // Board geometry (board-crop.png is 754 x 713). Grid fractions measured from
+  // the baked-in checkerboard squares so discs center exactly in each square.
   static const double boardAspect = 754 / 713;
-  static const double gridLeft = 0.0544;
-  static const double gridTop = 0.0715;
-  static const double gridRight = 0.0637;
-  static const double gridBottom = 0.0603;
+  static const double gridLeft = 0.0557;
+  static const double gridTop = 0.0758;
+  static const double gridRight = 0.0623;
+  static const double gridBottom = 0.0575;
 
   // Assets
   static const String boardImage = 'assets/wood/board-crop.png';
   static const String discWalnut = 'assets/wood/disc-walnut.png'; // black / you
   static const String discMaple = 'assets/wood/disc-maple.png'; // white / opponent
+
+  // ---- Marble board variant (Özel tema → Mermer) ----
+  // marble-board.png is 431 x 433, cropped tight to the gray marble slab (all
+  // wood removed), top-down with the 8x8 grid baked in; fractions measured.
+  static const double marbleBoardAspect = 431 / 433;
+  static const double marbleGridLeft = 0.0928;
+  static const double marbleGridTop = 0.0947;
+  static const double marbleGridRight = 0.0951;
+  static const double marbleGridBottom = 0.0947;
+
+  static const String marbleBoardImage = 'assets/marble/marble-board.png';
+  static const String marbleDiscBlack =
+      'assets/marble/disc-marble-black.png'; // black / you
+  static const String marbleDiscWhite =
+      'assets/marble/disc-marble-white.png'; // white / opponent
 }

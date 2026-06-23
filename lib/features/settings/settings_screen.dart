@@ -75,28 +75,40 @@ class SettingsScreen extends StatelessWidget {
                           child: BoardThemeGrid(
                             selected: settings.board,
                             onSelect: controller.setBoard,
+                            themes: wood
+                                ? const [BoardTheme.wood, BoardTheme.mermer]
+                                : const [
+                                    BoardTheme.wood,
+                                    BoardTheme.turkuaz,
+                                    BoardTheme.gece,
+                                    BoardTheme.antrasit,
+                                    BoardTheme.petrol,
+                                  ],
+                            labelOverrides:
+                                wood ? const {BoardTheme.wood: 'Ahşap'} : null,
                           ),
                         ),
-                        _Section(
-                          title: strings.coinColor,
-                          child: Column(
-                            children: [
-                              CoinRow(
-                                label: strings.yourCoin,
-                                selected: settings.yourCoin,
-                                disabled: settings.opponentCoin,
-                                onSelect: controller.setYourCoin,
-                              ),
-                              const SizedBox(height: 14),
-                              CoinRow(
-                                label: strings.opponentCoin,
-                                selected: settings.opponentCoin,
-                                disabled: settings.yourCoin,
-                                onSelect: controller.setOpponentCoin,
-                              ),
-                            ],
+                        if (!wood)
+                          _Section(
+                            title: strings.coinColor,
+                            child: Column(
+                              children: [
+                                CoinRow(
+                                  label: strings.yourCoin,
+                                  selected: settings.yourCoin,
+                                  disabled: settings.opponentCoin,
+                                  onSelect: controller.setYourCoin,
+                                ),
+                                const SizedBox(height: 14),
+                                CoinRow(
+                                  label: strings.opponentCoin,
+                                  selected: settings.opponentCoin,
+                                  disabled: settings.yourCoin,
+                                  onSelect: controller.setOpponentCoin,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
