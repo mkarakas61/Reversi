@@ -9,6 +9,7 @@ class BoardPalette {
     required this.line,
     required this.lineHi,
     required this.star,
+    this.marble = false,
   });
 
   final List<Color> frame;
@@ -16,6 +17,9 @@ class BoardPalette {
   final Color line;
   final Color lineHi;
   final Color star;
+
+  /// When true, painters overlay soft diagonal veins for a marble look.
+  final bool marble;
 
   Gradient get frameGradient => LinearGradient(
         begin: const Alignment(-0.342, -0.940),
@@ -60,4 +64,40 @@ const Map<BoardTheme, BoardPalette> boardPalettes = {
     lineHi: Color.fromRGBO(180, 255, 246, 0.13),
     star: Color.fromRGBO(2, 30, 27, 0.82),
   ),
+  BoardTheme.mermer: BoardPalette(
+    frame: [Color(0xFF9298A0), Color(0xFF595E66)],
+    surface: [Color(0xFFA8AEB6), Color(0xFF8B9199), Color(0xFF6F757D)],
+    line: Color.fromRGBO(38, 42, 48, 0.50),
+    lineHi: Color.fromRGBO(232, 236, 240, 0.32),
+    star: Color.fromRGBO(34, 38, 44, 0.70),
+    marble: true,
+  ),
 };
+
+/// Draws soft, semi-transparent diagonal veins to evoke a polished marble
+/// surface. Coordinates are fractions of [size] so veins scale with the board;
+/// stroke widths scale relative to a ~320px reference board.
+void paintMarbleVeins(Canvas canvas, Size size) {
+  void vein(double x1, double y1, double cx, double cy, double x2, double y2,
+      Color color, double width) {
+    final path = Path()
+      ..moveTo(x1 * size.width, y1 * size.height)
+      ..quadraticBezierTo(
+          cx * size.width, cy * size.height, x2 * size.width, y2 * size.height);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width * (size.width / 320)
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.8),
+    );
+  }
+
+  vein(0.04, 0.0, 0.42, 0.34, 0.82, 1.0, const Color(0x3A262A30), 2.6);
+  vein(0.50, 0.0, 0.66, 0.28, 1.0, 0.52, const Color(0x30262A30), 1.9);
+  vein(0.0, 0.42, 0.22, 0.55, 0.46, 0.82, const Color(0x28262A30), 1.6);
+  vein(0.22, 0.0, 0.40, 0.50, 0.60, 1.0, const Color(0x26FFFFFF), 1.4);
+  vein(0.60, 0.10, 0.78, 0.40, 0.95, 0.85, const Color(0x20FFFFFF), 1.2);
+}

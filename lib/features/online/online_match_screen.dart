@@ -196,7 +196,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                       .transform(t);
               return wood
                   ? _woodView(camera, topIn, bottomIn, yourTurn, oppTurn,
-                      blackScore, whiteScore)
+                      blackScore, whiteScore, settings)
                   : _originalView(camera, topIn, bottomIn, yourTurn, oppTurn,
                       blackScore, whiteScore, settings);
             },
@@ -331,6 +331,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
     bool oppTurn,
     int blackScore,
     int whiteScore,
+    AppSettings settings,
   ) {
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -379,6 +380,8 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                             lastMove: _lastMove,
                             showHints: yourTurn,
                             onCellTap: _play,
+                            marble: settings.board == BoardTheme.mermer,
+                            move: _lastBoardMove,
                           ),
                         ),
                       ),

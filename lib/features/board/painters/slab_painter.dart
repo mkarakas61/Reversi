@@ -102,6 +102,7 @@ class GridPainter extends CustomPainter {
     final n = ReversiGame.size;
     final cell = size.width / n;
     final p = palette;
+    if (p?.marble ?? false) paintMarbleVeins(canvas, size);
     final hi = Paint()
       ..color = p == null ? GameColors.gridHi : p.lineHi
       ..strokeWidth = 3.0;

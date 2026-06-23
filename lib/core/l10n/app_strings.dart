@@ -67,6 +67,7 @@ class AppStrings {
       'themeGece': 'Midnight Blue',
       'themeAntrasit': 'Anthracite',
       'themePetrol': 'Deep Petrol',
+      'themeMermer': 'Marble',
       'coinBlack': 'Black',
       'coinWhite': 'White',
       'coinTurquoise': 'Turquoise',
@@ -129,11 +130,12 @@ class AppStrings {
       'coinColor': 'Taş rengi',
       'yourCoin': 'Senin taşın',
       'opponentCoin': 'Rakip taşı',
-      'themeWood': 'Ahşap',
+      'themeWood': 'Kahve rengi',
       'themeTurkuaz': 'Turkuaz',
       'themeGece': 'Gece Mavisi',
       'themeAntrasit': 'Antrasit',
       'themePetrol': 'Koyu Petrol',
+      'themeMermer': 'Mermer',
       'coinBlack': 'Siyah',
       'coinWhite': 'Beyaz',
       'coinTurquoise': 'Turkuaz',
@@ -220,6 +222,7 @@ class AppStrings {
       case BoardTheme.gece: return _get('themeGece');
       case BoardTheme.antrasit: return _get('themeAntrasit');
       case BoardTheme.petrol: return _get('themePetrol');
+      case BoardTheme.mermer: return _get('themeMermer');
     }
   }
 
