@@ -2,10 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/settings/app_settings.dart';
 import '../online_tokens.dart';
 
 /// Full-screen game-over overlay: blurred scrim + cream result card with the
-/// two wood discs, a Marcellus title and score, and an "Ana Menü" button.
+/// two theme discs, a Marcellus title and score, and an "Ana Menü" button.
 class OnlineResultOverlay extends StatelessWidget {
   const OnlineResultOverlay({
     super.key,
@@ -13,12 +14,14 @@ class OnlineResultOverlay extends StatelessWidget {
     required this.blackScore,
     required this.whiteScore,
     required this.onMenu,
+    required this.board,
   });
 
   final String title;
   final int blackScore;
   final int whiteScore;
   final VoidCallback onMenu;
+  final BoardTheme board;
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +73,9 @@ class OnlineResultOverlay extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _disc(OnlineTokens.discWalnut),
+              _disc(OnlineTokens.discFor(board, isDark: true)),
               const SizedBox(width: 13),
-              _disc(OnlineTokens.discMaple),
+              _disc(OnlineTokens.discFor(board, isDark: false)),
             ],
           ),
           const SizedBox(height: 16),

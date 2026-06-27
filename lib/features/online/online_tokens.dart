@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 
+import '../../core/settings/app_settings.dart';
+
 /// Design tokens for the "Online Oyna" match screen, taken verbatim from the
 /// design handoff (warm handcrafted wood + cream parchment, serif type).
 class OnlineTokens {
   OnlineTokens._();
+
+  /// Disc asset matching the selected board theme. [isDark] true → black/you,
+  /// false → white/opponent. Çiçek → flower coins, Mermer → marble, else wood.
+  static String discFor(BoardTheme board, {required bool isDark}) {
+    switch (board) {
+      case BoardTheme.cicek:
+        return isDark ? flowerDiscBlack : flowerDiscWhite;
+      case BoardTheme.mermer:
+        return isDark ? marbleDiscBlack : marbleDiscWhite;
+      default:
+        return isDark ? discWalnut : discMaple;
+    }
+  }
 
   // Backgrounds
   static const Color taupeBackground = Color(0xFFB7AB97);
@@ -70,4 +85,24 @@ class OnlineTokens {
       'assets/marble/disc-marble-black.png'; // black / you
   static const String marbleDiscWhite =
       'assets/marble/disc-marble-white.png'; // white / opponent
+
+  // ---- Flower board variant (Özel tema → Çiçek) ----
+  // flower-board.png: top-down, square, with the floral border + faded center
+  // pattern + the rose-gold 8x8 grid baked in (NO discs). Discs are the
+  // rose-gold-rimmed flower coins (mor/purple = black/you, pembe/pink =
+  // white/opponent). Grid fractions are estimated from the reference art and
+  // fine-tuned on-device so discs center exactly.
+  // flower-board.png trimmed to 924x922 (flowers reach the edges, filling the
+  // frame like the wood board). Grid lines measured on the trimmed art.
+  static const double flowerBoardAspect = 924 / 922;
+  static const double flowerGridLeft = 0.0823; // x=76 / 924
+  static const double flowerGridTop = 0.0813; // y=75 / 922
+  static const double flowerGridRight = 0.0855; // (924-845) / 924
+  static const double flowerGridBottom = 0.0868; // (922-842) / 922
+
+  static const String flowerBoardImage = 'assets/flower/flower-board.png';
+  static const String flowerDiscBlack =
+      'assets/flower/disc-flower-black.png'; // mor / purple — black / you
+  static const String flowerDiscWhite =
+      'assets/flower/disc-flower-white.png'; // pembe / pink — white / opponent
 }

@@ -76,7 +76,11 @@ class SettingsScreen extends StatelessWidget {
                             selected: settings.board,
                             onSelect: controller.setBoard,
                             themes: wood
-                                ? const [BoardTheme.wood, BoardTheme.mermer]
+                                ? const [
+                                    BoardTheme.wood,
+                                    BoardTheme.mermer,
+                                    BoardTheme.cicek,
+                                  ]
                                 : const [
                                     BoardTheme.wood,
                                     BoardTheme.turkuaz,

@@ -506,8 +506,7 @@ class _GameScreenState extends State<GameScreen>
                                       lastMove: _game.lastMove,
                                       showHints: !gameOver,
                                       onCellTap: _play,
-                                      marble:
-                                          settings.board == BoardTheme.mermer,
+                                      theme: settings.board,
                                       move: _lastMove,
                                     ),
                                   )

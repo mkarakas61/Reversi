@@ -208,6 +208,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                     blackScore: blackScore,
                     whiteScore: whiteScore,
                     onMenu: () => Navigator.of(context).maybePop(),
+                    board: settings.board,
                   )
                 : GameOverOverlay(
                     winner: _game.winner,
@@ -362,7 +363,8 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                       progress: topIn,
                       beginOffset: const Offset(0, -1.4),
                       child: OnlinePlayerCard(
-                        discAsset: OnlineTokens.discMaple,
+                        discAsset:
+                            OnlineTokens.discFor(settings.board, isDark: false),
                         name: 'Aylin',
                         score: whiteScore,
                         active: oppTurn,
@@ -380,7 +382,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                             lastMove: _lastMove,
                             showHints: yourTurn,
                             onCellTap: _play,
-                            marble: settings.board == BoardTheme.mermer,
+                            theme: settings.board,
                             move: _lastBoardMove,
                           ),
                         ),
@@ -390,7 +392,8 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                       progress: bottomIn,
                       beginOffset: const Offset(0, 1.4),
                       child: OnlinePlayerCard(
-                        discAsset: OnlineTokens.discWalnut,
+                        discAsset:
+                            OnlineTokens.discFor(settings.board, isDark: true),
                         name: 'Mert Karakaş',
                         score: blackScore,
                         active: yourTurn,
@@ -400,7 +403,11 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                     EntrySlide(
                       progress: bottomIn,
                       beginOffset: const Offset(0, 1.4),
-                      child: _TurnPill(over: _over, yourTurn: yourTurn),
+                      child: _TurnPill(
+                        over: _over,
+                        yourTurn: yourTurn,
+                        board: settings.board,
+                      ),
                     ),
                   ],
                 ),
@@ -476,16 +483,21 @@ class _IconButton extends StatelessWidget {
 }
 
 class _TurnPill extends StatelessWidget {
-  const _TurnPill({required this.over, required this.yourTurn});
+  const _TurnPill({
+    required this.over,
+    required this.yourTurn,
+    required this.board,
+  });
 
   final bool over;
   final bool yourTurn;
+  final BoardTheme board;
 
   @override
   Widget build(BuildContext context) {
     final label =
         over ? 'Oyun bitti' : (yourTurn ? 'Senin sıran' : 'Rakibin sırası');
-    final disc = yourTurn ? OnlineTokens.discWalnut : OnlineTokens.discMaple;
+    final disc = OnlineTokens.discFor(board, isDark: yourTurn);
     return Padding(
       padding: const EdgeInsets.only(top: 14, bottom: 16),
       child: Container(

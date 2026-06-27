@@ -5,6 +5,20 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
+import '../../online/online_tokens.dart';
+
+/// Avatar disc image for the custom (wood) theme, matching the selected board:
+/// flower coins for Çiçek, marble for Mermer, wood otherwise.
+String _avatarDisc(BoardTheme board, bool isDark) {
+  switch (board) {
+    case BoardTheme.cicek:
+      return isDark ? OnlineTokens.flowerDiscBlack : OnlineTokens.flowerDiscWhite;
+    case BoardTheme.mermer:
+      return isDark ? OnlineTokens.marbleDiscBlack : OnlineTokens.marbleDiscWhite;
+    default:
+      return isDark ? WoodTheme.discWalnut : WoodTheme.discMaple;
+  }
+}
 
 class PlayerCard extends StatelessWidget {
   const PlayerCard({
@@ -35,6 +49,7 @@ class PlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wood = isWoodTheme(context);
+    final board = SettingsScope.of(context).settings.board;
     final isDark = side == Disc.black;
     final accent = wood
         ? WoodTheme.gold
@@ -96,7 +111,7 @@ class PlayerCard extends StatelessWidget {
                   height: 44,
                   child: ClipOval(
                     child: Image.asset(
-                      isDark ? WoodTheme.discWalnut : WoodTheme.discMaple,
+                      _avatarDisc(board, isDark),
                       fit: BoxFit.cover,
                     ),
                   ),

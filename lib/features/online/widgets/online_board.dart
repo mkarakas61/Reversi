@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/game/reversi_game.dart';
+import '../../../core/settings/app_settings.dart';
 import '../../board/board_move.dart';
 import '../online_tokens.dart';
 
@@ -17,7 +18,7 @@ class OnlineBoard extends StatefulWidget {
     required this.lastMove,
     required this.showHints,
     required this.onCellTap,
-    this.marble = false,
+    this.theme = BoardTheme.wood,
     this.move,
   });
 
@@ -27,8 +28,10 @@ class OnlineBoard extends StatefulWidget {
   final bool showHints;
   final ValueChanged<Position> onCellTap;
 
-  /// When true, renders the marble board + marble discs instead of wood.
-  final bool marble;
+  /// Selected board variant. [mermer] renders the marble slab + marble discs;
+  /// [cicek] renders the floral board; everything else renders the wood board.
+  /// Both wood and cicek reuse the warm wood discs.
+  final BoardTheme theme;
 
   /// Last move's placed + flipped discs, used to drive the 3D flip animation.
   final BoardMove? move;
@@ -47,6 +50,9 @@ class _OnlineBoardState extends State<OnlineBoard>
   late final AnimationController _flip;
   BoardMove? _animMove;
   int _lastAnimatedId = 0;
+
+  bool get _marble => widget.theme == BoardTheme.mermer;
+  bool get _flower => widget.theme == BoardTheme.cicek;
 
   @override
   void initState() {
@@ -86,10 +92,15 @@ class _OnlineBoardState extends State<OnlineBoard>
   }
 
   String _discAsset(Disc d) {
-    if (widget.marble) {
+    if (_marble) {
       return d == Disc.black
           ? OnlineTokens.marbleDiscBlack
           : OnlineTokens.marbleDiscWhite;
+    }
+    if (_flower) {
+      return d == Disc.black
+          ? OnlineTokens.flowerDiscBlack
+          : OnlineTokens.flowerDiscWhite;
     }
     return d == Disc.black ? OnlineTokens.discWalnut : OnlineTokens.discMaple;
   }
@@ -97,10 +108,16 @@ class _OnlineBoardState extends State<OnlineBoard>
   // Edge (rim) color shown while a disc is rotating on its side, so the flip
   // reads as a real coin with thickness instead of a vanishing flat image.
   Color _discEdge(Disc d) {
-    if (widget.marble) {
+    if (_marble) {
       return d == Disc.black
           ? const Color(0xFF111114)
           : const Color(0xFFC9C3B5);
+    }
+    if (_flower) {
+      // Rose-gold rim tones for the flower coins.
+      return d == Disc.black
+          ? const Color(0xFF5A1B38) // deep wine rim under the purple coin
+          : const Color(0xFFD9A9A6); // soft rose rim under the pink coin
     }
     return d == Disc.black
         ? const Color(0xFF2E1C0E)
@@ -109,26 +126,46 @@ class _OnlineBoardState extends State<OnlineBoard>
 
   @override
   Widget build(BuildContext context) {
-    final marble = widget.marble;
-    final aspect =
-        marble ? OnlineTokens.marbleBoardAspect : OnlineTokens.boardAspect;
-    final boardImage =
-        marble ? OnlineTokens.marbleBoardImage : OnlineTokens.boardImage;
-    final gridLeft =
-        marble ? OnlineTokens.marbleGridLeft : OnlineTokens.gridLeft;
-    final gridTop = marble ? OnlineTokens.marbleGridTop : OnlineTokens.gridTop;
-    final gridRight =
-        marble ? OnlineTokens.marbleGridRight : OnlineTokens.gridRight;
-    final gridBottom =
-        marble ? OnlineTokens.marbleGridBottom : OnlineTokens.gridBottom;
+    final double aspect;
+    final String boardImage;
+    final double gridLeft, gridTop, gridRight, gridBottom;
+    final List<BoxShadow> shadow;
+    if (_flower) {
+      aspect = OnlineTokens.flowerBoardAspect;
+      boardImage = OnlineTokens.flowerBoardImage;
+      gridLeft = OnlineTokens.flowerGridLeft;
+      gridTop = OnlineTokens.flowerGridTop;
+      gridRight = OnlineTokens.flowerGridRight;
+      gridBottom = OnlineTokens.flowerGridBottom;
+      shadow = _flowerShadow;
+    } else if (_marble) {
+      aspect = OnlineTokens.marbleBoardAspect;
+      boardImage = OnlineTokens.marbleBoardImage;
+      gridLeft = OnlineTokens.marbleGridLeft;
+      gridTop = OnlineTokens.marbleGridTop;
+      gridRight = OnlineTokens.marbleGridRight;
+      gridBottom = OnlineTokens.marbleGridBottom;
+      shadow = _marbleShadow;
+    } else {
+      aspect = OnlineTokens.boardAspect;
+      boardImage = OnlineTokens.boardImage;
+      gridLeft = OnlineTokens.gridLeft;
+      gridTop = OnlineTokens.gridTop;
+      gridRight = OnlineTokens.gridRight;
+      gridBottom = OnlineTokens.gridBottom;
+      shadow = _woodShadow;
+    }
+
+    // All boards share the same 20° tilt / perspective.
+    final Matrix4 boardTransform = Matrix4.identity()
+      ..setEntry(3, 2, 0.0014) // perspective
+      ..rotateX(-20 * math.pi / 180);
 
     return AspectRatio(
       aspectRatio: aspect,
       child: Transform(
         alignment: const Alignment(0.0, 0.2), // origin: center 60%
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.0014) // perspective
-          ..rotateX(-20 * math.pi / 180),
+        transform: boardTransform,
         child: LayoutBuilder(
           builder: (context, c) {
             final w = c.maxWidth;
@@ -150,7 +187,7 @@ class _OnlineBoardState extends State<OnlineBoard>
                   image: AssetImage(boardImage),
                   fit: BoxFit.fill,
                 ),
-                boxShadow: marble ? _marbleShadow : _woodShadow,
+                boxShadow: shadow,
               ),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(left, top, right, bottom),
@@ -184,6 +221,17 @@ class _OnlineBoardState extends State<OnlineBoard>
     BoxShadow(color: Color(0x8C000000), offset: Offset(0, 20), blurRadius: 28),
   ];
 
+  // Stacked cream/beige edge to fake board thickness (a 3D slab), then a soft
+  // ground shadow — same idea as the wood board but in warm pale tones.
+  static const List<BoxShadow> _flowerShadow = [
+    BoxShadow(color: Color(0xFFE7DAC8), offset: Offset(0, 3)),
+    BoxShadow(color: Color(0xFFDBCBB4), offset: Offset(0, 6)),
+    BoxShadow(color: Color(0xFFCEBC9F), offset: Offset(0, 9)),
+    BoxShadow(color: Color(0xFFC1AE8D), offset: Offset(0, 12)),
+    BoxShadow(color: Color(0xFFB3A07E), offset: Offset(0, 15)),
+    BoxShadow(color: Color(0x8C000000), offset: Offset(0, 24), blurRadius: 30),
+  ];
+
   Widget _grid(double cellW, double cellH) {
     return Column(
       children: List.generate(8, (r) {
@@ -212,8 +260,9 @@ class _OnlineBoardState extends State<OnlineBoard>
     final anim = _animMove;
 
     // Disc diameter is a fixed fraction of the (square) cell, so every disc is
-    // centered and proportionally sized on every board and page.
-    final discSize = cell * _discFactor;
+    // centered and proportionally sized on every board and page. Flower coins
+    // sit a touch smaller so they don't crowd their cells.
+    final discSize = cell * (_flower ? 0.82 : _discFactor);
 
     // Animating disc (flip or just-placed) for the current move.
     if (anim != null && disc != null) {
@@ -261,13 +310,13 @@ class _OnlineBoardState extends State<OnlineBoard>
               height: discSize,
               child: _Disc(
                 disc: disc,
+                asset: _discAsset(disc),
                 isLast: isLast,
                 pulse: _pulse,
-                marble: widget.marble,
               ),
             ),
           ),
-        if (isHint) _Hint(cell: cell, pulse: _pulse),
+        if (isHint) _Hint(cell: cell, pulse: _pulse, flower: _flower),
       ],
     );
   }
@@ -345,25 +394,18 @@ class _FlipDisc extends StatelessWidget {
 class _Disc extends StatelessWidget {
   const _Disc({
     required this.disc,
+    required this.asset,
     required this.isLast,
     required this.pulse,
-    required this.marble,
   });
 
   final Disc disc;
+  final String asset;
   final bool isLast;
   final AnimationController pulse;
-  final bool marble;
 
   @override
   Widget build(BuildContext context) {
-    final asset = marble
-        ? (disc == Disc.black
-            ? OnlineTokens.marbleDiscBlack
-            : OnlineTokens.marbleDiscWhite)
-        : (disc == Disc.black
-            ? OnlineTokens.discWalnut
-            : OnlineTokens.discMaple);
     Widget image = AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       transitionBuilder: (child, anim) => FadeTransition(
@@ -413,14 +455,19 @@ class _Disc extends StatelessWidget {
 }
 
 class _Hint extends StatelessWidget {
-  const _Hint({required this.cell, required this.pulse});
+  const _Hint({required this.cell, required this.pulse, this.flower = false});
 
   final double cell;
   final AnimationController pulse;
+  final bool flower;
 
   @override
   Widget build(BuildContext context) {
     final size = cell * 0.3;
+    // The flower board's pale cream center washes out the amber hint, so use a
+    // darker wine/rose dot with high contrast there.
+    final fill = flower ? const Color(0x807A3B52) : OnlineTokens.hintFill;
+    final ring = flower ? const Color(0xCC5A1B38) : OnlineTokens.hintRing;
     return AnimatedBuilder(
       animation: pulse,
       builder: (context, _) {
@@ -433,9 +480,9 @@ class _Hint extends StatelessWidget {
               width: size,
               height: size,
               decoration: BoxDecoration(
-                color: OnlineTokens.hintFill,
+                color: fill,
                 shape: BoxShape.circle,
-                border: Border.all(color: OnlineTokens.hintRing, width: 2),
+                border: Border.all(color: ring, width: 2),
               ),
             ),
           ),

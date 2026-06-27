@@ -28,6 +28,7 @@ flutter:
   assets:
     - assets/wood/
     - assets/marble/
+    - assets/flower/
   fonts:
     - family: Baloo2
       fonts:
