@@ -107,6 +107,18 @@ class _BoardPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The floral board is a single baked-in image (border + grid included),
+    // so its preview is just the image, scaled to fill the tile.
+    if (theme == BoardTheme.cicek) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(11),
+        child: const Image(
+          image: AssetImage('assets/flower/flower-board.png'),
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
     final palette = boardPalettes[theme];
 
     final BoxDecoration frame = palette == null

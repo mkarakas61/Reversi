@@ -73,6 +73,7 @@ class AppStrings {
       'themeAntrasit': 'Anthracite',
       'themePetrol': 'Deep Petrol',
       'themeMermer': 'Marble',
+      'themeCicek': 'Flower',
       'coinBlack': 'Black',
       'coinWhite': 'White',
       'coinTurquoise': 'Turquoise',
@@ -146,6 +147,7 @@ class AppStrings {
       'themeAntrasit': 'Antrasit',
       'themePetrol': 'Koyu Petrol',
       'themeMermer': 'Mermer',
+      'themeCicek': 'Çiçek',
       'coinBlack': 'Siyah',
       'coinWhite': 'Beyaz',
       'coinTurquoise': 'Turkuaz',
@@ -246,6 +248,7 @@ class AppStrings {
       case BoardTheme.antrasit: return _get('themeAntrasit');
       case BoardTheme.petrol: return _get('themePetrol');
       case BoardTheme.mermer: return _get('themeMermer');
+      case BoardTheme.cicek: return _get('themeCicek');
     }
   }
 

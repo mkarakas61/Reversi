@@ -5,6 +5,7 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
+import '../../online/online_tokens.dart';
 
 class GameOverCard extends StatelessWidget {
   const GameOverCard({
@@ -82,7 +83,7 @@ class GameOverCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ScoreBadge(coin: yourCoin, score: blackScore),
+              ScoreBadge(coin: yourCoin, score: blackScore, isDark: true),
               const SizedBox(width: 10),
               Text(
                 '–',
@@ -94,7 +95,7 @@ class GameOverCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              ScoreBadge(coin: opponentCoin, score: whiteScore),
+              ScoreBadge(coin: opponentCoin, score: whiteScore, isDark: false),
             ],
           ),
           const SizedBox(height: 22),
@@ -118,34 +119,58 @@ class GameOverCard extends StatelessWidget {
 }
 
 class ScoreBadge extends StatelessWidget {
-  const ScoreBadge({super.key, required this.coin, required this.score});
+  const ScoreBadge({
+    super.key,
+    required this.coin,
+    required this.score,
+    required this.isDark,
+  });
 
   final CoinColor coin;
   final int score;
+
+  /// Black/you disc when true, white/opponent disc when false. Only used by
+  /// the themed-board variant (Çiçek/Mermer) to pick the matching coin asset.
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     final wood = isWoodTheme(context);
     final palette = coinPalettes[coin]!;
+    // Custom-disc boards (Çiçek/Mermer) show their themed coin instead of the
+    // flat coin-color gradient, so the badge matches the board you played on.
+    final board = SettingsScope.of(context).settings.board;
+    final themedDisc =
+        board == BoardTheme.cicek || board == BoardTheme.mermer;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              center: const Alignment(-0.3, -0.4),
-              colors: [palette.faceTop, palette.faceBottom],
-              stops: const [0.0, 0.72],
+        if (themedDisc)
+          SizedBox(
+            width: 22,
+            height: 22,
+            child: Image.asset(
+              OnlineTokens.discFor(board, isDark: isDark),
+              fit: BoxFit.contain,
             ),
-            boxShadow: const [
-              BoxShadow(
-                  color: Color(0x33000000), blurRadius: 2, spreadRadius: -1),
-            ],
+          )
+        else
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                center: const Alignment(-0.3, -0.4),
+                colors: [palette.faceTop, palette.faceBottom],
+                stops: const [0.0, 0.72],
+              ),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x33000000), blurRadius: 2, spreadRadius: -1),
+              ],
+            ),
           ),
-        ),
         const SizedBox(width: 7),
         Text(
           '$score',
