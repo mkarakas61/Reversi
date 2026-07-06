@@ -43,17 +43,21 @@ class _WoodBoardState extends State<WoodBoard>
   static const _framePad = 14.0;
   static const _faceSquash = 0.74;
   static const _thicknessFactor = 0.18;
-  static const _duration = Duration(milliseconds: 1000);
-  static const _riseFrac = 0.6;
+  // Flip wave: one coin's turn takes [_coinMs]; coins farther from the
+  // placed coin start [_staggerMs] later per ring, rippling outward.
+  static const _coinMs = 1400;
+  static const _staggerMs = 190;
 
   late final AnimationController _flip;
   BoardMove? _anim;
   int _lastAnimatedId = 0;
+  int _totalMs = _coinMs;
 
   @override
   void initState() {
     super.initState();
-    _flip = AnimationController(vsync: this, duration: _duration);
+    _flip = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: _coinMs));
     _flip.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         setState(() => _anim = null);
@@ -69,6 +73,16 @@ class _WoodBoardState extends State<WoodBoard>
     if (move != null && move.id != _lastAnimatedId) {
       _lastAnimatedId = move.id;
       _anim = move;
+      var maxDist = 0;
+      for (final f in move.flipped) {
+        final d = max(
+          (f.row - move.placed.row).abs(),
+          (f.col - move.placed.col).abs(),
+        );
+        if (d > maxDist) maxDist = d;
+      }
+      _totalMs = _coinMs + _staggerMs * maxDist;
+      _flip.duration = Duration(milliseconds: _totalMs);
       _flip.forward(from: 0);
     }
   }
@@ -171,12 +185,6 @@ class _WoodBoardState extends State<WoodBoard>
               final oldDisc = anim.color == Disc.black ? Disc.white : Disc.black;
               final oldPalette = coinPalettes[_coinFor(oldDisc)]!;
 
-              final drop = p <= _riseFrac
-                  ? 0.0
-                  : Curves.easeInCubic
-                      .transform(((p - _riseFrac) / (1 - _riseFrac)));
-              final riseP = (p / _riseFrac).clamp(0.0, 1.0);
-
               for (final pos in affected) {
                 final (center, coinW) = cellGeometry(pos.row, pos.col);
                 final hover = coinW * 1.15;
@@ -184,42 +192,174 @@ class _WoodBoardState extends State<WoodBoard>
                 final totalH = faceHeight + coinW * _thicknessFactor;
                 final isPlaced = pos == anim.placed;
 
-                if (isPlaced) {
-                  final yUp = hover * (1 - drop);
-                  final opacity = (p / 0.10).clamp(0.0, 1.0);
+                // Wave timing: this coin's own 0..1 progress, delayed by its
+                // ring distance from the placed coin.
+                final dist = max(
+                  (pos.row - anim.placed.row).abs(),
+                  (pos.col - anim.placed.col).abs(),
+                );
+                final lp = ((p * _totalMs - dist * _staggerMs) / _coinMs)
+                    .clamp(0.0, 1.0);
+
+                if (lp == 0) {
+                  // The wave hasn't reached this coin yet: flipped coins still
+                  // rest in their old color; the placed coin isn't there yet.
+                  if (isPlaced) continue;
                   coinWidgets.add(Positioned(
                     left: center.dx - coinW / 2,
-                    top: center.dy - totalH / 2 - yUp,
-                    child: Opacity(
-                      opacity: opacity,
-                      child: CoinView(
-                        palette: newPalette,
-                        width: coinW,
-                        faceSquash: _faceSquash,
-                        thicknessFactor: _thicknessFactor,
+                    top: center.dy - totalH / 2,
+                    child: CoinView(
+                      palette: oldPalette,
+                      width: coinW,
+                      faceSquash: _faceSquash,
+                      thicknessFactor: _thicknessFactor,
+                    ),
+                  ));
+                  continue;
+                }
+
+                // Same choreography for every coin, like turning a hand
+                // over: a gentle gravity arc with a single half-turn at
+                // constant angular speed, coming to rest the moment the turn
+                // completes — no impact effects. The placed coin simply has
+                // its own color on both faces.
+                // Brisk launch, then a gentle float down that settles with
+                // zero vertical speed — no abrupt "click" at touchdown.
+                final height =
+                    sin(pi * Curves.easeOutSine.transform(lp));
+                final yUp = hover * height;
+                final angle = pi * lp;
+
+                // The placed coin pops in almost instantly (no ghost).
+                final opacity =
+                    isPlaced ? (lp / 0.05).clamp(0.0, 1.0) : 1.0;
+                final faceCenterY = center.dy - coinW * _thicknessFactor / 2;
+
+                // One continuous 3D rotation with perspective, driven by the
+                // TRUE angle: both faces are real planes on either side of
+                // the slab (the back face pre-mirrored so it reads upright
+                // once it comes around), with a stack of edge-colored slices
+                // as the side wall. The color change is a genuine face
+                // change — no crossfades, no flicker.
+                final facing = cos(angle);
+                final ac = facing.abs();
+                final frontPal = isPlaced ? newPalette : oldPalette;
+                final edgeMidL = Color.lerp(
+                    frontPal.edgeLight, newPalette.edgeLight, lp)!;
+                final edgeMidD = Color.lerp(
+                    frontPal.edgeDark, newPalette.edgeDark, lp)!;
+
+                final thickness = coinW * 0.17;
+
+                Matrix4 plane(double z, {bool mirrored = false}) {
+                  final m = Matrix4.identity()
+                    ..setEntry(3, 2, 0.15 / coinW)
+                    ..rotateX(angle)
+                    ..translateByDouble(0.0, 0.0, z, 1.0);
+                  if (mirrored) m.rotateX(pi);
+                  return m;
+                }
+
+                final frontFace = Transform(
+                  alignment: Alignment.center,
+                  transform: plane(-thickness / 2),
+                  child: FlipCoin(
+                    width: coinW,
+                    angle: 0,
+                    front: frontPal,
+                    back: newPalette,
+                  ),
+                );
+                final backFace = Transform(
+                  alignment: Alignment.center,
+                  transform: plane(thickness / 2, mirrored: true),
+                  child: FlipCoin(
+                    width: coinW,
+                    angle: 0,
+                    front: newPalette,
+                    back: newPalette,
+                  ),
+                );
+
+                const sideSlices = 10;
+                final slices = <Widget>[
+                  for (var i = 0; i <= sideSlices; i++)
+                    Builder(builder: (_) {
+                      final z =
+                          thickness * (i / sideSlices - 0.5); // -T/2..+T/2
+                      final zz = 2 * z / thickness; // -1..1
+                      final w = coinW * 0.86 * (1 - 0.12 * zz * zz);
+                      final h = w * _faceSquash;
+                      return Transform(
+                        alignment: Alignment.center,
+                        transform: plane(z),
+                        child: Container(
+                          width: w,
+                          height: h,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [edgeMidL, edgeMidD],
+                            ),
+                            borderRadius: BorderRadius.all(
+                              Radius.elliptical(w / 2, h / 2),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                ];
+
+                // Thin rim bar bridges the frames where every plane is
+                // edge-on and would otherwise vanish.
+                final rimOpacity = ((0.08 - ac) / 0.08).clamp(0.0, 1.0);
+
+                coinWidgets.add(Positioned(
+                  left: center.dx - coinW / 2,
+                  top: faceCenterY - coinW / 2 - yUp,
+                  child: Opacity(
+                    opacity: opacity,
+                    child: SizedBox(
+                      width: coinW,
+                      height: coinW,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (rimOpacity > 0)
+                            Opacity(
+                              opacity: rimOpacity,
+                              child: Container(
+                                width: coinW * 0.86,
+                                height: thickness,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(colors: [
+                                    edgeMidD,
+                                    edgeMidL,
+                                    edgeMidD,
+                                  ]),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.elliptical(
+                                        coinW * 0.43, thickness / 2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          // Painter's order: far face, side wall, near face.
+                          if (facing >= 0) ...[
+                            backFace,
+                            ...slices.reversed,
+                            frontFace,
+                          ] else ...[
+                            frontFace,
+                            ...slices,
+                            backFace,
+                          ],
+                        ],
                       ),
                     ),
-                  ));
-                } else {
-                  final yUp = p <= _riseFrac
-                      ? hover * Curves.easeOutCubic.transform(riseP)
-                      : hover * (1 - drop);
-                  final angle = p <= _riseFrac
-                      ? (3 * pi) * Curves.easeInOut.transform(riseP)
-                      : 3 * pi;
-                  final faceCenterY =
-                      center.dy - coinW * _thicknessFactor / 2;
-                  coinWidgets.add(Positioned(
-                    left: center.dx - coinW / 2,
-                    top: faceCenterY - coinW / 2 - yUp,
-                    child: FlipCoin(
-                      width: coinW,
-                      angle: angle,
-                      front: oldPalette,
-                      back: newPalette,
-                    ),
-                  ));
-                }
+                  ),
+                ));
               }
             }
 
