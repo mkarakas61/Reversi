@@ -46,10 +46,16 @@ class _OnlineBoardState extends State<OnlineBoard>
   // leaving a little breathing room inside each square.
   static const double _discFactor = 0.82;
 
+  // Flip wave: each disc flips for [_flipMs]; discs farther from the placed
+  // disc start [_staggerMs] later per ring, so the flip ripples outward.
+  static const int _flipMs = 1000;
+  static const int _staggerMs = 145;
+
   late final AnimationController _pulse;
   late final AnimationController _flip;
   BoardMove? _animMove;
   int _lastAnimatedId = 0;
+  int _totalMs = _flipMs;
 
   bool get _marble => widget.theme == BoardTheme.mermer;
   bool get _flower => widget.theme == BoardTheme.cicek;
@@ -63,7 +69,7 @@ class _OnlineBoardState extends State<OnlineBoard>
     )..repeat();
     _flip = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 480),
+      duration: const Duration(milliseconds: _flipMs),
     );
     _flip.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
@@ -80,8 +86,30 @@ class _OnlineBoardState extends State<OnlineBoard>
     if (move != null && move.id != _lastAnimatedId) {
       _lastAnimatedId = move.id;
       _animMove = move;
+      _totalMs = _flipMs + _staggerMs * _maxRingDistance(move);
+      _flip.duration = Duration(milliseconds: _totalMs);
       _flip.forward(from: 0);
     }
+  }
+
+  static int _maxRingDistance(BoardMove move) {
+    var maxDist = 0;
+    for (final f in move.flipped) {
+      final d = math.max(
+        (f.row - move.placed.row).abs(),
+        (f.col - move.placed.col).abs(),
+      );
+      if (d > maxDist) maxDist = d;
+    }
+    return maxDist;
+  }
+
+  /// Local 0..1 progress of the disc at Chebyshev ring [dist] from the placed
+  /// disc: 0 while the wave hasn't reached it, 1 once its flip is done.
+  double _waveT(int dist) {
+    final start = dist * _staggerMs / _totalMs;
+    final span = _flipMs / _totalMs;
+    return ((_flip.value - start) / span).clamp(0.0, 1.0);
   }
 
   @override
@@ -264,29 +292,34 @@ class _OnlineBoardState extends State<OnlineBoard>
     // sit a touch smaller so they don't crowd their cells.
     final discSize = cell * (_flower ? 0.82 : _discFactor);
 
-    // Animating disc (flip or just-placed) for the current move.
+    // Animating disc (flip or just-placed) for the current move. The placed
+    // disc runs the exact same flight+flip choreography as the flipped ones
+    // (both faces its own color); it just leads the wave at ring distance 0.
     if (anim != null && disc != null) {
-      final t = Curves.easeInOut.transform(_flip.value);
-      if (pos == anim.placed) {
-        // Newly placed disc: scale + fade in.
-        final o = (_flip.value / 0.3).clamp(0.0, 1.0);
-        return Center(
-          child: SizedBox(
-            width: discSize,
-            height: discSize,
-            child: Opacity(
-              opacity: o,
-              child: Transform.scale(
-                scale: 0.55 + 0.45 * o,
-                child: Image.asset(_discAsset(disc), fit: BoxFit.contain),
-              ),
-            ),
-          ),
-        );
-      }
-      if (anim.flipped.contains(pos)) {
+      final isPlaced = pos == anim.placed;
+      if (isPlaced || anim.flipped.contains(pos)) {
         final newColor = disc; // board already holds the post-move color
-        final oldColor = newColor == Disc.black ? Disc.white : Disc.black;
+        final oldColor = isPlaced
+            ? newColor
+            : (newColor == Disc.black ? Disc.white : Disc.black);
+        final dist = isPlaced
+            ? 0
+            : math.max(
+                (pos.row - anim.placed.row).abs(),
+                (pos.col - anim.placed.col).abs(),
+              );
+        final t = _waveT(dist);
+        if (t == 0) {
+          // The wave hasn't reached this disc yet.
+          if (isPlaced) return const SizedBox.shrink();
+          return Center(
+            child: SizedBox(
+              width: discSize,
+              height: discSize,
+              child: Image.asset(_discAsset(oldColor), fit: BoxFit.contain),
+            ),
+          );
+        }
         return Center(
           child: _FlipDisc(
             t: t,
@@ -295,6 +328,7 @@ class _OnlineBoardState extends State<OnlineBoard>
             backAsset: _discAsset(newColor),
             frontEdge: _discEdge(oldColor),
             backEdge: _discEdge(newColor),
+            appear: isPlaced,
           ),
         );
       }
@@ -325,7 +359,12 @@ class _OnlineBoardState extends State<OnlineBoard>
 /// A disc performing a 3D half-turn flip on its horizontal axis. The face
 /// image is squashed vertically as it rotates and an always-visible rim bar
 /// gives the disc a real coin thickness, so it never vanishes at the edge-on
-/// midpoint. A subtle lift at the peak adds a tactile "snap".
+/// midpoint.
+///
+/// Choreography: like turning a hand over — the coin lifts just enough to
+/// clear the board, makes a single half-turn at constant angular speed (old
+/// face up at launch, new face up at the end) and simply comes to rest. No
+/// impact effects; the animation ends the moment the turn completes.
 class _FlipDisc extends StatelessWidget {
   const _FlipDisc({
     required this.t,
@@ -334,57 +373,187 @@ class _FlipDisc extends StatelessWidget {
     required this.backAsset,
     required this.frontEdge,
     required this.backEdge,
+    this.appear = false,
   });
 
-  final double t; // eased 0..1
+  final double t; // raw 0..1 progress of this disc's flip
   final double size;
   final String frontAsset; // shown before midpoint (old color)
   final String backAsset; // shown after midpoint (new color)
   final Color frontEdge;
   final Color backEdge;
+  final bool appear; // fade in at launch (the just-placed disc)
 
-  static const double _thicknessFactor = 0.16;
+  // Slab thickness relative to the disc diameter — solid, like a checkers
+  // piece, but not chunky.
+  static const double _thicknessFactor = 0.18;
+  // Number of side-wall slices between the two faces.
+  static const int _sideSlices = 10;
 
   @override
   Widget build(BuildContext context) {
-    final angle = t * math.pi; // single half-turn
-    final ac = math.cos(angle).abs(); // 1 -> 0 -> 1 (face foreshortening)
-    final showBack = t >= 0.5;
-    final asset = showBack ? backAsset : frontAsset;
-    final edge = showBack ? backEdge : frontEdge;
+    // Flight arc: brisk launch, then a gentle float down that settles with
+    // zero vertical speed — no abrupt "click" at touchdown.
+    final height =
+        math.sin(math.pi * Curves.easeOutSine.transform(t));
 
-    final faceH = size * ac;
-    final edgeH = math.max(faceH, size * _thicknessFactor);
-    final lift = math.sin(t * math.pi); // 0 -> 1 -> 0
+    // A single half-turn at constant angular speed — old face up at launch,
+    // new face up at rest. The TRUE angle drives one continuous 3D rotation:
+    // both faces are real planes on either side of the slab, so the color
+    // change is a genuine face change — no crossfades, no flicker.
+    final angle = math.pi * t;
+    final facing = math.cos(angle); // >0: front face toward camera
+    final ac = facing.abs();
 
-    return FractionalTranslation(
-      translation: Offset(0, -0.18 * lift),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
+    // The coin stays rigid — only a slight uniform grow toward the camera.
+    final scale = 1.0 + 0.12 * height;
+
+    // The placed disc pops in almost instantly (no lingering ghost).
+    final opacity = appear ? (t / 0.05).clamp(0.0, 1.0) : 1.0;
+
+    final thickness = size * _thicknessFactor;
+    // Side-wall color follows the turn from old to new edge tone.
+    final edge = Color.lerp(frontEdge, backEdge, t)!;
+    final edgeLight = Color.lerp(edge, Colors.white, 0.28)!;
+    final edgeDark = Color.lerp(edge, Colors.black, 0.38)!;
+
+    Matrix4 plane(double z, {bool mirrored = false}) {
+      final m = Matrix4.identity()
+        ..setEntry(3, 2, 0.15 / size)
+        ..rotateX(angle)
+        ..translateByDouble(0.0, 0.0, z, 1.0);
+      if (mirrored) m.rotateX(math.pi);
+      return m;
+    }
+
+    Widget face(String asset, double z, {required bool mirrored}) =>
+        Transform(
           alignment: Alignment.center,
-          children: [
-            // Rim / thickness — always visible, so the edge-on moment reads as
-            // a coin standing on its side rather than disappearing.
-            Container(
-              width: size * 0.95,
-              height: edgeH,
+          transform: plane(z, mirrored: mirrored),
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: Image.asset(asset, fit: BoxFit.contain),
+          ),
+        );
+
+    // Front face on the near side of the slab, back face (pre-mirrored so it
+    // reads upright once it comes around) on the far side.
+    final frontFace = face(frontAsset, -thickness / 2, mirrored: false);
+    final backFace = face(backAsset, thickness / 2, mirrored: true);
+
+    // Side wall: stacked slices spanning the thickness, tapered toward the
+    // faces so the edge reads rounded. Ordered far-to-near for the current
+    // viewing side.
+    final slices = <Widget>[
+      for (var i = 0; i <= _sideSlices; i++)
+        Builder(builder: (_) {
+          final z = thickness * (i / _sideSlices - 0.5); // -T/2 .. +T/2
+          final zz = 2 * z / thickness; // -1..1 across the slab
+          final d = size * 0.90 * (1 - 0.12 * zz * zz);
+          return Transform(
+            alignment: Alignment.center,
+            transform: plane(z),
+            child: Container(
+              width: d,
+              height: d,
               decoration: BoxDecoration(
-                color: edge,
-                borderRadius: BorderRadius.all(
-                  Radius.elliptical(size * 0.475, edgeH / 2),
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [edgeLight, edge, edgeDark],
                 ),
               ),
             ),
-            // Foreshortened face.
-            if (ac > 0.04)
-              SizedBox(
-                width: size,
-                height: faceH,
-                child: Image.asset(asset, fit: BoxFit.fill),
+          );
+        }),
+    ];
+
+    // A thin rim bar bridges the one or two frames where every plane is
+    // edge-on and would otherwise vanish.
+    final rimOpacity = ((0.08 - ac) / 0.08).clamp(0.0, 1.0);
+
+    final coin = Stack(
+      alignment: Alignment.center,
+      children: [
+        if (rimOpacity > 0)
+          Opacity(
+            opacity: rimOpacity,
+            child: Container(
+              width: size * 0.90,
+              height: thickness,
+              decoration: BoxDecoration(
+                color: edge,
+                borderRadius: BorderRadius.all(
+                  Radius.elliptical(size * 0.45, thickness / 2),
+                ),
               ),
-          ],
+            ),
+          ),
+        // Painter's order: far face, side wall (far to near), near face.
+        if (facing >= 0) ...[
+          backFace,
+          ...slices.reversed,
+          frontFace,
+        ] else ...[
+          frontFace,
+          ...slices,
+          backFace,
+        ],
+      ],
+    );
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // Shadow stays on the board while the coin is airborne.
+          _GroundShadow(size: size, lift: height),
+          FractionalTranslation(
+            translation: Offset(0, -0.35 * height),
+            child: Transform.scale(
+              scale: scale,
+              child: Opacity(opacity: opacity, child: coin),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Soft elliptical shadow under an airborne coin: fades in and shrinks as the
+/// coin lifts away from the board, grounding the flight arc.
+class _GroundShadow extends StatelessWidget {
+  const _GroundShadow({required this.size, required this.lift});
+
+  final double size;
+  final double lift; // 0 = resting, 1 = highest point
+
+  @override
+  Widget build(BuildContext context) {
+    if (lift <= 0.01) return const SizedBox.shrink();
+    final d = size * (0.95 - 0.22 * lift);
+    return Positioned(
+      bottom: size * 0.02,
+      child: Transform.scale(
+        scaleY: 0.34,
+        child: Container(
+          width: d,
+          height: d,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                Colors.black.withValues(alpha: 0.34 * lift),
+                Colors.transparent,
+              ],
+            ),
+          ),
         ),
       ),
     );
