@@ -5,6 +5,7 @@ import '../../../core/game/reversi_game.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import 'flower_celebration.dart';
 import 'game_over_card.dart';
 
 class GameOverOverlay extends StatelessWidget {
@@ -22,6 +23,7 @@ class GameOverOverlay extends StatelessWidget {
     required this.onPlayAgain,
     required this.onMenu,
     required this.strings,
+    this.flowerBoardKey,
   });
 
   final Disc? winner;
@@ -36,6 +38,10 @@ class GameOverOverlay extends StatelessWidget {
   final VoidCallback onPlayAgain;
   final VoidCallback onMenu;
   final ({String? title, String? message, CoinColor? titleCoin}) strings;
+
+  /// When set (Çiçek board), a winning celebration also grows flowers out of
+  /// the board this key points at.
+  final GlobalKey? flowerBoardKey;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +63,9 @@ class GameOverOverlay extends StatelessWidget {
       coinPalettes[opponentCoin]!.faceMid,
     ];
 
+    final celebrate =
+        winner != null && (!isSinglePlayer || winner == humanDisc);
+
     return Positioned.fill(
       child: Stack(
         children: [
@@ -67,6 +76,8 @@ class GameOverOverlay extends StatelessWidget {
               child: const ColoredBox(color: Color(0x6B000000)),
             ),
           ),
+          if (celebrate && flowerBoardKey != null)
+            FlowerCelebration(boardKey: flowerBoardKey!),
           Align(
             alignment: const Alignment(-0.9, -0.75),
             child: ConfettiWidget(

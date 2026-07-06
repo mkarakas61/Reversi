@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../core/settings/app_settings.dart';
+import '../../game/overlays/flower_celebration.dart';
 import '../online_tokens.dart';
 
 /// Full-screen game-over overlay: blurred scrim + cream result card with the
@@ -15,6 +16,8 @@ class OnlineResultOverlay extends StatelessWidget {
     required this.whiteScore,
     required this.onMenu,
     required this.board,
+    this.celebrate = false,
+    this.flowerBoardKey,
   });
 
   final String title;
@@ -22,6 +25,13 @@ class OnlineResultOverlay extends StatelessWidget {
   final int whiteScore;
   final VoidCallback onMenu;
   final BoardTheme board;
+
+  /// True when the local player won (drives the celebration effects).
+  final bool celebrate;
+
+  /// When set (Çiçek board), a win also grows flowers out of the board this
+  /// key points at.
+  final GlobalKey? flowerBoardKey;
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +41,25 @@ class OnlineResultOverlay extends StatelessWidget {
         child: Container(
           color: OnlineTokens.overlayScrim,
           padding: const EdgeInsets.all(30),
-          alignment: Alignment.center,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutBack,
-            builder: (context, t, child) => Opacity(
-              opacity: t.clamp(0, 1),
-              child: Transform.scale(scale: 0.4 + 0.6 * t, child: child),
-            ),
-            child: _card(),
+          child: Stack(
+            fit: StackFit.expand,
+            clipBehavior: Clip.none,
+            children: [
+              if (celebrate && flowerBoardKey != null)
+                FlowerCelebration(boardKey: flowerBoardKey!),
+              Center(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutBack,
+                  builder: (context, t, child) => Opacity(
+                    opacity: t.clamp(0, 1),
+                    child: Transform.scale(scale: 0.4 + 0.6 * t, child: child),
+                  ),
+                  child: _card(),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -47,6 +47,9 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
   late final AnimationController _entry;
   late final ConfettiController _confettiLeft;
   late final ConfettiController _confettiRight;
+
+  // Lets the game-over flower celebration find the board's on-screen rect.
+  final GlobalKey _boardKey = GlobalKey();
   bool _celebrated = false;
 
   bool get _over => _game.phase == GamePhase.gameOver;
@@ -209,6 +212,10 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                     whiteScore: whiteScore,
                     onMenu: () => Navigator.of(context).maybePop(),
                     board: settings.board,
+                    celebrate: _game.winner == _you,
+                    flowerBoardKey: settings.board == BoardTheme.cicek
+                        ? _boardKey
+                        : null,
                   )
                 : GameOverOverlay(
                     winner: _game.winner,
@@ -377,6 +384,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                           progress: camera,
                           beginOffset: const Offset(0, 0.35),
                           child: OnlineBoard(
+                            key: _boardKey,
                             board: _game.board,
                             validMoves: _game.validMoves,
                             lastMove: _lastMove,

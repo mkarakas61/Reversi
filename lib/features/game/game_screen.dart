@@ -56,6 +56,9 @@ class _GameScreenState extends State<GameScreen>
   final GameStorage _storage = GameStorage();
   final Random _random = Random();
 
+  // Lets the game-over flower celebration find the board's on-screen rect.
+  final GlobalKey _boardKey = GlobalKey();
+
   // Undo history: the game state *before* each applied move/forfeit, newest
   // last. Single-player undo rewinds past the AI's reply to the player's turn.
   final List<ReversiGame> _history = [];
@@ -501,6 +504,7 @@ class _GameScreenState extends State<GameScreen>
                             child: wood
                                 ? Center(
                                     child: OnlineBoard(
+                                      key: _boardKey,
                                       board: _game.board,
                                       validMoves: validMoves,
                                       lastMove: _game.lastMove,
@@ -577,6 +581,9 @@ class _GameScreenState extends State<GameScreen>
                 onPlayAgain: _startNewGame,
                 onMenu: () => Navigator.of(context).maybePop(),
                 strings: _resolveGameOver(strings, settings),
+                flowerBoardKey: wood && settings.board == BoardTheme.cicek
+                    ? _boardKey
+                    : null,
               ),
           ],
         ),
