@@ -235,128 +235,21 @@ class _WoodBoardState extends State<WoodBoard>
                     isPlaced ? (lp / 0.05).clamp(0.0, 1.0) : 1.0;
                 final faceCenterY = center.dy - coinW * _thicknessFactor / 2;
 
-                // One continuous 3D rotation with perspective, driven by the
-                // TRUE angle: both faces are real planes on either side of
-                // the slab (the back face pre-mirrored so it reads upright
-                // once it comes around), with a stack of edge-colored slices
-                // as the side wall. The color change is a genuine face
-                // change — no crossfades, no flicker.
-                final facing = cos(angle);
-                final ac = facing.abs();
-                final frontPal = isPlaced ? newPalette : oldPalette;
-                final edgeMidL = Color.lerp(
-                    frontPal.edgeLight, newPalette.edgeLight, lp)!;
-                final edgeMidD = Color.lerp(
-                    frontPal.edgeDark, newPalette.edgeDark, lp)!;
-
-                final thickness = coinW * 0.17;
-
-                Matrix4 plane(double z, {bool mirrored = false}) {
-                  final m = Matrix4.identity()
-                    ..setEntry(3, 2, 0.15 / coinW)
-                    ..rotateX(angle)
-                    ..translateByDouble(0.0, 0.0, z, 1.0);
-                  if (mirrored) m.rotateX(pi);
-                  return m;
-                }
-
-                final frontFace = Transform(
-                  alignment: Alignment.center,
-                  transform: plane(-thickness / 2),
-                  child: FlipCoin(
-                    width: coinW,
-                    angle: 0,
-                    front: frontPal,
-                    back: newPalette,
-                  ),
-                );
-                final backFace = Transform(
-                  alignment: Alignment.center,
-                  transform: plane(thickness / 2, mirrored: true),
-                  child: FlipCoin(
-                    width: coinW,
-                    angle: 0,
-                    front: newPalette,
-                    back: newPalette,
-                  ),
-                );
-
-                const sideSlices = 10;
-                final slices = <Widget>[
-                  for (var i = 0; i <= sideSlices; i++)
-                    Builder(builder: (_) {
-                      final z =
-                          thickness * (i / sideSlices - 0.5); // -T/2..+T/2
-                      final zz = 2 * z / thickness; // -1..1
-                      final w = coinW * 0.86 * (1 - 0.12 * zz * zz);
-                      final h = w * _faceSquash;
-                      return Transform(
-                        alignment: Alignment.center,
-                        transform: plane(z),
-                        child: Container(
-                          width: w,
-                          height: h,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [edgeMidL, edgeMidD],
-                            ),
-                            borderRadius: BorderRadius.all(
-                              Radius.elliptical(w / 2, h / 2),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                ];
-
-                // Thin rim bar bridges the frames where every plane is
-                // edge-on and would otherwise vanish.
-                final rimOpacity = ((0.08 - ac) / 0.08).clamp(0.0, 1.0);
-
+                // A single clean half-turn drawn by FlipCoinPainter: the
+                // face shortens with |cos|, the color changes exactly at
+                // the edge-on midpoint, and the edge keeps a minimum
+                // thickness so the coin never vanishes mid-turn. The
+                // placed coin shows its own color on both faces.
                 coinWidgets.add(Positioned(
                   left: center.dx - coinW / 2,
                   top: faceCenterY - coinW / 2 - yUp,
                   child: Opacity(
                     opacity: opacity,
-                    child: SizedBox(
+                    child: FlipCoin(
                       width: coinW,
-                      height: coinW,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (rimOpacity > 0)
-                            Opacity(
-                              opacity: rimOpacity,
-                              child: Container(
-                                width: coinW * 0.86,
-                                height: thickness,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(colors: [
-                                    edgeMidD,
-                                    edgeMidL,
-                                    edgeMidD,
-                                  ]),
-                                  borderRadius: BorderRadius.all(
-                                    Radius.elliptical(
-                                        coinW * 0.43, thickness / 2),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          // Painter's order: far face, side wall, near face.
-                          if (facing >= 0) ...[
-                            backFace,
-                            ...slices.reversed,
-                            frontFace,
-                          ] else ...[
-                            frontFace,
-                            ...slices,
-                            backFace,
-                          ],
-                        ],
-                      ),
+                      angle: angle,
+                      front: isPlaced ? newPalette : oldPalette,
+                      back: newPalette,
                     ),
                   ),
                 ));

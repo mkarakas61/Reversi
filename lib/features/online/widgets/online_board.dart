@@ -387,8 +387,6 @@ class _FlipDisc extends StatelessWidget {
   // Slab thickness relative to the disc diameter — solid, like a checkers
   // piece, but not chunky.
   static const double _thicknessFactor = 0.18;
-  // Number of side-wall slices between the two faces.
-  static const int _sideSlices = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -398,12 +396,10 @@ class _FlipDisc extends StatelessWidget {
         math.sin(math.pi * Curves.easeOutSine.transform(t));
 
     // A single half-turn at constant angular speed — old face up at launch,
-    // new face up at rest. The TRUE angle drives one continuous 3D rotation:
-    // both faces are real planes on either side of the slab, so the color
-    // change is a genuine face change — no crossfades, no flicker.
+    // new face up at rest. The face image is squashed rigidly with |cos|
+    // and swaps exactly at the edge-on midpoint — no crossfades.
     final angle = math.pi * t;
-    final facing = math.cos(angle); // >0: front face toward camera
-    final ac = facing.abs();
+    final ac = math.cos(angle).abs();
 
     // The coin stays rigid — only a slight uniform grow toward the camera.
     final scale = 1.0 + 0.12 * height;
@@ -417,91 +413,61 @@ class _FlipDisc extends StatelessWidget {
     final edgeLight = Color.lerp(edge, Colors.white, 0.28)!;
     final edgeDark = Color.lerp(edge, Colors.black, 0.38)!;
 
-    Matrix4 plane(double z, {bool mirrored = false}) {
-      final m = Matrix4.identity()
-        ..setEntry(3, 2, 0.15 / size)
-        ..rotateX(angle)
-        ..translateByDouble(0.0, 0.0, z, 1.0);
-      if (mirrored) m.rotateX(math.pi);
-      return m;
-    }
+    // Volumetric slab: the face squashes with |cos| while the side wall
+    // (thickness · sin) emerges below it, so mid-turn the disc reads as a
+    // solid checkers piece instead of a paper card. At rest the wall is
+    // zero, matching the flat top-down disc exactly.
+    final faceH = size * ac;
+    final wallH = thickness * math.sin(angle);
+    final capR = math.max(faceH, 2.0) / 2;
 
-    Widget face(String asset, double z, {required bool mirrored}) =>
-        Transform(
-          alignment: Alignment.center,
-          transform: plane(z, mirrored: mirrored),
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Image.asset(asset, fit: BoxFit.contain),
-          ),
-        );
-
-    // Front face on the near side of the slab, back face (pre-mirrored so it
-    // reads upright once it comes around) on the far side.
-    final frontFace = face(frontAsset, -thickness / 2, mirrored: false);
-    final backFace = face(backAsset, thickness / 2, mirrored: true);
-
-    // Side wall: stacked slices spanning the thickness, tapered toward the
-    // faces so the edge reads rounded. Ordered far-to-near for the current
-    // viewing side.
-    final slices = <Widget>[
-      for (var i = 0; i <= _sideSlices; i++)
-        Builder(builder: (_) {
-          final z = thickness * (i / _sideSlices - 0.5); // -T/2 .. +T/2
-          final zz = 2 * z / thickness; // -1..1 across the slab
-          final d = size * 0.90 * (1 - 0.12 * zz * zz);
-          return Transform(
-            alignment: Alignment.center,
-            transform: plane(z),
-            child: Container(
-              width: d,
-              height: d,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [edgeLight, edge, edgeDark],
+    final coin = SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: SizedBox(
+          width: size,
+          height: faceH + wallH,
+          child: Stack(
+            // First half: the far rim comes over the top while the old
+            // face slides under it. Second half: the new face opens on
+            // top with the rim below — a genuine roll, not a color swap.
+            alignment:
+                t < 0.5 ? Alignment.bottomCenter : Alignment.topCenter,
+            children: [
+              // Cylinder silhouette: elliptical caps joined by the wall.
+              // Slightly inset so it never peeks around the resting face.
+              Positioned.fill(
+                left: size * 0.02,
+                right: size * 0.02,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [edgeLight, edge, edgeDark],
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.elliptical(size * 0.48, capR),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
-    ];
-
-    // A thin rim bar bridges the one or two frames where every plane is
-    // edge-on and would otherwise vanish.
-    final rimOpacity = ((0.08 - ac) / 0.08).clamp(0.0, 1.0);
-
-    final coin = Stack(
-      alignment: Alignment.center,
-      children: [
-        if (rimOpacity > 0)
-          Opacity(
-            opacity: rimOpacity,
-            child: Container(
-              width: size * 0.90,
-              height: thickness,
-              decoration: BoxDecoration(
-                color: edge,
-                borderRadius: BorderRadius.all(
-                  Radius.elliptical(size * 0.45, thickness / 2),
+              // Old face before the midpoint, new face after — swapped
+              // exactly when the coin is edge-on, never seen directly.
+              if (faceH > 0.5)
+                SizedBox(
+                  width: size,
+                  height: faceH,
+                  child: Image.asset(
+                    t < 0.5 ? frontAsset : backAsset,
+                    fit: BoxFit.fill,
+                  ),
                 ),
-              ),
-            ),
+            ],
           ),
-        // Painter's order: far face, side wall (far to near), near face.
-        if (facing >= 0) ...[
-          backFace,
-          ...slices.reversed,
-          frontFace,
-        ] else ...[
-          frontFace,
-          ...slices,
-          backFace,
-        ],
-      ],
+        ),
+      ),
     );
 
     return SizedBox(
