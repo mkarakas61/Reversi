@@ -49,7 +49,9 @@ class _OnlineBoardState extends State<OnlineBoard>
   // Flip wave: each disc flips for [_flipMs]; discs farther from the placed
   // disc start [_staggerMs] later per ring, so the flip ripples outward.
   static const int _flipMs = 1000;
-  static const int _staggerMs = 145;
+  // Per-ring ripple delay — 0: all discs turn together (a ripple made
+  // the player wait out the wave on long flip lines).
+  static const int _staggerMs = 0;
 
   late final AnimationController _pulse;
   late final AnimationController _flip;

@@ -43,10 +43,11 @@ class _WoodBoardState extends State<WoodBoard>
   static const _framePad = 14.0;
   static const _faceSquash = 0.74;
   static const _thicknessFactor = 0.18;
-  // Flip wave: one coin's turn takes [_coinMs]; coins farther from the
-  // placed coin start [_staggerMs] later per ring, rippling outward.
+  // One coin's turn takes [_coinMs]. [_staggerMs] is the per-ring delay
+  // of a ripple wave — kept at 0 so all coins turn together: waiting for
+  // a ripple to finish made moves feel slow.
   static const _coinMs = 1400;
-  static const _staggerMs = 190;
+  static const _staggerMs = 0;
 
   late final AnimationController _flip;
   BoardMove? _anim;
