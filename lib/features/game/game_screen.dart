@@ -5,12 +5,16 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/reversi_app.dart' show routeObserver;
 import '../../core/game/ai_player.dart';
 import '../../core/game/game_settings.dart';
 import '../../core/game/reversi_game.dart';
 import '../../core/l10n/app_strings.dart';
+import '../../core/models/game_stats.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/services/game_storage.dart';
+import '../../core/services/sound_service.dart';
+import '../../core/services/stats_storage.dart';
 import '../../core/settings/app_settings.dart';
 import '../board/board_move.dart';
 import '../board/wood_board.dart';
@@ -45,7 +49,7 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   static const Disc _humanDisc = Disc.black;
   static const Disc _aiDisc = Disc.white;
 
@@ -54,7 +58,12 @@ class _GameScreenState extends State<GameScreen>
   bool _aiThinking = false;
   int _aiGeneration = 0;
   final GameStorage _storage = GameStorage();
+  final StatsStorage _statsStorage = StatsStorage();
   final Random _random = Random();
+
+  // Lifetime-stats bookkeeping for the current game.
+  DateTime _gameStartTime = DateTime.now();
+  int _flippedThisGame = 0;
 
   // Lets the game-over flower celebration find the board's on-screen rect.
   final GlobalKey _boardKey = GlobalKey();
@@ -99,10 +108,13 @@ class _GameScreenState extends State<GameScreen>
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _entry.forward());
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
     _entry.dispose();
     _clock?.cancel();
     _confettiLeft.dispose();
@@ -111,8 +123,32 @@ class _GameScreenState extends State<GameScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SoundService.instance.refreshRingerMode();
+      SoundService.instance.resumeMusic();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      SoundService.instance.pauseMusic();
+      SoundService.instance.stopAllSfx();
+    }
+  }
+
+  // Switch to the calm in-game track when this screen is shown or returned to.
+  @override
+  void didPush() => SoundService.instance.playMusic(Music.game);
+
+  @override
+  void didPopNext() => SoundService.instance.playMusic(Music.game);
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
     if (!_loggedInitialGame) {
       _loggedInitialGame = true;
       widget.analytics.logGameStarted(
@@ -137,12 +173,26 @@ class _GameScreenState extends State<GameScreen>
         _ticksLeft--;
         _blinkOn = !_blinkOn;
       });
+      // Tick once per second through the final ten seconds.
+      if (_ticksLeft > 0 && _ticksLeft <= 20 && _ticksLeft.isEven) {
+        SoundService.instance.playSfx(Sfx.tick);
+      }
       if (_ticksLeft <= 0) {
         _clock?.cancel();
         _clock = null;
         unawaited(_onTimeExpired());
       }
     });
+  }
+
+  /// Plays the placement thock, then a flip swoosh if any discs were captured.
+  void _playMoveSfx(int flippedCount) {
+    SoundService.instance.playSfx(Sfx.place);
+    if (flippedCount > 0) {
+      Future<void>.delayed(const Duration(milliseconds: 280), () {
+        SoundService.instance.playSfx(Sfx.flip);
+      });
+    }
   }
 
   /// Undo is available once there is history, the AI is not mid-think, and no
@@ -179,6 +229,7 @@ class _GameScreenState extends State<GameScreen>
   }
 
   Future<void> _onTimeExpired() async {
+    SoundService.instance.playSfx(Sfx.timeup);
     setState(() => _timeUpVisible = true);
     await Future<void>.delayed(const Duration(seconds: 3));
     if (!mounted) return;
@@ -207,6 +258,34 @@ class _GameScreenState extends State<GameScreen>
       _confettiLeft.play();
       _confettiRight.play();
     }
+    final Sfx endSfx;
+    if (winner == null) {
+      endSfx = Sfx.draw;
+    } else if (celebrate) {
+      endSfx = Sfx.win;
+    } else {
+      endSfx = Sfx.lose; // single player, AI won
+    }
+    SoundService.instance.playSfx(endSfx);
+    unawaited(_recordStats());
+  }
+
+  /// Updates the lifetime statistics with this game's result. Two-player
+  /// games are not recorded — with no AI opponent, win/loss/draw has no
+  /// consistent meaning (the human may have played either side).
+  Future<void> _recordStats() async {
+    if (!_isSinglePlayer) return;
+    final blackScore = _game.scoreFor(Disc.black);
+    final whiteScore = _game.scoreFor(Disc.white);
+    final stats = await _statsStorage.load();
+    final updated = stats.recordGame(
+      mode: StatsMode.fromDifficulty(widget.difficulty),
+      outcome: outcomeFor(_game.winner),
+      scoreDiff: (blackScore - whiteScore).abs(),
+      flippedDiscs: _flippedThisGame,
+      durationSeconds: DateTime.now().difference(_gameStartTime).inSeconds,
+    );
+    await _statsStorage.save(updated);
   }
 
   void _play(Position position) {
@@ -220,10 +299,13 @@ class _GameScreenState extends State<GameScreen>
     final move = _game.play(position);
 
     if (!move.result.isValid) {
+      SoundService.instance.playSfx(Sfx.invalid);
       _showMessage(strings.invalidMove);
       return;
     }
 
+    _playMoveSfx(move.result.flipped.length);
+    _flippedThisGame += move.result.flipped.length;
     _history.add(_game);
     _lastMove = BoardMove(
       id: ++_moveSeq,
@@ -285,6 +367,8 @@ class _GameScreenState extends State<GameScreen>
       if (!mounted || generation != _aiGeneration) return;
       final move = _game.play(position);
       if (!move.result.isValid) break;
+      _playMoveSfx(move.result.flipped.length);
+      _flippedThisGame += move.result.flipped.length;
       _history.add(_game);
       _lastMove = BoardMove(
         id: ++_moveSeq,
@@ -344,6 +428,8 @@ class _GameScreenState extends State<GameScreen>
     _aiGeneration++;
     _celebrated = false;
     _lastMove = null;
+    _gameStartTime = DateTime.now();
+    _flippedThisGame = 0;
     _history.clear();
     _confettiLeft.stop();
     _confettiRight.stop();

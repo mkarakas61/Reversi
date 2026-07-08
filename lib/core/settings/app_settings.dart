@@ -19,6 +19,8 @@ class AppSettings {
     this.board = BoardTheme.wood,
     this.yourCoin = CoinColor.black,
     this.opponentCoin = CoinColor.white,
+    this.soundEnabled = true,
+    this.musicEnabled = true,
     this.gameSpeed = GameSpeed.normal,
   });
 
@@ -27,6 +29,12 @@ class AppSettings {
   final BoardTheme board;
   final CoinColor yourCoin;
   final CoinColor opponentCoin;
+
+  /// One-shot sound effects on/off.
+  final bool soundEnabled;
+
+  /// Background music on/off.
+  final bool musicEnabled;
 
   /// How long the AI pauses before each move in single-player.
   final GameSpeed gameSpeed;
@@ -38,6 +46,8 @@ class AppSettings {
     BoardTheme? board,
     CoinColor? yourCoin,
     CoinColor? opponentCoin,
+    bool? soundEnabled,
+    bool? musicEnabled,
     GameSpeed? gameSpeed,
   }) {
     return AppSettings(
@@ -46,6 +56,8 @@ class AppSettings {
       board: board ?? this.board,
       yourCoin: yourCoin ?? this.yourCoin,
       opponentCoin: opponentCoin ?? this.opponentCoin,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
+      musicEnabled: musicEnabled ?? this.musicEnabled,
       gameSpeed: gameSpeed ?? this.gameSpeed,
     );
   }
@@ -96,6 +108,16 @@ class SettingsController extends ChangeNotifier {
     final your =
         color == _settings.yourCoin ? _settings.opponentCoin : _settings.yourCoin;
     _update(_settings.copyWith(opponentCoin: color, yourCoin: your));
+  }
+
+  void setSoundEnabled(bool enabled) {
+    if (_settings.soundEnabled == enabled) return;
+    _update(_settings.copyWith(soundEnabled: enabled));
+  }
+
+  void setMusicEnabled(bool enabled) {
+    if (_settings.musicEnabled == enabled) return;
+    _update(_settings.copyWith(musicEnabled: enabled));
   }
 
   void setGameSpeed(GameSpeed speed) {

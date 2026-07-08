@@ -5,12 +5,17 @@ import 'package:flutter/material.dart';
 import '../../core/game/game_settings.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/services/game_storage.dart';
+import '../../app/reversi_app.dart' show routeObserver;
+import '../../core/profile/profile_scope.dart';
+import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart' show bannerGradient;
 import '../../core/theme/wood_theme.dart';
 import '../settings/settings_screen.dart';
+import '../stats/stats_screen.dart';
 import 'widgets/menu_button.dart';
 import 'widgets/menu_logo.dart';
 import 'widgets/pill_button.dart';
+import 'widgets/profile_chip.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -30,7 +35,8 @@ class MainMenuScreen extends StatefulWidget {
   State<MainMenuScreen> createState() => _MainMenuScreenState();
 }
 
-class _MainMenuScreenState extends State<MainMenuScreen> {
+class _MainMenuScreenState extends State<MainMenuScreen>
+    with RouteAware, WidgetsBindingObserver {
   bool _showDifficulty = false;
   bool _showTimeLimit = false;
   final GameStorage _storage = GameStorage();
@@ -39,7 +45,51 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_refreshSavedGame());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+      // The observer never delivers didPush for the route it is first
+      // subscribed on (the initial menu route at launch), so assert the menu
+      // track here while the menu is the active screen. playMusic is a no-op
+      // if it is already current.
+      if (route.isCurrent) {
+        SoundService.instance.playMusic(Music.menu);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Energetic menu track whenever the menu is the active screen.
+  @override
+  void didPush() => SoundService.instance.playMusic(Music.menu);
+
+  @override
+  void didPopNext() => SoundService.instance.playMusic(Music.menu);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SoundService.instance.refreshRingerMode();
+      SoundService.instance.resumeMusic();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      SoundService.instance.pauseMusic();
+      SoundService.instance.stopAllSfx();
+    }
   }
 
   Future<void> _refreshSavedGame() async {
@@ -81,6 +131,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         child: SafeArea(
           child: Stack(
             children: [
+              const Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: ProfileChip(),
+                ),
+              ),
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(
@@ -176,6 +233,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           onTap: () =>
                               setState(() => _showDifficulty = false),
                         ),
+                        const SizedBox(height: 28),
+                        MenuButton(
+                          label: strings.singlePlayerStatistics,
+                          icon: Icons.bar_chart_rounded,
+                          primary: true,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const StatsScreen(),
+                            ),
+                          ),
+                        ),
                       ] else if (_showTimeLimit) ...[
                         Text(
                           strings.chooseTimeLimit,
@@ -228,12 +296,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           onTap: () =>
                               setState(() => _showTimeLimit = true),
                         ),
-                        const SizedBox(height: 14),
-                        MenuButton(
-                          label: 'Online Oyna',
-                          icon: Icons.public_rounded,
-                          onTap: () => unawaited(widget.onStartOnline()),
-                        ),
+                        if (ProfileScope.of(context).profile != null) ...[
+                          const SizedBox(height: 14),
+                          MenuButton(
+                            label: strings.onlinePlay,
+                            icon: Icons.public_rounded,
+                            primary: true,
+                            onTap: () => unawaited(widget.onStartOnline()),
+                          ),
+                        ],
                       ],
                     ],
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../settings/app_settings.dart';
 import '../game/game_settings.dart';
+import '../models/game_stats.dart';
 
 class AppStrings {
   AppStrings(this.locale);
@@ -90,6 +91,59 @@ class AppStrings {
       'time3m': '3 min limit',
       'timeNone': 'No time limit',
       'timeUp': "Time's up. Opponent's turn!",
+          'durationHoursMinutes': '{h}h {m}m',
+      'durationMinutes': '{m}m',
+      'durationSeconds': '{s}s',
+      'leaveOnlineBody': "If you leave, you'll forfeit this match.",
+      'level': 'Level',
+      'music': 'Music',
+      'onlineComingSoon': 'Online play is coming very soon!',
+      'onlinePlay': 'Play Online',
+      'onlineStatistics': 'Online Statistics',
+      'opponentFound': 'Opponent found!',
+      'opponentTurn': "Opponent's turn",
+      'passSkippedOpponent':
+          "Your opponent has no legal move — it's your turn again!",
+      'passSkippedTwoPlayer':
+          '{coin} has no legal move — the turn passes to the other player.',
+      'passSkippedYou':
+          'You have no legal move — your turn passes to your opponent.',
+      'profile': 'Profile',
+      'searchingOpponent': 'Finding an opponent…',
+      'signIn': 'Sign in',
+      'signInError': 'Sign-in failed, please try again.',
+      'signOut': 'Sign out',
+      'singlePlayerStatistics': 'Single Player Statistics',
+      'sound': 'Sound',
+      'soundEffects': 'Sound effects',
+      'statistics': 'Statistics',
+      'statsBestScoreDiff': 'Best score gap',
+      'statsBestScoreDiffOnline': 'Best score gap',
+      'statsBestStreak': 'Best win streak',
+      'statsByMode': 'By game mode',
+      'statsCurrentStreak': 'Current win streak',
+      'statsDraws': 'Draws',
+      'statsEmpty':
+          "You haven't finished a game yet. Play one to see your stats here!",
+      'statsLosses': 'Losses',
+      'statsModeSinglePlayerEasy': '1 Player · Easy',
+      'statsModeSinglePlayerHard': '1 Player · Hard',
+      'statsModeSinglePlayerNormal': '1 Player · Normal',
+      'statsOnlineEmpty':
+          "You haven't played any online games yet. Play a ranked match to see your stats here!",
+      'statsReset': 'Reset statistics',
+      'statsResetBody':
+          'All statistics will be permanently deleted. This cannot be undone.',
+      'statsResetTitle': 'Reset statistics?',
+      'statsResultDistribution': 'Result distribution',
+      'statsTotalFlipped': 'Total discs flipped',
+      'statsTotalFlippedOnline': 'Total discs flipped',
+      'statsTotalGames': 'Total games',
+      'statsTotalPlayTime': 'Total play time',
+      'statsWinRate': 'Win rate',
+      'statsWins': 'Wins',
+      'viewAll': 'View all',
+      'youLost': 'You Lost',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -164,6 +218,57 @@ class AppStrings {
       'time3m': '3 dk süre sınırı',
       'timeNone': 'Süre Sınırsız',
       'timeUp': 'Süren doldu. Sıra Rakibinde!',
+          'durationHoursMinutes': '{h} sa {m} dk',
+      'durationMinutes': '{m} dk',
+      'durationSeconds': '{s} sn',
+      'leaveOnlineBody': 'Çıkarsan bu maçı kaybedersin.',
+      'level': 'Seviye',
+      'music': 'Müzik',
+      'onlineComingSoon': 'Online oyun çok yakında!',
+      'onlinePlay': 'Online Oyna',
+      'onlineStatistics': 'Online İstatistikler',
+      'opponentFound': 'Rakip bulundu!',
+      'opponentTurn': 'Rakibin sırası',
+      'passSkippedOpponent': 'Rakibinin hamle hakkı yok, sıra sende!',
+      'passSkippedTwoPlayer':
+          '{coin} için geçerli hamle yok, sıra diğer oyuncuya geçti.',
+      'passSkippedYou': 'Hamle hakkın yok, sıra rakibine geçti.',
+      'profile': 'Profil',
+      'searchingOpponent': 'Rakip aranıyor…',
+      'signIn': 'Giriş yap',
+      'signInError': 'Giriş yapılamadı, lütfen tekrar deneyin.',
+      'signOut': 'Çıkış yap',
+      'singlePlayerStatistics': 'Tek Oyuncu İstatistikleri',
+      'sound': 'Ses',
+      'soundEffects': 'Ses efektleri',
+      'statistics': 'İstatistikler',
+      'statsBestScoreDiff': 'En yüksek skor farkı',
+      'statsBestScoreDiffOnline': 'En yüksek skor farkı',
+      'statsBestStreak': 'En uzun galibiyet serisi',
+      'statsByMode': 'Oyun moduna göre',
+      'statsCurrentStreak': 'Mevcut galibiyet serisi',
+      'statsDraws': 'Beraberlik',
+      'statsEmpty':
+          'Henüz tamamlanmış bir oyun yok. İstatistiklerini görmek için bir oyun oyna!',
+      'statsLosses': 'Mağlubiyet',
+      'statsModeSinglePlayerEasy': '1 Oyuncu · Kolay',
+      'statsModeSinglePlayerHard': '1 Oyuncu · Zor',
+      'statsModeSinglePlayerNormal': '1 Oyuncu · Normal',
+      'statsOnlineEmpty':
+          'Henüz çevrimiçi oyun oynamadın. Sıralama maçı oynayınca istatistiklerin burada görünecek!',
+      'statsReset': 'İstatistikleri sıfırla',
+      'statsResetBody':
+          'Tüm istatistik verileri kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      'statsResetTitle': 'İstatistikler sıfırlansın mı?',
+      'statsResultDistribution': 'Sonuç dağılımı',
+      'statsTotalFlipped': 'Toplam çevrilen taş',
+      'statsTotalFlippedOnline': 'Toplam çevrilen taş',
+      'statsTotalGames': 'Toplam oyun',
+      'statsTotalPlayTime': 'Toplam oynama süresi',
+      'statsWinRate': 'Galibiyet oranı',
+      'statsWins': 'Galibiyet',
+      'viewAll': 'Tümünü gör',
+      'youLost': 'Kaybettin',
     },
   };
 
@@ -283,6 +388,74 @@ class AppStrings {
       case Difficulty.easy: return easy;
       case Difficulty.normal: return normal;
       case Difficulty.hard: return hard;
+    }
+  }
+
+  String get leaveOnlineBody => _get('leaveOnlineBody');
+  String get level => _get('level');
+  String get music => _get('music');
+  String get onlineComingSoon => _get('onlineComingSoon');
+  String get onlinePlay => _get('onlinePlay');
+  String get onlineStatistics => _get('onlineStatistics');
+  String get opponentFound => _get('opponentFound');
+  String get opponentTurn => _get('opponentTurn');
+  String get passSkippedOpponent => _get('passSkippedOpponent');
+  String get passSkippedYou => _get('passSkippedYou');
+  String get profile => _get('profile');
+  String get searchingOpponent => _get('searchingOpponent');
+  String get signIn => _get('signIn');
+  String get signInError => _get('signInError');
+  String get signOut => _get('signOut');
+  String get singlePlayerStatistics => _get('singlePlayerStatistics');
+  String get sound => _get('sound');
+  String get soundEffects => _get('soundEffects');
+  String get statistics => _get('statistics');
+  String get statsBestScoreDiff => _get('statsBestScoreDiff');
+  String get statsBestStreak => _get('statsBestStreak');
+  String get statsByMode => _get('statsByMode');
+  String get statsCurrentStreak => _get('statsCurrentStreak');
+  String get statsDraws => _get('statsDraws');
+  String get statsEmpty => _get('statsEmpty');
+  String get statsLosses => _get('statsLosses');
+  String get statsOnlineEmpty => _get('statsOnlineEmpty');
+  String get statsReset => _get('statsReset');
+  String get statsResetBody => _get('statsResetBody');
+  String get statsResetTitle => _get('statsResetTitle');
+  String get statsResultDistribution => _get('statsResultDistribution');
+  String get statsTotalFlipped => _get('statsTotalFlipped');
+  String get statsTotalGames => _get('statsTotalGames');
+  String get statsTotalPlayTime => _get('statsTotalPlayTime');
+  String get statsWinRate => _get('statsWinRate');
+  String get statsWins => _get('statsWins');
+  String get viewAll => _get('viewAll');
+  String get youLost => _get('youLost');
+
+  String formatDuration(int totalSeconds) {
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    if (hours > 0) {
+      return _get('durationHoursMinutes')
+          .replaceAll('{h}', '$hours')
+          .replaceAll('{m}', '$minutes');
+    }
+    if (minutes > 0) {
+      return _get('durationMinutes').replaceAll('{m}', '$minutes');
+    }
+    return _get('durationSeconds').replaceAll('{s}', '$totalSeconds');
+  }
+
+  String passSkippedTwoPlayer(String coin) {
+    return _get('passSkippedTwoPlayer').replaceAll('{coin}', coin);
+  }
+
+  String statsModeLabel(StatsMode mode) {
+    switch (mode) {
+      case StatsMode.singlePlayerEasy:
+        return _get('statsModeSinglePlayerEasy');
+      case StatsMode.singlePlayerNormal:
+        return _get('statsModeSinglePlayerNormal');
+      case StatsMode.singlePlayerHard:
+        return _get('statsModeSinglePlayerHard');
     }
   }
 

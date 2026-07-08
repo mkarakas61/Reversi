@@ -10,6 +10,7 @@ import 'widgets/board_theme_grid.dart';
 import 'widgets/coin_row.dart';
 import 'widgets/language_row.dart';
 import 'widgets/settings_header.dart';
+import 'widgets/toggle_row.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -113,6 +114,24 @@ class SettingsScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                        _Section(
+                          title: strings.sound,
+                          child: Column(
+                            children: [
+                              ToggleRow(
+                                label: strings.soundEffects,
+                                value: settings.soundEnabled,
+                                onChanged: controller.setSoundEnabled,
+                              ),
+                              const SizedBox(height: 6),
+                              ToggleRow(
+                                label: strings.music,
+                                value: settings.musicEnabled,
+                                onChanged: controller.setMusicEnabled,
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
