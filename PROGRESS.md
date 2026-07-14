@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-08** · Son commit: `452b102` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-14** · Son commit: `189f625` · Sürüm: `0.1.0+1`
 
 ---
 
@@ -15,7 +15,7 @@ Son güncelleme: **2026-07-08** · Son commit: `452b102` · Sürüm: `0.1.0+1`
 - **Repo:** `git@github.com:mkarakas61/Reversi.git` (SSH ile push, anahtar kayıtlı)
 - **Paket adı:** `com.mustafakarakas.reversi` — **DEĞİŞTİRİLEMEZ** (Play Store + IAP + Firebase buna bağlı). iOS bundle id bilerek farklı: `tr.sidre.reversi` — dokunma.
 - **Modlar:** Tek oyuncu (3 zorluk, AI), iki oyuncu (süreli/süresiz), **online** (Firebase, Google girişi).
-- **Ekip:** Mustafa (ürün sahibi, kararlar, cihaz testi, Done'a çekme) · Enes Yasin Gedik (tasarım/tema geliştirme) · Claude (tek kod yazan, board yönetimi).
+- **Ekip:** Mustafa (ürün sahibi, kararlar, cihaz testi, Done'a çekme) · Enes Yasin Gedik (**görsel tasarımlar + seslendirme geliştirmeleri** — Linear task'ları bu alanlardan atanır) · Claude (tek kod yazan, board yönetimi). Ana yapı/kodlama task'ları Linear'da Mustafa'ya atanır, kodu Claude yazar.
 
 ## 2. EKİP ÇALIŞMA KURALLARI (KESİN)
 
@@ -94,6 +94,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-06-19 | Faz 2 planlandı (REV-53..59, §7). Fantastik Mod + Mağaza fikri ekip kararıyla İPTAL (§8). |
 | 2026-06-23 | ⚠️ **KAZA:** Enes'in PR #4'ü (12 Haziran'dan dallanmış) feature-first refactor yaparken **online + ses + istatistik + profili sildi**. Üstüne PR #5–#9 ile temalar/animasyonlar geldi (bunlar değerli ve korundu). |
 | 2026-07-08 | **RESTORASYON (`452b102`):** silinen her şey yeni feature-first yapıya taşınarak geri getirildi; Enes'in tüm işleri korundu. 72 test yeşil, release APK OK, telefona kuruldu. Ekip APK'sı masaüstünde. |
+| 2026-07-14 | **Epic 12 planlandı** (proje "12 · Profil, Tasarım & Mağaza", REV-60..72): profil ünvan/çerçeveleri, tema elemesi, coin+IAP mağazası. Görev dağılımı Enes/Mustafa olarak yapıldı; kararlar §7'de. |
 
 ## 6. TEST ORTAMI
 
@@ -103,7 +104,31 @@ firestore.rules  ·  firestore.indexes.json
 - **Kurulum:** `adb -s <id> install -r build/app/outputs/flutter-apk/app-release.apk` → `am force-stop` → `monkey ... 1` ile başlat.
 - Release imza: `~/reversi-release.jks` + `android/key.properties` (gitignored). Play Store için `flutter build appbundle --release`.
 
-## 7. SIRADAKİ İŞ — FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu")
+## 7. SIRADAKİ İŞLER
+
+### 7A. Epic 12 — "Profil, Tasarım & Mağaza" (REV-60..72, planlandı 2026-07-14)
+
+Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-4cadb10eb2a0`). 13 issue Todo'da. Plan: `/Users/f/.claude/plans/imdi-g-ncel-duruma-eklenecekleri-cozy-kahan.md`.
+
+**Kararlar (2026-07-14, Mustafa ile):**
+- **Ödeme modeli: Coin + IAP birlikte.** Maçlardan coin kazanılır (hazır `earnedCoins`: galibiyet 10/beraberlik 5/mağlubiyet 2 açılacak), mağazada içerik coin ile alınır; gerçek parayla coin paketi satılır (Play Billing). §9'daki monetizasyon planı bu epic'e taşındı.
+- **Original/wood tema ayrımı kararı, tahta elemesiyle birlikte** verilecek (REV-62 önerisi → ekip kararı).
+- **Öncelik: Faz 2 ile paralel.** Enes tasarım task'larına hemen başlar; kodlama Faz 2 bittikten sonra: REV-66 → 67 → 68 → 69 → 70 → 71 → 72.
+
+**Enes (görsel tasarım + ses; Linear'a katılınca atanacak — davet Mustafa'da):**
+- REV-60 Seviye ünvanları/kademe kimliği önerisi (taban: 1-4 Çaylak · 5-9 Acemi · 10-19 Kalfa · 20-34 Usta · 35-49 Büyükusta · 50+ Efsane)
+- REV-61 Seviye çerçeveleri tasarımı (kademe başına 1 + satılık 3-5 özel)
+- REV-62 Tahta & tema elemesi önerisi (7 tahta + original/wood ayrımı; ücretli/ücretsiz ayrımı)
+- REV-63 Mağaza ekranı görsel tasarımı · REV-64 Mağaza yönlendirme noktaları tasarımı · REV-65 Mağaza & ödül SFX'leri
+
+**Mustafa (kodlama — Claude uygular):**
+- REV-66 Sunucu: coin açılışı + envanter/cüzdan (`coins`/`ownedItems`/`equipped`, `purchaseItem` Function; back-fill kararı burada)
+- REV-67 Seviye ünvanları modeli · REV-68 Çerçeveli avatar + profil detayları · REV-69 Mağaza ekranı kodu (`features/store/`)
+- REV-70 Tema elemesi uygulaması + ayarlar sadeleştirme · REV-71 Mağaza yönlendirmeleri · REV-72 Play Billing IAP (son halka; Play Console ürün tanımı Mustafa'da)
+
+**Bekleyen karar toplantıları:** (1) REV-60 ünvan/kademe onayı, (2) REV-62 eleme + tema ayrımı. Sonuçlar bu dosyaya işlenecek.
+
+### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu")
 
 7 issue **Todo'da** bekliyor (bilerek In Progress değil — otonom rutin almasın). Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Başlamadan Mustafa'nın onayı alınacak.
 
@@ -120,6 +145,7 @@ firestore.rules  ·  firestore.indexes.json
 - [ ] `ai_player.dart:179` iki curly-braces lint bilgisi (Enes'in kodu, kozmetik)
 - [ ] Online oyun ekranının wood temasına uyarlanması (Enes'in `online_match_screen.dart` tasarımı kaynak alınabilir) — ayrı iş
 - [ ] Enes'le git disiplini konuşması (güncel main'den dallanma)
+- [ ] Enes'in Linear workspace'e davet edilmesi (Mustafa; REV-60..65 sonra ona atanacak)
 
 ## 8. İPTAL EDİLENLER (TEKRAR ÖNERME)
 
@@ -131,7 +157,7 @@ firestore.rules  ·  firestore.indexes.json
 
 ## 9. İLERİYE DÖNÜK FİKİRLER (v1.1+)
 
-- **Monetizasyon v1.1 (planlı):** IAP kozmetikler (ışıklı/efektli taş kaplamaları, tahtalar) + oyun içi **coin** para birimi. Altyapı hazır: cüzdan sunucu-doğrulamalı olacak şekilde rules kurgulandı (client `users/{uid}` içinde yalnız kimlik alanlarını yazabilir); satın almalar uid'e bağlı. `earnedCoins` (galibiyet 10/beraberlik 5/mağlubiyet 2) + testleri `functions/src/xp_level.ts` içinde duruyor ama ödüle BAĞLI DEĞİL. v1.1'de `finish_game.ts` applyReward'a coins yazımını ekle + eski oyunculara back-fill kararını o zaman ver. Play Billing + makbuz doğrulama Function'ı v1.1 işi. Açık karar REV-50 notlarında.
+- **Monetizasyon → EPIC 12'YE TAŞINDI (2026-07-14, bkz. §7A).** Model kararlaştırıldı: coin + IAP birlikte. Teknik hazırlık notları: cüzdan sunucu-doğrulamalı (client `users/{uid}` içinde yalnız kimlik alanlarını yazabilir); satın almalar uid'e bağlı; `earnedCoins` + testleri `functions/src/xp_level.ts` içinde hazır, REV-66'da ödüle bağlanacak; back-fill kararı REV-66'da; Play Billing REV-72'de.
 - XP miktarlarının ayarlanması (tuning) — canlı veriye göre.
 - iOS/Apple girişi (tasarım iOS-ready tutuluyor; Android-first).
 - Misafir→Google hesap yükseltme akışı (Faz A sonrası doğal devam).
