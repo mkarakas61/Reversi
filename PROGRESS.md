@@ -21,7 +21,8 @@ Son güncelleme: **2026-07-15** · Son commit: `ab3fdf5` · Sürüm: `0.1.0+1`
 
 1. **Kod akışı:** Claude kodu yazar → `flutter analyze` temiz + `flutter test` yeşil (şu an **72 test**) → `main`'e direkt push → Linear issue'yu Türkçe yorumla **In Review**'a taşır. **Done'a ASLA Claude çekmez** — yalnız Mustafa, cihaz testinden sonra.
 2. **Onay düzeni:** Mustafa approve-then-implement çalışır — önce öner/planla, onay gelince uygula. Dışa dönük işlerde (prod deploy, functions/rules) mutlaka önce ONAY al.
-3. **Linear:** Workspace `reversi-game`, takım **Reversi_Game** (REV). Kolonlar: Todo → In Progress → In Review (Test) → Done. Mustafa/ekip yalnız yorum yazar ve issue'yu In Progress'e sürükler; board hareketleri ve kod Claude'da.
+3. **Linear:** Workspace `reversi-game`, takım **Reversi_Game** (REV). Kolonlar: Todo → In Progress → **In AI** → In Review (Test) → Done. Mustafa/ekip yalnız yorum yazar ve issue'yu In Progress'e sürükler; board hareketleri ve kod Claude'da (interaktif oturum ya da `reversi-build-agent` rutini).
+   - **"In AI" koordinasyon kilidi (2026-07-15 eklendi):** interaktif Claude oturumu ile otonom rutin AYNI ANDA çalışabildiği için, bir işe gerçekten başlarken (kod yazmadan hemen önce) issue **In Progress → In AI**'a çekilir — tek tek, toplu değil. Bu, işi diğer ajanın "alınacaklar" listesinden çıkarır. **In AI'da olan bir issue'ya asla dokunulmaz** (başka bir ajan üzerinde çalışıyordur). Bitince **In AI → In Review**. Karar bekleyen iş In Progress'e değil **Todo'ya** geri döner (yorumla).
 4. **Türkçe iletişim:** Mustafa ile her şey Türkçe. Linear yorumları Türkçe.
 5. **⚠️ GIT DİSİPLİNİ (23 Haziran kazasından ders):** PR açmadan önce **mutlaka güncel main'den dallan** (`git pull`). Enes'in PR #4'ü 11 gün eski koddan dallandığı için online/ses/istatistik tamamen silindi (bkz. §5). Merge'lerden önce silinen dosya var mı diye diff kontrol et.
 6. **Platform paritesi (CLAUDE.md):** `lib/` ortak; native dosya (manifest/Info.plist/gradle/pbxproj/channel) değişirse iOS karşılığı sorulmadan uygulanır, sade dille raporlanır. `ringer_mode_service.dart` Android-özel, iOS karşılığı YOK.
@@ -97,6 +98,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-14 | **Epic 12 planlandı** (proje "12 · Profil, Tasarım & Mağaza", REV-60..72): profil ünvan/çerçeveleri, tema elemesi, coin+IAP mağazası. Görev dağılımı Enes/Mustafa olarak yapıldı; kararlar §7'de. |
 | 2026-07-15 | Enes'in workspace'te zaten kayıtlı olduğu görüldü (argedikas@gmail.com, 21 Haziran'dan beri). REV-60..65 ona atandı; Faz 2'de atanmamış kalan REV-54..59 da REV-53 düzeniyle Mustafa'ya atandı. Artık Todo/In Progress/In Review'da atanmamış hiçbir task yok. |
 | 2026-07-15 | `reversi-build-agent` rutini güncellendi: artık her çalıştırmada önce PROGRESS.md'yi okuyor, işini bitirince güncelliyor; ve yalnız Mustafa'ya atanmış In Progress issue'ları işliyor (Enes'inkilere/atanmamışlara dokunmuyor). |
+| 2026-07-15 | Board'a **"In AI"** koordinasyon durumu eklendi (In Progress ile In Review arası). İnteraktif Claude oturumu ve otonom rutin aynı anda çalışabildiği için, işe başlarken issue hemen In AI'a çekilir (kilit) — böylece ikisi aynı task'a çakışmaz. Rutin bunu uygulayacak şekilde güncellendi; interaktif oturumlar da aynı kurala uyacak (bkz. §2.3). Rutin çalışma saatleri de günde 4'e çıkarıldı: `0 0,6,12,18 * * *`. |
 
 ## 6. TEST ORTAMI
 
@@ -165,7 +167,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 
 ## 10. OTOMASYON
 
-- **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 0,6,12,18 * * *` (günde 4 kez, 6 saatte bir — güncellendi 2026-07-15, önceki: `0 1,7,13 * * *`); her çalıştırmada ÖNCE bu PROGRESS.md'yi okur, sonra In Progress'teki **yalnız Mustafa'ya atanmış** issue'ları alır (Enes'inkilere veya atanmamışlara dokunmaz), uygular, test eder, PROGRESS.md'yi güncelleyip aynı commit'e dahil eder, push'lar, In Review'a taşır. Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı.
+- **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 0,6,12,18 * * *` (günde 4 kez, 6 saatte bir — güncellendi 2026-07-15, önceki: `0 1,7,13 * * *`); her çalıştırmada ÖNCE bu PROGRESS.md'yi okur, sonra In Progress'teki **yalnız Mustafa'ya atanmış ve henüz In AI'da olmayan** issue'ları alır (Enes'inkilere, atanmamışlara veya zaten In AI'da olanlara dokunmaz), her birini işe başlamadan hemen önce **In AI**'a çeker (kilit), uygular, test eder, PROGRESS.md'yi güncelleyip aynı commit'e dahil eder, push'lar, **In AI → In Review**'a taşır. Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı. Bkz. §2.3 (In AI kilidi).
 - **Cloud routine "Reversi Flutter build agent" (BLOKE, yedek):** GitHub yazma izni yok (403) + cloud'da Flutter SDK yok. İkisi çözülmeden kullanma.
 
 ## 11. BU DOSYANIN BAKIM KURALLARI
