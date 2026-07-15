@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-15** · Son commit: `c6d53ad` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-15** · Son commit: `691b7fc` · Sürüm: `0.1.0+1`
 
 ---
 
@@ -105,6 +105,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-15 | **REV-58 (gelişim grafikleri, client) tamamlandı, In Review'a taşındı.** Online istatistik ekranına `ProgressHistoryService` (`users/{uid}/history` stream) ile beslenen iki yeni bölüm: galibiyet oranı trendi (LineChart, son-20 hareketli pencere) ve haftalık aktivite (BarChart, galibiyet/kayıp/beraberlik yığılı renk kırılımı, son 8 hafta). Misafirde bu ekran artık paylaşılan `GuestUpsellCard` widget'ını gösteriyor (profil ekranındaki özel sınıf ortak widget'a taşındı — DRY). 77 test yeşil (3 yeni). XP/seviye eğrisi kararlı şekilde eklenmedi (§8). |
 | 2026-07-15 | **REV-59 (lider tablosu ekranı, client) tamamlandı, In Review'a taşındı — Faz 2'nin (proje 11) 7 issue'sunun de son'u.** `LeaderboardService`: Tüm Zamanlar (`users` `orderBy('xp')`/`orderBy('online.wins')`) + Haftalık (`leaderboards/{weekId}/players` `orderBy('xpGained')`/`orderBy('wins')`, weekly'de "Seviye" sekmesi o haftaki XP kazancını gösterir — haftalık seviye kavramı olmadığı için en yakın karşılık). `weekId(DateTime)` Dart tarafı `functions/src/leaderboard.ts` ile birebir mirror (4 unit test). Yeni `leaderboard_screen.dart`: Periyot×Metrik `SegmentedButton` seçimi, ilk 50 satır + "senin sıran" kartı (rank = kendi değerinden büyük kayıt sayısı + 1, Firestore `count()` aggregate sorgusu; eşitlik/tie-break v1'de basitleştirildi). Ana menüde profil varsa (misafir dahil) "Lider Tablosu" girişi; misafir tıklarsa `GuestUpsellCard`. 84 test yeşil (7 yeni: weekId 4 + LeaderboardEntry 3). |
 | 2026-07-15 | **REV-66 (sunucu: coin açılışı + cüzdan/mağaza altyapısı) tamamlandı, In Review'a taşındı — Epic 12 kod sırasının ilk halkası.** `finish_game.ts`: coin ödülü açıldı (`earnedCoins`, galibiyet 10/beraberlik 5/mağlubiyet 2), **back-fill YAPILMADI** (bugünden itibaren sayılır — bu bir ürün kararıdır, Mustafa isterse ayrı bir migration ile geriye dönük eklenebilir). Yeni `purchaseItem` callable Function: transaction ile bakiye kontrolü + düşme + `ownedItems`'a ekleme, zaten-sahip/yetersiz-bakiye hataları. Yeni `catalog.ts` — **katalog şu an bilerek BOŞ**, REV-61 (çerçeveler)/REV-62 (tahtalar)/REV-63 (mağaza tasarımı) teslim edilince REV-68/70'te doldurulacak; o ana kadar her satın alma "not-found" döner. `coins`/`ownedItems`/`equipped` alanları zaten mevcut kural mimarisiyle Functions-only (client update kuralı yalnız `displayName`/`photoUrl`/`updatedAt`'e izin veriyor) — kural değişikliği gerekmedi. 25/25 functions testi yeşil (1 yeni). **Henüz prod'a deploy edilmedi.** |
+| 2026-07-15 | **Düzeltme:** REV-67..72 yanlışlıkla In Progress'te bırakılmıştı (bloklu olduklarını sadece yorumla belirtmiştim, board'da taşımamıştım) — rutin her 6 saatte bunları yeniden keşfedip gereksiz yorum üretirdi. Kuralımıza uygun şekilde hepsini **Todo'ya** geri çektim. Enes REV-60..65'ten birini teslim edince ilgili REV-6x In Progress'e çekilir. |
 
 ## 6. TEST ORTAMI
 
@@ -123,7 +124,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 **Kararlar (2026-07-14, Mustafa ile):**
 - **Ödeme modeli: Coin + IAP birlikte.** Maçlardan coin kazanılır (`earnedCoins`: galibiyet 10/beraberlik 5/mağlubiyet 2, **açıldı REV-66'da 2026-07-15**), mağazada içerik coin ile alınır; gerçek parayla coin paketi satılır (Play Billing). §9'daki monetizasyon planı bu epic'e taşındı.
 - **Original/wood tema ayrımı kararı, tahta elemesiyle birlikte** verilecek (REV-62 önerisi → ekip kararı).
-- **Öncelik: Faz 2 ile paralel.** Faz 2 bitti (§7B). Kod sırası: ✅ REV-66 tamam → REV-67..72 hâlâ Enes'in REV-60..65 teslimlerine bloklu (bkz. yorumlar, REV-60..65 üzerinde).
+- **Öncelik: Faz 2 ile paralel.** Faz 2 bitti (§7B). Kod sırası: ✅ REV-66 tamam → REV-67..72 hâlâ Enes'in REV-60..65 teslimlerine bloklu. **Bu 6 issue Todo'da bekliyor** (In Progress'te bırakılmadı — rutin her 6 saatte aynı bloklu işi tekrar keşfedip yorum spam'i üretmesin diye 2026-07-15'te geri çekildi). Enes bir tasarım teslim edince ilgili REV-6x'i In Progress'e çekmek yeter, kod devam eder.
 
 **Enes (görsel tasarım + ses; workspace'te zaten kayıtlı — argedikas@gmail.com, atandı 2026-07-15):**
 - REV-60 Seviye ünvanları/kademe kimliği önerisi (taban: 1-4 Çaylak · 5-9 Acemi · 10-19 Kalfa · 20-34 Usta · 35-49 Büyükusta · 50+ Efsane)
