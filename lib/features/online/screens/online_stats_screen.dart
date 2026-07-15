@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import '../../../core/profile/profile_scope.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/online_stats.dart';
+import '../../../core/models/progress_history.dart';
 import '../../../core/models/xp_level.dart';
+import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../shared/widgets/guest_upsell_card.dart';
 
 /// Detailed online ranked statistics screen. Reached from the profile screen's
 /// online record card. Reads live from [ProfileScope] so it stays in sync with
@@ -17,11 +20,11 @@ class OnlineStatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
-    final controller = ProfileScope.of(context);
-    final profile = controller.profile;
+    final profile = ProfileScope.of(context).profile;
     final stats = profile?.online ?? OnlineStats.empty;
     final xp = profile?.xp ?? 0;
     final level = profile?.level ?? 1;
+    final isGuest = profile?.isGuest ?? false;
 
     return Scaffold(
       backgroundColor: GameColors.creamTop,
@@ -49,14 +52,20 @@ class OnlineStatsScreen extends StatelessWidget {
                     onBack: () => Navigator.of(context).maybePop(),
                   ),
                   Expanded(
-                    child: stats.totalGames == 0
-                        ? _EmptyState(message: strings.statsOnlineEmpty)
-                        : _Body(
-                            stats: stats,
-                            xp: xp,
-                            level: level,
-                            strings: strings,
-                          ),
+                    child: isGuest
+                        ? ListView(
+                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+                            children: const [GuestUpsellCard()],
+                          )
+                        : stats.totalGames == 0
+                            ? _EmptyState(message: strings.statsOnlineEmpty)
+                            : _Body(
+                                uid: profile!.uid,
+                                stats: stats,
+                                xp: xp,
+                                level: level,
+                                strings: strings,
+                              ),
                   ),
                 ],
               ),
@@ -70,12 +79,14 @@ class OnlineStatsScreen extends StatelessWidget {
 
 class _Body extends StatelessWidget {
   const _Body({
+    required this.uid,
     required this.stats,
     required this.xp,
     required this.level,
     required this.strings,
   });
 
+  final String uid;
   final OnlineStats stats;
   final int xp;
   final int level;
@@ -97,6 +108,25 @@ class _Body extends StatelessWidget {
         _Section(
           title: strings.statsResultDistribution,
           child: _ResultPieChart(stats: stats, strings: strings),
+        ),
+        StreamBuilder<List<HistoryEntry>>(
+          stream: ProgressHistoryService.instance.watch(uid),
+          builder: (context, snap) {
+            final history = snap.data ?? const <HistoryEntry>[];
+            if (history.isEmpty) return const SizedBox.shrink();
+            return Column(
+              children: [
+                _Section(
+                  title: strings.statsWinRateTrend,
+                  child: _WinRateTrendChart(history: history),
+                ),
+                _Section(
+                  title: strings.statsActivity,
+                  child: _ActivityChart(history: history, strings: strings),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -347,6 +377,142 @@ class _ResultPieChart extends StatelessWidget {
           children: [
             for (final entry in entries)
               _LegendItem(color: entry.color, label: entry.label),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Rolling win-rate trend across the player's recent games: at each point,
+/// the win rate over that game and up to the 19 before it (or all games so
+/// far, if fewer than 20 have been played).
+class _WinRateTrendChart extends StatelessWidget {
+  const _WinRateTrendChart({required this.history});
+
+  final List<HistoryEntry> history;
+
+  static const int _window = 20;
+
+  @override
+  Widget build(BuildContext context) {
+    final spots = <FlSpot>[];
+    for (var i = 0; i < history.length; i++) {
+      final start = (i - _window + 1).clamp(0, history.length);
+      final windowGames = history.sublist(start, i + 1);
+      final wins = windowGames.where((g) => g.isWin).length;
+      spots.add(FlSpot(i.toDouble(), wins / windowGames.length * 100));
+    }
+
+    return SizedBox(
+      height: 160,
+      child: LineChart(
+        LineChartData(
+          minY: 0,
+          maxY: 100,
+          gridData: const FlGridData(show: false),
+          titlesData: const FlTitlesData(show: false),
+          borderData: FlBorderData(show: false),
+          lineTouchData: const LineTouchData(enabled: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              barWidth: 3,
+              color: GameColors.accent,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                color: GameColors.accent.withValues(alpha: 0.14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Games played per week (bar height) with a win/loss/draw color breakdown
+/// (stacked segments), for the last 8 weeks that had any activity.
+class _ActivityChart extends StatelessWidget {
+  const _ActivityChart({required this.history, required this.strings});
+
+  final List<HistoryEntry> history;
+  final AppStrings strings;
+
+  static const int _weeks = 8;
+  static const _winColor = GameColors.accent;
+  static const _lossColor = GameColors.accent2;
+  static const _drawColor = Color(0xFFFFC83D);
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final buckets = List.generate(_weeks, (_) => <HistoryEntry>[]);
+    for (final entry in history) {
+      final weeksAgo = now.difference(entry.ts).inDays ~/ 7;
+      if (weeksAgo >= 0 && weeksAgo < _weeks) {
+        buckets[_weeks - 1 - weeksAgo].add(entry);
+      }
+    }
+
+    double maxGames = 1;
+    for (final bucket in buckets) {
+      if (bucket.length.toDouble() > maxGames) maxGames = bucket.length.toDouble();
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 140,
+          child: BarChart(
+            BarChartData(
+              maxY: maxGames,
+              gridData: const FlGridData(show: false),
+              titlesData: const FlTitlesData(show: false),
+              borderData: FlBorderData(show: false),
+              barTouchData: const BarTouchData(enabled: false),
+              barGroups: [
+                for (var i = 0; i < buckets.length; i++)
+                  _weekBarGroup(i, buckets[i]),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 16,
+          runSpacing: 6,
+          alignment: WrapAlignment.center,
+          children: [
+            _LegendItem(color: _winColor, label: strings.statsWins),
+            _LegendItem(color: _lossColor, label: strings.statsLosses),
+            _LegendItem(color: _drawColor, label: strings.statsDraws),
+          ],
+        ),
+      ],
+    );
+  }
+
+  BarChartGroupData _weekBarGroup(int x, List<HistoryEntry> games) {
+    final wins = games.where((g) => g.result == 'win').length;
+    final losses = games.where((g) => g.result == 'loss').length;
+    final draws = games.where((g) => g.result == 'draw').length;
+    final total = (wins + losses + draws).toDouble();
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: total,
+          width: 16,
+          borderRadius: BorderRadius.circular(4),
+          rodStackItems: [
+            BarChartRodStackItem(0, wins.toDouble(), _winColor),
+            BarChartRodStackItem(
+                wins.toDouble(), (wins + losses).toDouble(), _lossColor),
+            BarChartRodStackItem(
+                (wins + losses).toDouble(), total, _drawColor),
           ],
         ),
       ],

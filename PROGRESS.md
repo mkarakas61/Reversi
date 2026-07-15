@@ -37,7 +37,7 @@ Son güncelleme: **2026-07-15** · Son commit: `c6d53ad` · Sürüm: `0.1.0+1`
 - **İstatistikler:** Tek oyuncu istatistikleri (REV-52 yerleşimi: zorluk seçiminde Geri'nin altında), online istatistik ekranı (profil üzerinden).
 
 ### Test durumu
-- 74/74 Flutter testi + 24/24 functions testi yeşil. Release APK derleniyor.
+- 77/77 Flutter testi + 24/24 functions testi yeşil. Release APK derleniyor.
 - Restorasyon sonrası (452b102) **telefona kuruldu, açılış + otomatik Google oturumu doğrulandı**. ⏳ **2 hesaplı tam online smoke test HENÜZ YAPILMADI** (eşleşme→oyun→ödül) — emülatör ekran yakalama sorunu yüzünden yarım kaldı. İlk fırsatta tamamlanacak.
 - Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-452b102.apk` (release-imzalı, universal).
 
@@ -102,6 +102,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-15 | Mustafa'nın tüm Todo task'ları (Faz 2 + Epic 12, 14 issue) toplu olarak In Progress'e çekildi; Enes'in çıktısına bağımlı 6 Epic 12 task'ı (REV-67..72) yorumla bloklu bırakıldı, çalışılabilir 8 tanesi (REV-53..59, REV-66) sırayla ele alınmaya başlandı. |
 | 2026-07-15 | **REV-53 (misafir online oyun, client) tamamlandı, In Review'a taşındı.** Firebase Anonymous Auth (`AuthService.signInAnonymously`), `Profile.isGuest` + local-only misafir profili (Firestore doc YOK), `GuestIdentityService` (Misafir-XXXX adı, SharedPreferences), ana menüde "Online Oyna" artık her zaman görünür → girişsizken Google/Misafir seçim sheet'i, matchmaking biletine `isGuest` alanı, profil çipi + profil ekranında misafir upsell'i. 74 test yeşil (2 yeni). |
 | 2026-07-15 | **REV-54/55/56/57 (server: maç geçmişi, haftalık leaderboard, misafir istisnası, kurallar) tamamlandı, In Review'a taşındı.** `finish_game.ts`: `admin.auth().getUser` ile otoriter misafir kontrolü (`guest.ts`, client bayrağı asla güvenilmez) — misafire `users/{uid}` doc'u hiç açılmıyor; imzalı oyuncuya `users/{uid}/history/{gameId}` (REV-54) ve `leaderboards/{weekId}/players/{uid}` (REV-55, ISO hafta `leaderboard.ts`) yazımı eklendi. `firestore.rules`'a history (owner-read) + leaderboards (signedIn-read) kuralları eklendi; ek index gerekmedi (tekil-alan sıralama otomatik). 24/24 functions testi yeşil (6 yeni). **Henüz prod'a deploy edilmedi — Mustafa onayı bekliyor.** |
+| 2026-07-15 | **REV-58 (gelişim grafikleri, client) tamamlandı, In Review'a taşındı.** Online istatistik ekranına `ProgressHistoryService` (`users/{uid}/history` stream) ile beslenen iki yeni bölüm: galibiyet oranı trendi (LineChart, son-20 hareketli pencere) ve haftalık aktivite (BarChart, galibiyet/kayıp/beraberlik yığılı renk kırılımı, son 8 hafta). Misafirde bu ekran artık paylaşılan `GuestUpsellCard` widget'ını gösteriyor (profil ekranındaki özel sınıf ortak widget'a taşındı — DRY). 77 test yeşil (3 yeni). XP/seviye eğrisi kararlı şekilde eklenmedi (§8). |
 
 ## 6. TEST ORTAMI
 

@@ -138,6 +138,7 @@ class AppStrings {
       'statsModeSinglePlayerNormal': '1 Player · Normal',
       'statsOnlineEmpty':
           "You haven't played any online games yet. Play a ranked match to see your stats here!",
+      'statsActivity': 'Activity',
       'statsReset': 'Reset statistics',
       'statsResetBody':
           'All statistics will be permanently deleted. This cannot be undone.',
@@ -148,6 +149,7 @@ class AppStrings {
       'statsTotalGames': 'Total games',
       'statsTotalPlayTime': 'Total play time',
       'statsWinRate': 'Win rate',
+      'statsWinRateTrend': 'Win rate trend',
       'statsWins': 'Wins',
       'viewAll': 'View all',
       'youLost': 'You Lost',
@@ -270,6 +272,7 @@ class AppStrings {
       'statsModeSinglePlayerNormal': '1 Oyuncu · Normal',
       'statsOnlineEmpty':
           'Henüz çevrimiçi oyun oynamadın. Sıralama maçı oynayınca istatistiklerin burada görünecek!',
+      'statsActivity': 'Aktivite',
       'statsReset': 'İstatistikleri sıfırla',
       'statsResetBody':
           'Tüm istatistik verileri kalıcı olarak silinecek. Bu işlem geri alınamaz.',
@@ -280,6 +283,7 @@ class AppStrings {
       'statsTotalGames': 'Toplam oyun',
       'statsTotalPlayTime': 'Toplam oynama süresi',
       'statsWinRate': 'Galibiyet oranı',
+      'statsWinRateTrend': 'Galibiyet oranı trendi',
       'statsWins': 'Galibiyet',
       'viewAll': 'Tümünü gör',
       'youLost': 'Kaybettin',
@@ -430,6 +434,7 @@ class AppStrings {
   String get sound => _get('sound');
   String get soundEffects => _get('soundEffects');
   String get statistics => _get('statistics');
+  String get statsActivity => _get('statsActivity');
   String get statsBestScoreDiff => _get('statsBestScoreDiff');
   String get statsBestStreak => _get('statsBestStreak');
   String get statsByMode => _get('statsByMode');
@@ -446,6 +451,7 @@ class AppStrings {
   String get statsTotalGames => _get('statsTotalGames');
   String get statsTotalPlayTime => _get('statsTotalPlayTime');
   String get statsWinRate => _get('statsWinRate');
+  String get statsWinRateTrend => _get('statsWinRateTrend');
   String get statsWins => _get('statsWins');
   String get viewAll => _get('viewAll');
   String get youLost => _get('youLost');

@@ -8,6 +8,7 @@ import '../online/screens/online_stats_screen.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
+import '../../shared/widgets/guest_upsell_card.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
 /// record, plus sign-out. Reached from the menu profile chip. Level/XP and the
@@ -73,7 +74,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              _GuestUpsellCard(strings: strings),
+                              const GuestUpsellCard(),
                               const SizedBox(height: 28),
                               _SignOutButton(label: strings.signOut),
                             ]
@@ -326,101 +327,6 @@ class _OnlineRecordCard extends StatelessWidget {
   }
 }
 
-/// Shown instead of level/stats when the profile is a guest: explains that
-/// guest progress isn't tracked and offers a straight path to sign in.
-class _GuestUpsellCard extends StatefulWidget {
-  const _GuestUpsellCard({required this.strings});
-
-  final AppStrings strings;
-
-  @override
-  State<_GuestUpsellCard> createState() => _GuestUpsellCardState();
-}
-
-class _GuestUpsellCardState extends State<_GuestUpsellCard> {
-  bool _busy = false;
-
-  Future<void> _signIn() async {
-    if (_busy) return;
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _busy = true);
-    try {
-      await AuthService.instance.signInWithGoogle();
-    } catch (_) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(widget.strings.signInError)),
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        children: [
-          const Icon(Icons.lock_outline_rounded,
-              size: 36, color: GameColors.accent),
-          const SizedBox(height: 12),
-          Text(
-            widget.strings.guestUpsellTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: GameColors.ink,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.strings.guestUpsellBody,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: GameColors.inkSoft,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: GameColors.accent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              onPressed: _busy ? null : _signIn,
-              icon: _busy
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.login_rounded),
-              label: Text(
-                widget.strings.continueWithGoogle,
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _Stat extends StatelessWidget {
   const _Stat({required this.value, required this.label});
