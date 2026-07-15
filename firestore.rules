@@ -33,6 +33,20 @@ service cloud.firestore {
              ['displayName', 'photoUrl', 'updatedAt']);
 
       allow delete: if false;
+
+      // Per-game progress history (REV-54), used for the online stats
+      // trend charts (REV-58). Written exclusively by Cloud Functions.
+      match /history/{gameId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+    }
+
+    // Weekly leaderboard counters (REV-55): any signed-in user can read the
+    // rankings; only Cloud Functions (Admin SDK) write them.
+    match /leaderboards/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     // Matchmaking tickets: a user only manages their own ticket. The actual

@@ -10,6 +10,8 @@ import {onDocumentUpdated} from "firebase-functions/v2/firestore";
 
 import {replay, ReplayMove, Disc} from "./reversi";
 import {earnedXp, level, GameOutcome} from "./xp_level";
+import {isGuest} from "./guest";
+import {weekId} from "./leaderboard";
 
 // The Admin app is initialized once in index.ts.
 
@@ -18,6 +20,11 @@ import {earnedXp, level, GameOutcome} from "./xp_level";
 /// replaying the move log server-side (REV-49 engine) so a client can never
 /// claim a win it didn't earn, and writes both players' profiles in one
 /// transaction. Idempotent via the game's `rewarded` flag.
+///
+/// Guests (anonymous Firebase auth, checked authoritatively via
+/// `admin.auth().getUser` — never the client's `isGuest` ticket flag) never
+/// get a `users/{uid}` doc: no reward, no match history, no leaderboard
+/// entry. Their signed-in opponent is still rewarded normally (REV-57).
 export const onGameFinished = onDocumentUpdated(
   "games/{gameId}",
   async (event) => {
@@ -94,20 +101,28 @@ export const onGameFinished = onDocumentUpdated(
       const scoreDiff = Math.abs(rep.black - rep.white);
       const blackRef = db.collection("users").doc(blackUid);
       const whiteRef = db.collection("users").doc(whiteUid);
-      const [blackSnap, whiteSnap] = await Promise.all([
+      const [blackSnap, whiteSnap, blackIsGuest, whiteIsGuest] = await Promise.all([
         tx.get(blackRef),
         tx.get(whiteRef),
+        isGuest(blackUid),
+        isGuest(whiteUid),
       ]);
 
       // --- writes ---
-      applyReward(
-        tx, blackRef, blackSnap.data(), "b",
-        winnerColor, scoreDiff, rep.flippedBy.b, whiteSnap.data()
-      );
-      applyReward(
-        tx, whiteRef, whiteSnap.data(), "w",
-        winnerColor, scoreDiff, rep.flippedBy.w, blackSnap.data()
-      );
+      // Guests never get a users/{uid} doc — no reward, history or leaderboard
+      // entry. Their signed-in opponent is still rewarded normally.
+      if (!blackIsGuest) {
+        applyReward(
+          tx, blackRef, blackSnap.data(), "b",
+          winnerColor, scoreDiff, rep.flippedBy.b, whiteSnap.data(), gameId
+        );
+      }
+      if (!whiteIsGuest) {
+        applyReward(
+          tx, whiteRef, whiteSnap.data(), "w",
+          winnerColor, scoreDiff, rep.flippedBy.w, blackSnap.data(), gameId
+        );
+      }
 
       tx.update(gameRef, {
         rewarded: true,
@@ -125,8 +140,10 @@ export const onGameFinished = onDocumentUpdated(
 );
 
 /// Credits one player's profile with the XP, level, ranked stats and coins
-/// earned for a finished game. Reads carry the pre-game values; the `online`
-/// map is rewritten from them so nothing is lost.
+/// earned for a finished game, and records the match in their progress
+/// history (REV-54) and this week's leaderboard (REV-55). Reads carry the
+/// pre-game values; the `online` map is rewritten from them so nothing is
+/// lost. Only ever called for a signed-in (non-guest) player.
 function applyReward(
   tx: Transaction,
   ref: DocumentReference,
@@ -135,7 +152,8 @@ function applyReward(
   winnerColor: Disc | null,
   scoreDiff: number,
   myFlips: number,
-  oppData: DocumentData | undefined
+  oppData: DocumentData | undefined,
+  gameId: string
 ): void {
   const xp = (data?.xp as number) ?? 0;
   const online = (data?.online as Record<string, number>) ?? {};
@@ -149,23 +167,25 @@ function applyReward(
 
   const outcome: GameOutcome =
     winnerColor === null ? "draw" : winnerColor === myColor ? "win" : "loss";
+  const oppLevel = level((oppData?.xp as number) ?? 0);
 
   const gainedXp = earnedXp({
     outcome,
     scoreDiff,
     flippedPieces: myFlips,
     myLevel: level(xp),
-    oppLevel: level((oppData?.xp as number) ?? 0),
+    oppLevel,
     streak: currentStreak,
   });
   const newXp = xp + gainedXp;
+  const newLevel = level(newXp);
   const newStreak = outcome === "win" ? currentStreak + 1 : 0;
 
   tx.set(
     ref,
     {
       xp: newXp,
-      level: level(newXp),
+      level: newLevel,
       // Coins are intentionally NOT awarded yet — disabled until the v1.1 IAP
       // update. To re-enable: re-read `coins`, re-import earnedCoins, and add
       // `coins: coins + earnedCoins(outcome)` here; then decide whether to
@@ -181,6 +201,40 @@ function applyReward(
           outcome === "win" ? Math.max(bestScoreDiff, scoreDiff) : bestScoreDiff,
       },
       updatedAt: FieldValue.serverTimestamp(),
+    },
+    {merge: true}
+  );
+
+  // Match history (REV-54): one small doc per game, keyed by gameId so a
+  // transaction retry never duplicates it.
+  tx.set(
+    ref.collection("history").doc(gameId),
+    {
+      ts: FieldValue.serverTimestamp(),
+      result: outcome,
+      scoreDiff,
+      flipped: myFlips,
+      oppLevel,
+    },
+    {merge: true}
+  );
+
+  // Weekly leaderboard (REV-55): denormalized counters, reset each ISO week.
+  const db = getFirestore();
+  const leaderboardRef = db
+    .collection("leaderboards")
+    .doc(weekId(new Date()))
+    .collection("players")
+    .doc(ref.id);
+  tx.set(
+    leaderboardRef,
+    {
+      wins: FieldValue.increment(outcome === "win" ? 1 : 0),
+      gamesPlayed: FieldValue.increment(1),
+      xpGained: FieldValue.increment(gainedXp),
+      displayName: (data?.displayName as string | undefined) ?? null,
+      photoUrl: (data?.photoUrl as string | undefined) ?? null,
+      level: newLevel,
     },
     {merge: true}
   );

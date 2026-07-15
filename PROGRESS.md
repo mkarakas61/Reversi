@@ -37,7 +37,7 @@ Son güncelleme: **2026-07-15** · Son commit: `c6d53ad` · Sürüm: `0.1.0+1`
 - **İstatistikler:** Tek oyuncu istatistikleri (REV-52 yerleşimi: zorluk seçiminde Geri'nin altında), online istatistik ekranı (profil üzerinden).
 
 ### Test durumu
-- 74/74 Flutter testi + 18/18 functions testi yeşil. Release APK derleniyor.
+- 74/74 Flutter testi + 24/24 functions testi yeşil. Release APK derleniyor.
 - Restorasyon sonrası (452b102) **telefona kuruldu, açılış + otomatik Google oturumu doğrulandı**. ⏳ **2 hesaplı tam online smoke test HENÜZ YAPILMADI** (eşleşme→oyun→ödül) — emülatör ekran yakalama sorunu yüzünden yarım kaldı. İlk fırsatta tamamlanacak.
 - Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-452b102.apk` (release-imzalı, universal).
 
@@ -75,9 +75,9 @@ firestore.rules  ·  firestore.indexes.json
 ```
 
 ### Firebase (proje `reversi-3a506`, hesap mustafakarakas1071@gmail.com, Blaze)
-- **Firestore:** `users/{uid}` (kimlik client-yazılır; xp/level/online SADECE Functions), `matchmaking/{uid}` bilet, `games/{id}` (64 karakterlik "b/w/-" board string'i, heartbeat `lastSeen` 3sn, kopma eşiği 10sn).
-- **Functions:** `onMatchmakingTicketWritten` (eşleştirme, self-heal), `onGameFinished` (moves[] replay doğrulaması + XP/level/istatistik ödülü, idempotent), `sweepAbandonedGames` (5dk'da bir, iki taraf da kopmuşsa iptal), `ping`.
-- **Deploy:** `cd functions && npm test` (18 test) → `firebase deploy --only functions --force --project reversi-3a506 --account mustafakarakas1071@gmail.com`. Rules/index: `--only firestore:rules` / `firestore:indexes`. **Firebase'de HER ZAMAN `--account` ver** (CLI varsayılanı yanlış hesap: mustafamihmandar).
+- **Firestore:** `users/{uid}` (kimlik client-yazılır; xp/level/online SADECE Functions), `users/{uid}/history/{gameId}` (REV-54, maç geçmişi, owner-read/Functions-write), `leaderboards/{weekId}/players/{uid}` (REV-55, haftalık sayaçlar, signedIn-read/Functions-write), `matchmaking/{uid}` bilet, `games/{id}` (64 karakterlik "b/w/-" board string'i, heartbeat `lastSeen` 3sn, kopma eşiği 10sn).
+- **Functions:** `onMatchmakingTicketWritten` (eşleştirme, self-heal), `onGameFinished` (moves[] replay doğrulaması + XP/level/istatistik/history/leaderboard ödülü, idempotent, misafiri atlar — REV-57), `sweepAbandonedGames` (5dk'da bir, iki taraf da kopmuşsa iptal), `ping`. Saf yardımcılar: `guest.ts` (`isGuestUser`/`isGuest`), `leaderboard.ts` (`weekId`).
+- **Deploy:** `cd functions && npm test` (24 test) → `firebase deploy --only functions --force --project reversi-3a506 --account mustafakarakas1071@gmail.com`. Rules/index: `--only firestore:rules` / `firestore:indexes`. **Firebase'de HER ZAMAN `--account` ver** (CLI varsayılanı yanlış hesap: mustafamihmandar). ⏳ REV-54/55/56/57 kuralları+kodu main'de ama **henüz prod'a deploy edilmedi** — Mustafa onayı bekliyor.
 - **google_sign_in v7:** `serverClientId` = web OAuth client id, `auth_service.dart` içinde hardcoded (public, güvenli).
 - `google-services.json` gitignored — gerekirse `flutterfire configure` ile yeniden üret (flutterfire: `~/.pub-cache/bin`).
 - npm cache bozuk (EACCES) → `npm install --cache /tmp/reversi-npm-cache`. Emulator için Java: Android Studio JBR (`/Applications/Android Studio.app/Contents/jbr/Contents/Home`).
@@ -101,6 +101,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-15 | Board'a **"In AI"** koordinasyon durumu eklendi (In Progress ile In Review arası). İnteraktif Claude oturumu ve otonom rutin aynı anda çalışabildiği için, işe başlarken issue hemen In AI'a çekilir (kilit) — böylece ikisi aynı task'a çakışmaz. Rutin bunu uygulayacak şekilde güncellendi; interaktif oturumlar da aynı kurala uyacak (bkz. §2.3). Rutin çalışma saatleri de günde 4'e çıkarıldı: `0 0,6,12,18 * * *`. |
 | 2026-07-15 | Mustafa'nın tüm Todo task'ları (Faz 2 + Epic 12, 14 issue) toplu olarak In Progress'e çekildi; Enes'in çıktısına bağımlı 6 Epic 12 task'ı (REV-67..72) yorumla bloklu bırakıldı, çalışılabilir 8 tanesi (REV-53..59, REV-66) sırayla ele alınmaya başlandı. |
 | 2026-07-15 | **REV-53 (misafir online oyun, client) tamamlandı, In Review'a taşındı.** Firebase Anonymous Auth (`AuthService.signInAnonymously`), `Profile.isGuest` + local-only misafir profili (Firestore doc YOK), `GuestIdentityService` (Misafir-XXXX adı, SharedPreferences), ana menüde "Online Oyna" artık her zaman görünür → girişsizken Google/Misafir seçim sheet'i, matchmaking biletine `isGuest` alanı, profil çipi + profil ekranında misafir upsell'i. 74 test yeşil (2 yeni). |
+| 2026-07-15 | **REV-54/55/56/57 (server: maç geçmişi, haftalık leaderboard, misafir istisnası, kurallar) tamamlandı, In Review'a taşındı.** `finish_game.ts`: `admin.auth().getUser` ile otoriter misafir kontrolü (`guest.ts`, client bayrağı asla güvenilmez) — misafire `users/{uid}` doc'u hiç açılmıyor; imzalı oyuncuya `users/{uid}/history/{gameId}` (REV-54) ve `leaderboards/{weekId}/players/{uid}` (REV-55, ISO hafta `leaderboard.ts`) yazımı eklendi. `firestore.rules`'a history (owner-read) + leaderboards (signedIn-read) kuralları eklendi; ek index gerekmedi (tekil-alan sıralama otomatik). 24/24 functions testi yeşil (6 yeni). **Henüz prod'a deploy edilmedi — Mustafa onayı bekliyor.** |
 
 ## 6. TEST ORTAMI
 
