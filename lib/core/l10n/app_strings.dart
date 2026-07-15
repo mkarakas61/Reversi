@@ -100,6 +100,11 @@ class AppStrings {
       'guestUpsellBody':
           "Guest progress isn't saved. Sign in with Google to track your stats, XP and the leaderboard.",
       'guestUpsellTitle': 'Sign in to unlock this',
+      'leaderboard': 'Leaderboard',
+      'leaderboardAllTime': 'All-Time',
+      'leaderboardEmpty': 'No one has played a ranked match yet.',
+      'leaderboardWeekly': 'Weekly',
+      'leaderboardYourRank': 'Your rank',
       'leaveOnlineBody': "If you leave, you'll forfeit this match.",
       'level': 'Level',
       'music': 'Music',
@@ -236,6 +241,11 @@ class AppStrings {
       'guestUpsellBody':
           'Misafir ilerlemesi kaydedilmez. İstatistiklerini, XP\'ni ve lider tablosunu takip etmek için Google ile giriş yap.',
       'guestUpsellTitle': 'Bunu açmak için giriş yap',
+      'leaderboard': 'Lider Tablosu',
+      'leaderboardAllTime': 'Tüm Zamanlar',
+      'leaderboardEmpty': 'Henüz kimse sıralı maç oynamadı.',
+      'leaderboardWeekly': 'Haftalık',
+      'leaderboardYourRank': 'Senin sıran',
       'leaveOnlineBody': 'Çıkarsan bu maçı kaybedersin.',
       'level': 'Seviye',
       'music': 'Müzik',
@@ -414,6 +424,11 @@ class AppStrings {
   String get guestLabel => _get('guestLabel');
   String get guestUpsellBody => _get('guestUpsellBody');
   String get guestUpsellTitle => _get('guestUpsellTitle');
+  String get leaderboard => _get('leaderboard');
+  String get leaderboardAllTime => _get('leaderboardAllTime');
+  String get leaderboardEmpty => _get('leaderboardEmpty');
+  String get leaderboardWeekly => _get('leaderboardWeekly');
+  String get leaderboardYourRank => _get('leaderboardYourRank');
   String get leaveOnlineBody => _get('leaveOnlineBody');
   String get level => _get('level');
   String get music => _get('music');

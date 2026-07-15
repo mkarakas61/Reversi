@@ -37,7 +37,7 @@ Son güncelleme: **2026-07-15** · Son commit: `c6d53ad` · Sürüm: `0.1.0+1`
 - **İstatistikler:** Tek oyuncu istatistikleri (REV-52 yerleşimi: zorluk seçiminde Geri'nin altında), online istatistik ekranı (profil üzerinden).
 
 ### Test durumu
-- 77/77 Flutter testi + 24/24 functions testi yeşil. Release APK derleniyor.
+- 84/84 Flutter testi + 24/24 functions testi yeşil. Release APK derleniyor.
 - Restorasyon sonrası (452b102) **telefona kuruldu, açılış + otomatik Google oturumu doğrulandı**. ⏳ **2 hesaplı tam online smoke test HENÜZ YAPILMADI** (eşleşme→oyun→ödül) — emülatör ekran yakalama sorunu yüzünden yarım kaldı. İlk fırsatta tamamlanacak.
 - Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-452b102.apk` (release-imzalı, universal).
 
@@ -103,6 +103,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-15 | **REV-53 (misafir online oyun, client) tamamlandı, In Review'a taşındı.** Firebase Anonymous Auth (`AuthService.signInAnonymously`), `Profile.isGuest` + local-only misafir profili (Firestore doc YOK), `GuestIdentityService` (Misafir-XXXX adı, SharedPreferences), ana menüde "Online Oyna" artık her zaman görünür → girişsizken Google/Misafir seçim sheet'i, matchmaking biletine `isGuest` alanı, profil çipi + profil ekranında misafir upsell'i. 74 test yeşil (2 yeni). |
 | 2026-07-15 | **REV-54/55/56/57 (server: maç geçmişi, haftalık leaderboard, misafir istisnası, kurallar) tamamlandı, In Review'a taşındı.** `finish_game.ts`: `admin.auth().getUser` ile otoriter misafir kontrolü (`guest.ts`, client bayrağı asla güvenilmez) — misafire `users/{uid}` doc'u hiç açılmıyor; imzalı oyuncuya `users/{uid}/history/{gameId}` (REV-54) ve `leaderboards/{weekId}/players/{uid}` (REV-55, ISO hafta `leaderboard.ts`) yazımı eklendi. `firestore.rules`'a history (owner-read) + leaderboards (signedIn-read) kuralları eklendi; ek index gerekmedi (tekil-alan sıralama otomatik). 24/24 functions testi yeşil (6 yeni). **Henüz prod'a deploy edilmedi — Mustafa onayı bekliyor.** |
 | 2026-07-15 | **REV-58 (gelişim grafikleri, client) tamamlandı, In Review'a taşındı.** Online istatistik ekranına `ProgressHistoryService` (`users/{uid}/history` stream) ile beslenen iki yeni bölüm: galibiyet oranı trendi (LineChart, son-20 hareketli pencere) ve haftalık aktivite (BarChart, galibiyet/kayıp/beraberlik yığılı renk kırılımı, son 8 hafta). Misafirde bu ekran artık paylaşılan `GuestUpsellCard` widget'ını gösteriyor (profil ekranındaki özel sınıf ortak widget'a taşındı — DRY). 77 test yeşil (3 yeni). XP/seviye eğrisi kararlı şekilde eklenmedi (§8). |
+| 2026-07-15 | **REV-59 (lider tablosu ekranı, client) tamamlandı, In Review'a taşındı — Faz 2'nin (proje 11) 7 issue'sunun de son'u.** `LeaderboardService`: Tüm Zamanlar (`users` `orderBy('xp')`/`orderBy('online.wins')`) + Haftalık (`leaderboards/{weekId}/players` `orderBy('xpGained')`/`orderBy('wins')`, weekly'de "Seviye" sekmesi o haftaki XP kazancını gösterir — haftalık seviye kavramı olmadığı için en yakın karşılık). `weekId(DateTime)` Dart tarafı `functions/src/leaderboard.ts` ile birebir mirror (4 unit test). Yeni `leaderboard_screen.dart`: Periyot×Metrik `SegmentedButton` seçimi, ilk 50 satır + "senin sıran" kartı (rank = kendi değerinden büyük kayıt sayısı + 1, Firestore `count()` aggregate sorgusu; eşitlik/tie-break v1'de basitleştirildi). Ana menüde profil varsa (misafir dahil) "Lider Tablosu" girişi; misafir tıklarsa `GuestUpsellCard`. 84 test yeşil (7 yeni: weekId 4 + LeaderboardEntry 3). |
 
 ## 6. TEST ORTAMI
 
@@ -136,9 +137,9 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 
 **Bekleyen karar toplantıları:** (1) REV-60 ünvan/kademe onayı, (2) REV-62 eleme + tema ayrımı. Sonuçlar bu dosyaya işlenecek.
 
-### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu")
+### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu") — ✅ 7/7 kod tarafı tamam (2026-07-15)
 
-7 issue **Todo'da** bekliyor, hepsi Mustafa'ya atanmış (bilerek In Progress değil — otonom rutin almasın). Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Başlamadan Mustafa'nın onayı alınacak.
+Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Mustafa'nın "tüm task'larını In Progress'e çek, yapabildiklerini yap" talimatıyla REV-53..59 tek oturumda uygulandı ve **In Review'a** taşındı. **Sunucu tarafı (REV-54/55/56/57, `finish_game.ts`+rules) main'de ama henüz prod'a deploy edilmedi — deploy + cihaz testi için Mustafa onayı bekliyor.** Client tarafı (REV-53/58/59) tamamen kodlandı, testleri yeşil; canlı veri sunucu deploy'una bağlı.
 
 - **Faz A — Misafir oyun:** REV-53 (client: Firebase Anonymous Auth, `Profile.isGuest`, "Misafir devam et" menü akışı) + REV-57 (server: finish_game'de `admin.auth` ile anonim kontrolü → misafire ödül/history/leaderboard YAZMA).
 - **Faz B — Gelişim istatistikleri:** REV-54 (server: maç başına `users/{uid}/history/{gameId}` time-series) + REV-58 (client: online istatistik ekranına galibiyet oranı trendi + aktivite&seri grafikleri; fl_chart mevcut).

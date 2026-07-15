@@ -11,6 +11,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart' show GameColors, bannerGradient;
 import '../../core/theme/wood_theme.dart';
+import '../online/screens/leaderboard_screen.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
 import 'widgets/menu_button.dart';
@@ -336,6 +337,18 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                           primary: true,
                           onTap: () => unawaited(_startOnline()),
                         ),
+                        if (ProfileScope.of(context).profile != null) ...[
+                          const SizedBox(height: 14),
+                          MenuButton(
+                            label: strings.leaderboard,
+                            icon: Icons.leaderboard_rounded,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const LeaderboardScreen(),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ),
