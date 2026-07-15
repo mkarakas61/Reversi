@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-15** · Son commit: `8250954` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-15** · Son commit: `ab3fdf5` · Sürüm: `0.1.0+1`
 
 ---
 
@@ -165,7 +165,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 
 ## 10. OTOMASYON
 
-- **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 1,7,13 * * *`; her çalıştırmada ÖNCE bu PROGRESS.md'yi okur, sonra In Progress'teki **yalnız Mustafa'ya atanmış** issue'ları alır (Enes'inkilere veya atanmamışlara dokunmaz), uygular, test eder, PROGRESS.md'yi güncelleyip aynı commit'e dahil eder, push'lar, In Review'a taşır (güncellendi 2026-07-15). Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı.
+- **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 0,6,12,18 * * *` (günde 4 kez, 6 saatte bir — güncellendi 2026-07-15, önceki: `0 1,7,13 * * *`); her çalıştırmada ÖNCE bu PROGRESS.md'yi okur, sonra In Progress'teki **yalnız Mustafa'ya atanmış** issue'ları alır (Enes'inkilere veya atanmamışlara dokunmaz), uygular, test eder, PROGRESS.md'yi güncelleyip aynı commit'e dahil eder, push'lar, In Review'a taşır. Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı.
 - **Cloud routine "Reversi Flutter build agent" (BLOKE, yedek):** GitHub yazma izni yok (403) + cloud'da Flutter SDK yok. İkisi çözülmeden kullanma.
 
 ## 11. BU DOSYANIN BAKIM KURALLARI
