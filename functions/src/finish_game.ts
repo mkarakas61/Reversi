@@ -9,7 +9,7 @@ import {logger} from "firebase-functions/v2";
 import {onDocumentUpdated} from "firebase-functions/v2/firestore";
 
 import {replay, ReplayMove, Disc} from "./reversi";
-import {earnedXp, level, GameOutcome} from "./xp_level";
+import {earnedXp, earnedCoins, level, GameOutcome} from "./xp_level";
 import {isGuest} from "./guest";
 import {weekId} from "./leaderboard";
 
@@ -156,6 +156,7 @@ function applyReward(
   gameId: string
 ): void {
   const xp = (data?.xp as number) ?? 0;
+  const coins = (data?.coins as number) ?? 0;
   const online = (data?.online as Record<string, number>) ?? {};
   const wins = online.wins ?? 0;
   const losses = online.losses ?? 0;
@@ -180,16 +181,17 @@ function applyReward(
   const newXp = xp + gainedXp;
   const newLevel = level(newXp);
   const newStreak = outcome === "win" ? currentStreak + 1 : 0;
+  // Coins opened up REV-66 (2026-07-15). No back-fill for XP earned before
+  // this point — coin balances simply start counting from today; a separate
+  // migration could top up existing players later if that's ever wanted.
+  const newCoins = coins + earnedCoins(outcome);
 
   tx.set(
     ref,
     {
       xp: newXp,
       level: newLevel,
-      // Coins are intentionally NOT awarded yet — disabled until the v1.1 IAP
-      // update. To re-enable: re-read `coins`, re-import earnedCoins, and add
-      // `coins: coins + earnedCoins(outcome)` here; then decide whether to
-      // back-fill players who earned XP before coins existed.
+      coins: newCoins,
       online: {
         wins: wins + (outcome === "win" ? 1 : 0),
         losses: losses + (outcome === "loss" ? 1 : 0),

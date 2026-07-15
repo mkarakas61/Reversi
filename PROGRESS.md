@@ -37,7 +37,7 @@ Son güncelleme: **2026-07-15** · Son commit: `c6d53ad` · Sürüm: `0.1.0+1`
 - **İstatistikler:** Tek oyuncu istatistikleri (REV-52 yerleşimi: zorluk seçiminde Geri'nin altında), online istatistik ekranı (profil üzerinden).
 
 ### Test durumu
-- 84/84 Flutter testi + 24/24 functions testi yeşil. Release APK derleniyor.
+- 84/84 Flutter testi + 25/25 functions testi yeşil. Release APK derleniyor.
 - Restorasyon sonrası (452b102) **telefona kuruldu, açılış + otomatik Google oturumu doğrulandı**. ⏳ **2 hesaplı tam online smoke test HENÜZ YAPILMADI** (eşleşme→oyun→ödül) — emülatör ekran yakalama sorunu yüzünden yarım kaldı. İlk fırsatta tamamlanacak.
 - Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-452b102.apk` (release-imzalı, universal).
 
@@ -76,7 +76,7 @@ firestore.rules  ·  firestore.indexes.json
 
 ### Firebase (proje `reversi-3a506`, hesap mustafakarakas1071@gmail.com, Blaze)
 - **Firestore:** `users/{uid}` (kimlik client-yazılır; xp/level/online SADECE Functions), `users/{uid}/history/{gameId}` (REV-54, maç geçmişi, owner-read/Functions-write), `leaderboards/{weekId}/players/{uid}` (REV-55, haftalık sayaçlar, signedIn-read/Functions-write), `matchmaking/{uid}` bilet, `games/{id}` (64 karakterlik "b/w/-" board string'i, heartbeat `lastSeen` 3sn, kopma eşiği 10sn).
-- **Functions:** `onMatchmakingTicketWritten` (eşleştirme, self-heal), `onGameFinished` (moves[] replay doğrulaması + XP/level/istatistik/history/leaderboard ödülü, idempotent, misafiri atlar — REV-57), `sweepAbandonedGames` (5dk'da bir, iki taraf da kopmuşsa iptal), `ping`. Saf yardımcılar: `guest.ts` (`isGuestUser`/`isGuest`), `leaderboard.ts` (`weekId`).
+- **Functions:** `onMatchmakingTicketWritten` (eşleştirme, self-heal), `onGameFinished` (moves[] replay doğrulaması + XP/level/coin/istatistik/history/leaderboard ödülü, idempotent, misafiri atlar — REV-57), `sweepAbandonedGames` (5dk'da bir, iki taraf da kopmuşsa iptal), `purchaseItem` (callable, coin ile mağaza satın alma — REV-66, katalog şu an boş), `ping`. Saf yardımcılar: `guest.ts` (`isGuestUser`/`isGuest`), `leaderboard.ts` (`weekId`), `catalog.ts` (`catalogItem`, boş katalog — REV-61/62/63 tasarımları gelince doldurulacak).
 - **Deploy:** `cd functions && npm test` (24 test) → `firebase deploy --only functions --force --project reversi-3a506 --account mustafakarakas1071@gmail.com`. Rules/index: `--only firestore:rules` / `firestore:indexes`. **Firebase'de HER ZAMAN `--account` ver** (CLI varsayılanı yanlış hesap: mustafamihmandar). ⏳ REV-54/55/56/57 kuralları+kodu main'de ama **henüz prod'a deploy edilmedi** — Mustafa onayı bekliyor.
 - **google_sign_in v7:** `serverClientId` = web OAuth client id, `auth_service.dart` içinde hardcoded (public, güvenli).
 - `google-services.json` gitignored — gerekirse `flutterfire configure` ile yeniden üret (flutterfire: `~/.pub-cache/bin`).
@@ -104,6 +104,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-15 | **REV-54/55/56/57 (server: maç geçmişi, haftalık leaderboard, misafir istisnası, kurallar) tamamlandı, In Review'a taşındı.** `finish_game.ts`: `admin.auth().getUser` ile otoriter misafir kontrolü (`guest.ts`, client bayrağı asla güvenilmez) — misafire `users/{uid}` doc'u hiç açılmıyor; imzalı oyuncuya `users/{uid}/history/{gameId}` (REV-54) ve `leaderboards/{weekId}/players/{uid}` (REV-55, ISO hafta `leaderboard.ts`) yazımı eklendi. `firestore.rules`'a history (owner-read) + leaderboards (signedIn-read) kuralları eklendi; ek index gerekmedi (tekil-alan sıralama otomatik). 24/24 functions testi yeşil (6 yeni). **Henüz prod'a deploy edilmedi — Mustafa onayı bekliyor.** |
 | 2026-07-15 | **REV-58 (gelişim grafikleri, client) tamamlandı, In Review'a taşındı.** Online istatistik ekranına `ProgressHistoryService` (`users/{uid}/history` stream) ile beslenen iki yeni bölüm: galibiyet oranı trendi (LineChart, son-20 hareketli pencere) ve haftalık aktivite (BarChart, galibiyet/kayıp/beraberlik yığılı renk kırılımı, son 8 hafta). Misafirde bu ekran artık paylaşılan `GuestUpsellCard` widget'ını gösteriyor (profil ekranındaki özel sınıf ortak widget'a taşındı — DRY). 77 test yeşil (3 yeni). XP/seviye eğrisi kararlı şekilde eklenmedi (§8). |
 | 2026-07-15 | **REV-59 (lider tablosu ekranı, client) tamamlandı, In Review'a taşındı — Faz 2'nin (proje 11) 7 issue'sunun de son'u.** `LeaderboardService`: Tüm Zamanlar (`users` `orderBy('xp')`/`orderBy('online.wins')`) + Haftalık (`leaderboards/{weekId}/players` `orderBy('xpGained')`/`orderBy('wins')`, weekly'de "Seviye" sekmesi o haftaki XP kazancını gösterir — haftalık seviye kavramı olmadığı için en yakın karşılık). `weekId(DateTime)` Dart tarafı `functions/src/leaderboard.ts` ile birebir mirror (4 unit test). Yeni `leaderboard_screen.dart`: Periyot×Metrik `SegmentedButton` seçimi, ilk 50 satır + "senin sıran" kartı (rank = kendi değerinden büyük kayıt sayısı + 1, Firestore `count()` aggregate sorgusu; eşitlik/tie-break v1'de basitleştirildi). Ana menüde profil varsa (misafir dahil) "Lider Tablosu" girişi; misafir tıklarsa `GuestUpsellCard`. 84 test yeşil (7 yeni: weekId 4 + LeaderboardEntry 3). |
+| 2026-07-15 | **REV-66 (sunucu: coin açılışı + cüzdan/mağaza altyapısı) tamamlandı, In Review'a taşındı — Epic 12 kod sırasının ilk halkası.** `finish_game.ts`: coin ödülü açıldı (`earnedCoins`, galibiyet 10/beraberlik 5/mağlubiyet 2), **back-fill YAPILMADI** (bugünden itibaren sayılır — bu bir ürün kararıdır, Mustafa isterse ayrı bir migration ile geriye dönük eklenebilir). Yeni `purchaseItem` callable Function: transaction ile bakiye kontrolü + düşme + `ownedItems`'a ekleme, zaten-sahip/yetersiz-bakiye hataları. Yeni `catalog.ts` — **katalog şu an bilerek BOŞ**, REV-61 (çerçeveler)/REV-62 (tahtalar)/REV-63 (mağaza tasarımı) teslim edilince REV-68/70'te doldurulacak; o ana kadar her satın alma "not-found" döner. `coins`/`ownedItems`/`equipped` alanları zaten mevcut kural mimarisiyle Functions-only (client update kuralı yalnız `displayName`/`photoUrl`/`updatedAt`'e izin veriyor) — kural değişikliği gerekmedi. 25/25 functions testi yeşil (1 yeni). **Henüz prod'a deploy edilmedi.** |
 
 ## 6. TEST ORTAMI
 
@@ -120,9 +121,9 @@ firestore.rules  ·  firestore.indexes.json
 Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-4cadb10eb2a0`). 13 issue Todo'da. Plan: `/Users/f/.claude/plans/imdi-g-ncel-duruma-eklenecekleri-cozy-kahan.md`.
 
 **Kararlar (2026-07-14, Mustafa ile):**
-- **Ödeme modeli: Coin + IAP birlikte.** Maçlardan coin kazanılır (hazır `earnedCoins`: galibiyet 10/beraberlik 5/mağlubiyet 2 açılacak), mağazada içerik coin ile alınır; gerçek parayla coin paketi satılır (Play Billing). §9'daki monetizasyon planı bu epic'e taşındı.
+- **Ödeme modeli: Coin + IAP birlikte.** Maçlardan coin kazanılır (`earnedCoins`: galibiyet 10/beraberlik 5/mağlubiyet 2, **açıldı REV-66'da 2026-07-15**), mağazada içerik coin ile alınır; gerçek parayla coin paketi satılır (Play Billing). §9'daki monetizasyon planı bu epic'e taşındı.
 - **Original/wood tema ayrımı kararı, tahta elemesiyle birlikte** verilecek (REV-62 önerisi → ekip kararı).
-- **Öncelik: Faz 2 ile paralel.** Enes tasarım task'larına hemen başlar; kodlama Faz 2 bittikten sonra: REV-66 → 67 → 68 → 69 → 70 → 71 → 72.
+- **Öncelik: Faz 2 ile paralel.** Faz 2 bitti (§7B). Kod sırası: ✅ REV-66 tamam → REV-67..72 hâlâ Enes'in REV-60..65 teslimlerine bloklu (bkz. yorumlar, REV-60..65 üzerinde).
 
 **Enes (görsel tasarım + ses; workspace'te zaten kayıtlı — argedikas@gmail.com, atandı 2026-07-15):**
 - REV-60 Seviye ünvanları/kademe kimliği önerisi (taban: 1-4 Çaylak · 5-9 Acemi · 10-19 Kalfa · 20-34 Usta · 35-49 Büyükusta · 50+ Efsane)
@@ -131,7 +132,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 - REV-63 Mağaza ekranı görsel tasarımı · REV-64 Mağaza yönlendirme noktaları tasarımı · REV-65 Mağaza & ödül SFX'leri
 
 **Mustafa (kodlama — Claude uygular):**
-- REV-66 Sunucu: coin açılışı + envanter/cüzdan (`coins`/`ownedItems`/`equipped`, `purchaseItem` Function; back-fill kararı burada)
+- ✅ REV-66 Sunucu: coin açılışı + cüzdan/mağaza altyapısı — **tamamlandı 2026-07-15** (aşağıda detay)
 - REV-67 Seviye ünvanları modeli · REV-68 Çerçeveli avatar + profil detayları · REV-69 Mağaza ekranı kodu (`features/store/`)
 - REV-70 Tema elemesi uygulaması + ayarlar sadeleştirme · REV-71 Mağaza yönlendirmeleri · REV-72 Play Billing IAP (son halka; Play Console ürün tanımı Mustafa'da)
 

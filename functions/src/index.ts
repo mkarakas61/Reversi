@@ -30,3 +30,6 @@ export {onGameFinished} from "./finish_game";
 // Cleanup sweep: cancels games stuck `active` after both players disconnected,
 // so an abandoned match doesn't linger forever (REV-48 edge case).
 export {sweepAbandonedGames} from "./sweep";
+
+// Store: buys a catalog item with coins, server-authoritative (REV-66).
+export {purchaseItem} from "./purchase";
