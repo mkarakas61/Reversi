@@ -45,6 +45,13 @@ class AuthService {
     }
   }
 
+  /// Signs the device in as an anonymous Firebase user, for guest online play.
+  /// No Google account is involved and no Firestore profile doc is created.
+  Future<User?> signInAnonymously() async {
+    final result = await _auth.signInAnonymously();
+    return result.user;
+  }
+
   Future<void> signOut() async {
     try {
       await _ensureGoogleReady();

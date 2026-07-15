@@ -7,8 +7,9 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/services/game_storage.dart';
 import '../../app/reversi_app.dart' show routeObserver;
 import '../../core/profile/profile_scope.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
-import '../../core/theme/game_colors.dart' show bannerGradient;
+import '../../core/theme/game_colors.dart' show GameColors, bannerGradient;
 import '../../core/theme/wood_theme.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
@@ -16,6 +17,8 @@ import 'widgets/menu_button.dart';
 import 'widgets/menu_logo.dart';
 import 'widgets/pill_button.dart';
 import 'widgets/profile_chip.dart';
+
+enum _OnlineSignInChoice { google, guest }
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -115,6 +118,36 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     if (saved == null) return;
     await widget.onContinueGame(saved);
     if (mounted) await _refreshSavedGame();
+  }
+
+  Future<void> _startOnline() async {
+    if (ProfileScope.of(context).profile != null) {
+      await widget.onStartOnline();
+      return;
+    }
+
+    final choice = await showModalBottomSheet<_OnlineSignInChoice>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _OnlineSignInSheet(),
+    );
+    if (choice == null || !mounted) return;
+
+    if (choice == _OnlineSignInChoice.google) {
+      try {
+        await AuthService.instance.signInWithGoogle();
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppStrings.of(context).signInError)),
+          );
+        }
+        return;
+      }
+    } else {
+      await AuthService.instance.signInAnonymously();
+    }
+    if (mounted) await widget.onStartOnline();
   }
 
   @override
@@ -296,19 +329,73 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                           onTap: () =>
                               setState(() => _showTimeLimit = true),
                         ),
-                        if (ProfileScope.of(context).profile != null) ...[
-                          const SizedBox(height: 14),
-                          MenuButton(
-                            label: strings.onlinePlay,
-                            icon: Icons.public_rounded,
-                            primary: true,
-                            onTap: () => unawaited(widget.onStartOnline()),
-                          ),
-                        ],
+                        const SizedBox(height: 14),
+                        MenuButton(
+                          label: strings.onlinePlay,
+                          icon: Icons.public_rounded,
+                          primary: true,
+                          onTap: () => unawaited(_startOnline()),
+                        ),
                       ],
                     ],
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet offered when a signed-out player taps "Online Oyna": sign in
+/// with Google, or continue as a guest (Firebase anonymous auth, no
+/// Firestore trace).
+class _OnlineSignInSheet extends StatelessWidget {
+  const _OnlineSignInSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final wood = isWoodTheme(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+          decoration: BoxDecoration(
+            color: wood ? WoodTheme.cardTop : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: wood ? Border.all(color: WoodTheme.gold, width: 1.2) : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                strings.onlineSignInChoiceTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: wood ? WoodTheme.inkTitle : GameColors.ink,
+                ),
+              ),
+              const SizedBox(height: 20),
+              MenuButton(
+                label: strings.continueWithGoogle,
+                icon: Icons.login_rounded,
+                primary: true,
+                onTap: () => Navigator.of(context)
+                    .pop(_OnlineSignInChoice.google),
+              ),
+              const SizedBox(height: 14),
+              MenuButton(
+                label: strings.guestContinue,
+                icon: Icons.person_outline_rounded,
+                onTap: () => Navigator.of(context)
+                    .pop(_OnlineSignInChoice.guest),
               ),
             ],
           ),

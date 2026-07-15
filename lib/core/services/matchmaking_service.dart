@@ -26,6 +26,7 @@ class MatchmakingService {
       'losses': stats.losses,
       'draws': stats.draws,
       'bestStreak': stats.bestStreak,
+      'isGuest': profile.isGuest,
       'status': 'waiting',
       'createdAt': FieldValue.serverTimestamp(),
     });

@@ -94,11 +94,18 @@ class AppStrings {
           'durationHoursMinutes': '{h}h {m}m',
       'durationMinutes': '{m}m',
       'durationSeconds': '{s}s',
+      'continueWithGoogle': 'Continue with Google',
+      'guestContinue': 'Continue as Guest',
+      'guestLabel': 'Guest',
+      'guestUpsellBody':
+          "Guest progress isn't saved. Sign in with Google to track your stats, XP and the leaderboard.",
+      'guestUpsellTitle': 'Sign in to unlock this',
       'leaveOnlineBody': "If you leave, you'll forfeit this match.",
       'level': 'Level',
       'music': 'Music',
       'onlineComingSoon': 'Online play is coming very soon!',
       'onlinePlay': 'Play Online',
+      'onlineSignInChoiceTitle': 'How do you want to play online?',
       'onlineStatistics': 'Online Statistics',
       'opponentFound': 'Opponent found!',
       'opponentTurn': "Opponent's turn",
@@ -221,11 +228,18 @@ class AppStrings {
           'durationHoursMinutes': '{h} sa {m} dk',
       'durationMinutes': '{m} dk',
       'durationSeconds': '{s} sn',
+      'continueWithGoogle': 'Google ile Devam Et',
+      'guestContinue': 'Misafir Devam Et',
+      'guestLabel': 'Misafir',
+      'guestUpsellBody':
+          'Misafir ilerlemesi kaydedilmez. İstatistiklerini, XP\'ni ve lider tablosunu takip etmek için Google ile giriş yap.',
+      'guestUpsellTitle': 'Bunu açmak için giriş yap',
       'leaveOnlineBody': 'Çıkarsan bu maçı kaybedersin.',
       'level': 'Seviye',
       'music': 'Müzik',
       'onlineComingSoon': 'Online oyun çok yakında!',
       'onlinePlay': 'Online Oyna',
+      'onlineSignInChoiceTitle': 'Online nasıl oynamak istersin?',
       'onlineStatistics': 'Online İstatistikler',
       'opponentFound': 'Rakip bulundu!',
       'opponentTurn': 'Rakibin sırası',
@@ -391,11 +405,17 @@ class AppStrings {
     }
   }
 
+  String get continueWithGoogle => _get('continueWithGoogle');
+  String get guestContinue => _get('guestContinue');
+  String get guestLabel => _get('guestLabel');
+  String get guestUpsellBody => _get('guestUpsellBody');
+  String get guestUpsellTitle => _get('guestUpsellTitle');
   String get leaveOnlineBody => _get('leaveOnlineBody');
   String get level => _get('level');
   String get music => _get('music');
   String get onlineComingSoon => _get('onlineComingSoon');
   String get onlinePlay => _get('onlinePlay');
+  String get onlineSignInChoiceTitle => _get('onlineSignInChoiceTitle');
   String get onlineStatistics => _get('onlineStatistics');
   String get opponentFound => _get('opponentFound');
   String get opponentTurn => _get('opponentTurn');

@@ -67,6 +67,20 @@ class _ProfileChipState extends State<ProfileChip> {
       );
     }
 
+    if (profile.isGuest) {
+      return PillButton(
+        onTap: _openProfile,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.person_outline_rounded, size: 18),
+            const SizedBox(width: 6),
+            Text(strings.guestLabel),
+          ],
+        ),
+      );
+    }
+
     final name = profile.displayName ?? '';
     final firstName = name.isEmpty ? strings.signIn : name.split(' ').first;
     return PillButton(

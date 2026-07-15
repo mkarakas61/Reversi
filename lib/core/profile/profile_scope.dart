@@ -4,12 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 
 import '../models/online_stats.dart';
+import '../services/guest_identity_service.dart';
 import '../services/profile_service.dart';
 import '../auth/auth_scope.dart';
 
-/// The player's profile, backed by the Firestore `users/{uid}` document. The
-/// identity fields (name/photo) are client-writable; level, xp and [online]
-/// stats are server-authoritative — only Cloud Functions write them.
+/// The player's profile. Signed-in profiles are backed by the Firestore
+/// `users/{uid}` document — identity fields (name/photo) are client-writable,
+/// level/xp/[online] are server-authoritative (Cloud Functions only). A
+/// [isGuest] profile (anonymous Firebase auth) is local-only: no
+/// `users/{uid}` doc is ever created, so guest play leaves no server trace.
 @immutable
 class Profile {
   const Profile({
@@ -19,6 +22,7 @@ class Profile {
     this.level = 1,
     this.xp = 0,
     this.online = OnlineStats.empty,
+    this.isGuest = false,
   });
 
   final String uid;
@@ -27,6 +31,7 @@ class Profile {
   final int level;
   final int xp;
   final OnlineStats online;
+  final bool isGuest;
 }
 
 /// Holds the player's [Profile]. On sign-in it shows the account's name/photo
@@ -64,6 +69,21 @@ class ProfileController extends ChangeNotifier {
 
     if (user.uid == _boundUid) return; // already bound to this account
     _boundUid = user.uid;
+    _docSub?.cancel();
+    _docSub = null;
+
+    if (user.isAnonymous) {
+      // Guest: local-only profile, no `users/{uid}` doc is ever created or
+      // read — guest play leaves no server trace.
+      _profile = Profile(uid: user.uid, isGuest: true);
+      notifyListeners();
+      unawaited(GuestIdentityService.instance.displayName().then((name) {
+        if (_boundUid != user.uid) return; // signed out/changed meanwhile
+        _profile = Profile(uid: user.uid, displayName: name, isGuest: true);
+        notifyListeners();
+      }));
+      return;
+    }
 
     // Show the account identity right away so the UI never waits on Firestore.
     _profile = Profile(
@@ -78,7 +98,6 @@ class ProfileController extends ChangeNotifier {
           (Object e) => debugPrint('ensureProfile failed: $e'),
         ));
 
-    _docSub?.cancel();
     _docSub = _service.watch(user.uid).listen(
       (snap) {
         final data = snap.data();
