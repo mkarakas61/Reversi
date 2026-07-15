@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-14** · Son commit: `189f625` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-15** · Son commit: `24644d8` · Sürüm: `0.1.0+1`
 
 ---
 
@@ -95,6 +95,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-06-23 | ⚠️ **KAZA:** Enes'in PR #4'ü (12 Haziran'dan dallanmış) feature-first refactor yaparken **online + ses + istatistik + profili sildi**. Üstüne PR #5–#9 ile temalar/animasyonlar geldi (bunlar değerli ve korundu). |
 | 2026-07-08 | **RESTORASYON (`452b102`):** silinen her şey yeni feature-first yapıya taşınarak geri getirildi; Enes'in tüm işleri korundu. 72 test yeşil, release APK OK, telefona kuruldu. Ekip APK'sı masaüstünde. |
 | 2026-07-14 | **Epic 12 planlandı** (proje "12 · Profil, Tasarım & Mağaza", REV-60..72): profil ünvan/çerçeveleri, tema elemesi, coin+IAP mağazası. Görev dağılımı Enes/Mustafa olarak yapıldı; kararlar §7'de. |
+| 2026-07-15 | Enes'in workspace'te zaten kayıtlı olduğu görüldü (argedikas@gmail.com, 21 Haziran'dan beri). REV-60..65 ona atandı; Faz 2'de atanmamış kalan REV-54..59 da REV-53 düzeniyle Mustafa'ya atandı. Artık Todo/In Progress/In Review'da atanmamış hiçbir task yok. |
 
 ## 6. TEST ORTAMI
 
@@ -115,7 +116,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 - **Original/wood tema ayrımı kararı, tahta elemesiyle birlikte** verilecek (REV-62 önerisi → ekip kararı).
 - **Öncelik: Faz 2 ile paralel.** Enes tasarım task'larına hemen başlar; kodlama Faz 2 bittikten sonra: REV-66 → 67 → 68 → 69 → 70 → 71 → 72.
 
-**Enes (görsel tasarım + ses; Linear'a katılınca atanacak — davet Mustafa'da):**
+**Enes (görsel tasarım + ses; workspace'te zaten kayıtlı — argedikas@gmail.com, atandı 2026-07-15):**
 - REV-60 Seviye ünvanları/kademe kimliği önerisi (taban: 1-4 Çaylak · 5-9 Acemi · 10-19 Kalfa · 20-34 Usta · 35-49 Büyükusta · 50+ Efsane)
 - REV-61 Seviye çerçeveleri tasarımı (kademe başına 1 + satılık 3-5 özel)
 - REV-62 Tahta & tema elemesi önerisi (7 tahta + original/wood ayrımı; ücretli/ücretsiz ayrımı)
@@ -145,7 +146,6 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 - [ ] `ai_player.dart:179` iki curly-braces lint bilgisi (Enes'in kodu, kozmetik)
 - [ ] Online oyun ekranının wood temasına uyarlanması (Enes'in `online_match_screen.dart` tasarımı kaynak alınabilir) — ayrı iş
 - [ ] Enes'le git disiplini konuşması (güncel main'den dallanma)
-- [ ] Enes'in Linear workspace'e davet edilmesi (Mustafa; REV-60..65 sonra ona atanacak)
 
 ## 8. İPTAL EDİLENLER (TEKRAR ÖNERME)
 
