@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-15** · Son commit: `ab3fdf5` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-15** · Son commit: `c6d53ad` · Sürüm: `0.1.0+1`
 
 ---
 
