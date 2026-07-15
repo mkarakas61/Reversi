@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-15** · Son commit: `24644d8` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-15** · Son commit: `8250954` · Sürüm: `0.1.0+1`
 
 ---
 
@@ -96,6 +96,7 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-08 | **RESTORASYON (`452b102`):** silinen her şey yeni feature-first yapıya taşınarak geri getirildi; Enes'in tüm işleri korundu. 72 test yeşil, release APK OK, telefona kuruldu. Ekip APK'sı masaüstünde. |
 | 2026-07-14 | **Epic 12 planlandı** (proje "12 · Profil, Tasarım & Mağaza", REV-60..72): profil ünvan/çerçeveleri, tema elemesi, coin+IAP mağazası. Görev dağılımı Enes/Mustafa olarak yapıldı; kararlar §7'de. |
 | 2026-07-15 | Enes'in workspace'te zaten kayıtlı olduğu görüldü (argedikas@gmail.com, 21 Haziran'dan beri). REV-60..65 ona atandı; Faz 2'de atanmamış kalan REV-54..59 da REV-53 düzeniyle Mustafa'ya atandı. Artık Todo/In Progress/In Review'da atanmamış hiçbir task yok. |
+| 2026-07-15 | `reversi-build-agent` rutini güncellendi: artık her çalıştırmada önce PROGRESS.md'yi okuyor, işini bitirince güncelliyor; ve yalnız Mustafa'ya atanmış In Progress issue'ları işliyor (Enes'inkilere/atanmamışlara dokunmuyor). |
 
 ## 6. TEST ORTAMI
 
@@ -131,7 +132,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 
 ### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu")
 
-7 issue **Todo'da** bekliyor (bilerek In Progress değil — otonom rutin almasın). Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Başlamadan Mustafa'nın onayı alınacak.
+7 issue **Todo'da** bekliyor, hepsi Mustafa'ya atanmış (bilerek In Progress değil — otonom rutin almasın). Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Başlamadan Mustafa'nın onayı alınacak.
 
 - **Faz A — Misafir oyun:** REV-53 (client: Firebase Anonymous Auth, `Profile.isGuest`, "Misafir devam et" menü akışı) + REV-57 (server: finish_game'de `admin.auth` ile anonim kontrolü → misafire ödül/history/leaderboard YAZMA).
 - **Faz B — Gelişim istatistikleri:** REV-54 (server: maç başına `users/{uid}/history/{gameId}` time-series) + REV-58 (client: online istatistik ekranına galibiyet oranı trendi + aktivite&seri grafikleri; fl_chart mevcut).
@@ -164,7 +165,7 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 
 ## 10. OTOMASYON
 
-- **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 1,7,13 * * *`; In Progress'teki issue'ları alır, uygular, test eder, push'lar, In Review'a taşır. Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı.
+- **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 1,7,13 * * *`; her çalıştırmada ÖNCE bu PROGRESS.md'yi okur, sonra In Progress'teki **yalnız Mustafa'ya atanmış** issue'ları alır (Enes'inkilere veya atanmamışlara dokunmaz), uygular, test eder, PROGRESS.md'yi güncelleyip aynı commit'e dahil eder, push'lar, In Review'a taşır (güncellendi 2026-07-15). Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı.
 - **Cloud routine "Reversi Flutter build agent" (BLOKE, yedek):** GitHub yazma izni yok (403) + cloud'da Flutter SDK yok. İkisi çözülmeden kullanma.
 
 ## 11. BU DOSYANIN BAKIM KURALLARI
