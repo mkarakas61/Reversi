@@ -39,7 +39,7 @@ Son güncelleme: **2026-07-15** · Son commit: `691b7fc` · Sürüm: `0.1.0+1`
 ### Test durumu
 - 84/84 Flutter testi + 25/25 functions testi yeşil. Release APK derleniyor.
 - Restorasyon sonrası (452b102) **telefona kuruldu, açılış + otomatik Google oturumu doğrulandı**. ⏳ **2 hesaplı tam online smoke test HENÜZ YAPILMADI** (eşleşme→oyun→ödül) — emülatör ekran yakalama sorunu yüzünden yarım kaldı. İlk fırsatta tamamlanacak.
-- Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-452b102.apk` (release-imzalı, universal).
+- Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-81e9dd5.apk` (2026-07-23, release-imzalı, universal, GitHub main ile aynı — `81e9dd5`).
 
 ## 4. MİMARİ
 
