@@ -345,6 +345,8 @@ class _GameBody extends StatelessWidget {
                             lastMove: game.game.lastMove,
                             showHints: isMyTurn,
                             theme: settings.board,
+                            blackCoin: blackCoin,
+                            whiteCoin: whiteCoin,
                             move: move,
                             onCellTap: (pos) {
                               if (!isMyTurn) return;
@@ -527,7 +529,7 @@ class _PlayerStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
-    final palette = coinPalettes[coin]!;
+    final coinColor = coinAccentColor(coin);
     final strings = AppStrings.of(context);
     final r = rank;
     return Container(
@@ -612,7 +614,10 @@ class _PlayerStrip extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [palette.faceTop, palette.faceBottom],
+                colors: [
+                  Color.lerp(coinColor, Colors.white, 0.25)!,
+                  Color.lerp(coinColor, Colors.black, 0.2)!,
+                ],
               ),
             ),
             child: Text(
@@ -621,7 +626,7 @@ class _PlayerStrip extends StatelessWidget {
                 fontFamily: 'Baloo2',
                 fontWeight: FontWeight.w800,
                 fontSize: 15,
-                color: ThemeData.estimateBrightnessForColor(palette.faceMid) ==
+                color: ThemeData.estimateBrightnessForColor(coinColor) ==
                         Brightness.light
                     ? GameColors.ink
                     : Colors.white,

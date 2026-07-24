@@ -80,6 +80,12 @@ class AppStrings {
       'coinWhite': 'White',
       'coinTurquoise': 'Turquoise',
       'coinOrange': 'Orange',
+      'coinWalnut': 'Walnut',
+      'coinMaple': 'Maple',
+      'coinMarbleBlack': 'Marble Black',
+      'coinMarbleWhite': 'Marble White',
+      'coinFlowerPurple': 'Flower Purple',
+      'coinFlowerPink': 'Flower Pink',
       'youWon': 'You Won!',
       'winnerTitle': '{name} Wins!',
       'drawTitle': "It's a Draw!",
@@ -234,6 +240,12 @@ class AppStrings {
       'coinWhite': 'Beyaz',
       'coinTurquoise': 'Turkuaz',
       'coinOrange': 'Turuncu',
+      'coinWalnut': 'Ceviz',
+      'coinMaple': 'Akçaağaç',
+      'coinMarbleBlack': 'Mermer Siyah',
+      'coinMarbleWhite': 'Mermer Beyaz',
+      'coinFlowerPurple': 'Çiçek Mor',
+      'coinFlowerPink': 'Çiçek Pembe',
       'youWon': 'Sen Kazandın!',
       'winnerTitle': '{name} Kazandı!',
       'drawTitle': 'Berabere!',
@@ -437,6 +449,12 @@ class AppStrings {
       case CoinColor.white: return _get('coinWhite');
       case CoinColor.turquoise: return _get('coinTurquoise');
       case CoinColor.orange: return _get('coinOrange');
+      case CoinColor.walnut: return _get('coinWalnut');
+      case CoinColor.maple: return _get('coinMaple');
+      case CoinColor.marbleBlack: return _get('coinMarbleBlack');
+      case CoinColor.marbleWhite: return _get('coinMarbleWhite');
+      case CoinColor.flowerPurple: return _get('coinFlowerPurple');
+      case CoinColor.flowerPink: return _get('coinFlowerPink');
     }
   }
 

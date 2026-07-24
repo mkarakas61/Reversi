@@ -391,6 +391,8 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen>
                             showHints: yourTurn,
                             onCellTap: _play,
                             theme: settings.board,
+                            blackCoin: settings.yourCoin,
+                            whiteCoin: settings.opponentCoin,
                             move: _lastBoardMove,
                           ),
                         ),

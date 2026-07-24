@@ -597,6 +597,8 @@ class _GameScreenState extends State<GameScreen>
                                       showHints: !gameOver,
                                       onCellTap: _play,
                                       theme: settings.board,
+                                      blackCoin: settings.yourCoin,
+                                      whiteCoin: settings.opponentCoin,
                                       move: _lastMove,
                                     ),
                                   )

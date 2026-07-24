@@ -5,7 +5,22 @@ import '../services/settings_storage.dart';
 
 enum BoardTheme { wood, turkuaz, gece, antrasit, petrol, mermer, cicek }
 
-enum CoinColor { black, white, turquoise, orange }
+/// Selectable disc skins. The first four are procedural coins (drawn from a
+/// [CoinPalette]); the rest are image discs (walnut/maple wood, marble, floral)
+/// from the theme assets. Any skin can be picked for either side on any board
+/// (REV-82). Appended-only so stored settings (serialized by name) stay valid.
+enum CoinColor {
+  black,
+  white,
+  turquoise,
+  orange,
+  walnut,
+  maple,
+  marbleBlack,
+  marbleWhite,
+  flowerPurple,
+  flowerPink,
+}
 
 /// App-wide visual theme. [original] is the classic teal/cream look; [wood] is
 /// the warm handcrafted wood + parchment aesthetic from the Online Oyna screen.

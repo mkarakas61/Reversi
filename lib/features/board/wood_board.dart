@@ -5,10 +5,8 @@ import 'package:flutter/material.dart';
 import '../../core/game/reversi_game.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/board_palette.dart';
-import '../../core/theme/coin_palette.dart';
-import '../../shared/widgets/coin_view.dart';
+import '../../shared/widgets/disc_view.dart';
 import 'board_move.dart';
-import 'painters/flip_coin_painter.dart';
 import 'painters/slab_painter.dart';
 import 'widgets/hint_widget.dart';
 
@@ -41,8 +39,6 @@ class WoodBoard extends StatefulWidget {
 class _WoodBoardState extends State<WoodBoard>
     with SingleTickerProviderStateMixin {
   static const _framePad = 14.0;
-  static const _faceSquash = 0.74;
-  static const _thicknessFactor = 0.18;
   // One coin's turn takes [_coinMs]. [_staggerMs] is the per-ring delay
   // of a ripple wave — kept at 0 so all coins turn together: waiting for
   // a ripple to finish made moves feel slow.
@@ -166,31 +162,21 @@ class _WoodBoardState extends State<WoodBoard>
                   continue;
                 }
 
-                final faceHeight = coinW * _faceSquash;
-                final totalH = faceHeight + coinW * _thicknessFactor;
                 coinWidgets.add(Positioned(
                   left: center.dx - coinW / 2,
-                  top: center.dy - totalH / 2,
-                  child: CoinView(
-                    palette: coinPalettes[_coinFor(disc!)]!,
-                    width: coinW,
-                    faceSquash: _faceSquash,
-                    thicknessFactor: _thicknessFactor,
-                  ),
+                  top: center.dy - coinW / 2,
+                  child: AnimatedDiscView(coin: _coinFor(disc!), size: coinW),
                 ));
               }
             }
 
             if (anim != null) {
-              final newPalette = coinPalettes[_coinFor(anim.color)]!;
+              final newCoin = _coinFor(anim.color);
               final oldDisc = anim.color == Disc.black ? Disc.white : Disc.black;
-              final oldPalette = coinPalettes[_coinFor(oldDisc)]!;
+              final oldCoin = _coinFor(oldDisc);
 
               for (final pos in affected) {
                 final (center, coinW) = cellGeometry(pos.row, pos.col);
-                final hover = coinW * 1.15;
-                final faceHeight = coinW * _faceSquash;
-                final totalH = faceHeight + coinW * _thicknessFactor;
                 final isPlaced = pos == anim.placed;
 
                 // Wave timing: this coin's own 0..1 progress, delayed by its
@@ -202,56 +188,18 @@ class _WoodBoardState extends State<WoodBoard>
                 final lp = ((p * _totalMs - dist * _staggerMs) / _coinMs)
                     .clamp(0.0, 1.0);
 
-                if (lp == 0) {
-                  // The wave hasn't reached this coin yet: flipped coins still
-                  // rest in their old color; the placed coin isn't there yet.
-                  if (isPlaced) continue;
-                  coinWidgets.add(Positioned(
-                    left: center.dx - coinW / 2,
-                    top: center.dy - totalH / 2,
-                    child: CoinView(
-                      palette: oldPalette,
-                      width: coinW,
-                      faceSquash: _faceSquash,
-                      thicknessFactor: _thicknessFactor,
-                    ),
-                  ));
-                  continue;
-                }
-
-                // Same choreography for every coin, like turning a hand
-                // over: a gentle gravity arc with a single half-turn at
-                // constant angular speed, coming to rest the moment the turn
-                // completes — no impact effects. The placed coin simply has
-                // its own color on both faces.
-                // Brisk launch, then a gentle float down that settles with
-                // zero vertical speed — no abrupt "click" at touchdown.
-                final height =
-                    sin(pi * Curves.easeOutSine.transform(lp));
-                final yUp = hover * height;
-                final angle = pi * lp;
-
-                // The placed coin pops in almost instantly (no ghost).
-                final opacity =
-                    isPlaced ? (lp / 0.05).clamp(0.0, 1.0) : 1.0;
-                final faceCenterY = center.dy - coinW * _thicknessFactor / 2;
-
-                // A single clean half-turn drawn by FlipCoinPainter: the
-                // face shortens with |cos|, the color changes exactly at
-                // the edge-on midpoint, and the edge keeps a minimum
-                // thickness so the coin never vanishes mid-turn. The
-                // placed coin shows its own color on both faces.
+                // Unified card-flip for every coin skin (REV-82): flipped discs
+                // turn from their old coin to the new one; the placed disc fades
+                // in. Same animation on every board.
                 coinWidgets.add(Positioned(
                   left: center.dx - coinW / 2,
-                  top: faceCenterY - coinW / 2 - yUp,
-                  child: Opacity(
-                    opacity: opacity,
-                    child: FlipCoin(
-                      width: coinW,
-                      angle: angle,
-                      front: isPlaced ? newPalette : oldPalette,
-                      back: newPalette,
-                    ),
+                  top: center.dy - coinW / 2,
+                  child: AnimatedDiscView(
+                    coin: newCoin,
+                    size: coinW,
+                    flipFrom: isPlaced ? null : oldCoin,
+                    t: lp,
+                    appear: isPlaced,
                   ),
                 ));
               }

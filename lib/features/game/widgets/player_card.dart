@@ -57,9 +57,9 @@ class PlayerCard extends StatelessWidget {
     final statusColor = wood ? WoodTheme.goldText : accent;
     final nameColor = wood ? WoodTheme.inkName : GameColors.ink;
     final scoreColor = wood ? WoodTheme.inkScore : GameColors.ink;
-    final palette = coinPalettes[coin]!;
+    final coinColor = coinAccentColor(coin);
     final monoColor =
-        ThemeData.estimateBrightnessForColor(palette.faceMid) == Brightness.light
+        ThemeData.estimateBrightnessForColor(coinColor) == Brightness.light
             ? GameColors.ink
             : Colors.white;
 
@@ -125,7 +125,10 @@ class PlayerCard extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [palette.faceTop, palette.faceBottom],
+                      colors: [
+                        Color.lerp(coinColor, Colors.white, 0.2)!,
+                        Color.lerp(coinColor, Colors.black, 0.15)!,
+                      ],
                     ),
                     border:
                         Border.all(color: const Color(0x14000000), width: 1),
@@ -209,7 +212,16 @@ class ScoreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = coinPalettes[coin]!;
+    final palette = coinPalettes[coin];
+    // Image discs (marble/flower/wood) show their PNG; procedural coins keep
+    // the small radial swatch (REV-82).
+    if (palette == null) {
+      return SizedBox(
+        width: 19,
+        height: 19,
+        child: Image.asset(coinAssets[coin]!, fit: BoxFit.contain),
+      );
+    }
     return Container(
       width: 19,
       height: 19,

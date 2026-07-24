@@ -29,8 +29,8 @@ class BoardThemeGrid extends StatelessWidget {
     final strings = AppStrings.of(context);
     final items = themes ?? BoardTheme.values;
     return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+      spacing: 10,
+      runSpacing: 10,
       children: [
         for (final theme in items)
           _BoardTile(
@@ -66,8 +66,8 @@ class _BoardTile extends StatelessWidget {
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            width: 88,
-            height: 88,
+            width: 70,
+            height: 70,
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -78,9 +78,9 @@ class _BoardTile extends StatelessWidget {
             ),
             child: _BoardPreview(theme: theme),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           SizedBox(
-            width: 88,
+            width: 70,
             child: Text(
               label,
               textAlign: TextAlign.center,

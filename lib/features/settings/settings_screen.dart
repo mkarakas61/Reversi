@@ -158,11 +158,11 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) {
     final wood = isWoodTheme(context);
     return Container(
-      margin: const EdgeInsets.only(top: 14),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      margin: const EdgeInsets.only(top: 9),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       decoration: BoxDecoration(
         color: wood ? WoodTheme.cardTop : Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border:
             wood ? Border.all(color: WoodTheme.cardIdleBorder, width: 1) : null,
         boxShadow: const [
@@ -182,11 +182,11 @@ class _Section extends StatelessWidget {
             style: TextStyle(
               fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
               fontWeight: wood ? FontWeight.w400 : FontWeight.w800,
-              fontSize: wood ? 18 : 16,
+              fontSize: wood ? 16 : 15,
               color: wood ? WoodTheme.inkScore : GameColors.ink,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           child,
         ],
       ),
