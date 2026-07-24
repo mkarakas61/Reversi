@@ -134,19 +134,19 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     );
     if (choice == null || !mounted) return;
 
-    if (choice == _OnlineSignInChoice.google) {
-      try {
+    try {
+      if (choice == _OnlineSignInChoice.google) {
         await AuthService.instance.signInWithGoogle();
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppStrings.of(context).signInError)),
-          );
-        }
-        return;
+      } else {
+        await AuthService.instance.signInAnonymously();
       }
-    } else {
-      await AuthService.instance.signInAnonymously();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.of(context).signInError)),
+        );
+      }
+      return;
     }
     if (mounted) await widget.onStartOnline();
   }
