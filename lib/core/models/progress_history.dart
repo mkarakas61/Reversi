@@ -12,6 +12,8 @@ class HistoryEntry {
     required this.scoreDiff,
     required this.flipped,
     required this.oppLevel,
+    this.trophyDelta = 0,
+    this.trophies = 0,
   });
 
   final DateTime ts;
@@ -21,6 +23,12 @@ class HistoryEntry {
   final int scoreDiff;
   final int flipped;
   final int oppLevel;
+
+  /// Trophies gained (+) or lost (−) in this game, and the resulting total
+  /// after it (REV-73). Both are 0 on games recorded before the trophy system
+  /// shipped. The match-result screen (REV-74) shows these.
+  final int trophyDelta;
+  final int trophies;
 
   bool get isWin => result == 'win';
 
@@ -32,6 +40,8 @@ class HistoryEntry {
       scoreDiff: (data['scoreDiff'] as num?)?.toInt() ?? 0,
       flipped: (data['flipped'] as num?)?.toInt() ?? 0,
       oppLevel: (data['oppLevel'] as num?)?.toInt() ?? 1,
+      trophyDelta: (data['trophyDelta'] as num?)?.toInt() ?? 0,
+      trophies: (data['trophies'] as num?)?.toInt() ?? 0,
     );
   }
 }

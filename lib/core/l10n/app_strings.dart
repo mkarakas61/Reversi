@@ -167,6 +167,11 @@ class AppStrings {
       'rankEfsane': 'Legend',
       'rankLabel': 'Rank',
       'trophies': 'Trophies',
+      'rankUp': 'Rank up!',
+      'topRank': 'Top rank',
+      'matchFlipped': 'Flipped',
+      'matchMargin': 'Margin',
+      'matchStreak': 'Streak',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -314,6 +319,11 @@ class AppStrings {
       'rankEfsane': 'Efsane',
       'rankLabel': 'Rütbe',
       'trophies': 'Kupa',
+      'rankUp': 'Rütbe atladın!',
+      'topRank': 'En yüksek rütbe',
+      'matchFlipped': 'Çevrilen',
+      'matchMargin': 'Fark',
+      'matchStreak': 'Seri',
     },
   };
 
@@ -415,6 +425,11 @@ class AppStrings {
 
   String get rankLabel => _get('rankLabel');
   String get trophies => _get('trophies');
+  String get rankUp => _get('rankUp');
+  String get topRank => _get('topRank');
+  String get matchFlipped => _get('matchFlipped');
+  String get matchMargin => _get('matchMargin');
+  String get matchStreak => _get('matchStreak');
 
   String coinColorLabel(CoinColor color) {
     switch (color) {

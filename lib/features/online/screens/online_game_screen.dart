@@ -7,11 +7,15 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/game/reversi_game.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/online_game.dart';
+import '../../../core/models/progress_history.dart';
+import '../../../core/models/rank.dart';
 import '../../../core/services/online_game_service.dart';
+import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../shared/widgets/info_popup.dart';
+import '../../../shared/widgets/rank_badge.dart';
 import '../../board/board_move.dart';
 import '../../board/wood_board.dart';
 import '../../settings/settings_screen.dart';
@@ -334,6 +338,9 @@ class _GameBody extends StatelessWidget {
             game: game,
             myColor: myColor,
             strings: strings,
+            myUid: myUid,
+            isGuest: me?.isGuest ?? false,
+            currentStreak: me?.online.currentStreak ?? 0,
             onMenu: () {
               SoundService.instance.playSfx(Sfx.button);
               Navigator.of(context).pop();
@@ -516,12 +523,21 @@ class _ResultOverlay extends StatelessWidget {
     required this.game,
     required this.myColor,
     required this.strings,
+    required this.myUid,
+    required this.isGuest,
+    required this.currentStreak,
     required this.onMenu,
   });
 
   final OnlineGame game;
   final Disc myColor;
   final AppStrings strings;
+  final String myUid;
+  final bool isGuest;
+
+  /// The player's current win streak, read live from the profile so the stats
+  /// row reflects the just-applied reward.
+  final int currentStreak;
   final VoidCallback onMenu;
 
   @override
@@ -538,63 +554,246 @@ class _ResultOverlay extends StatelessWidget {
       child: ColoredBox(
         color: const Color(0x99000000),
         child: Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 40),
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
-                    color: GameColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${game.game.scoreFor(Disc.black)} - ${game.game.scoreFor(Disc.white)}',
-                  style: const TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    color: GameColors.inkSoft,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: GameColors.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    onPressed: onMenu,
-                    child: Text(
-                      strings.mainMenu,
-                      style: const TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
+          child: SingleChildScrollView(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      color: GameColors.ink,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    '${game.game.scoreFor(Disc.black)} - ${game.game.scoreFor(Disc.white)}',
+                    style: const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      color: GameColors.inkSoft,
+                    ),
+                  ),
+                  // Trophy / rank reward — signed-in players only (guests earn
+                  // nothing, REV-57). Revealed once the server writes the
+                  // history doc for this game (REV-73/74).
+                  if (!isGuest)
+                    StreamBuilder<HistoryEntry?>(
+                      stream: ProgressHistoryService.instance
+                          .watchReward(myUid, game.id),
+                      builder: (context, snap) {
+                        final entry = snap.data;
+                        if (entry == null) return const SizedBox(height: 4);
+                        return _RewardSection(
+                          entry: entry,
+                          currentStreak: currentStreak,
+                          strings: strings,
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: GameColors.accent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: onMenu,
+                      child: Text(
+                        strings.mainMenu,
+                        style: const TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The trophy change + rank progress + match stats, shown under the result
+/// once the server reward lands (REV-74). Animates the trophy delta in.
+class _RewardSection extends StatelessWidget {
+  const _RewardSection({
+    required this.entry,
+    required this.currentStreak,
+    required this.strings,
+  });
+
+  final HistoryEntry entry;
+  final int currentStreak;
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final trophies = entry.trophies;
+    final delta = entry.trophyDelta;
+    final rank = rankFor(trophies);
+    final rankedUp =
+        delta > 0 && rankFor(trophies - delta).id != rank.id;
+
+    final Color deltaColor = delta > 0
+        ? const Color(0xFF1F9D57)
+        : delta < 0
+            ? const Color(0xFFC0392B)
+            : GameColors.inkSoft;
+    final String deltaText =
+        delta > 0 ? '+$delta' : delta < 0 ? '$delta' : '±0';
+
+    return Column(
+      children: [
+        const SizedBox(height: 18),
+        const Divider(height: 1),
+        const SizedBox(height: 16),
+        // Animated trophy delta.
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 420),
+          curve: Curves.easeOutBack,
+          builder: (context, t, child) => Opacity(
+            opacity: t.clamp(0.0, 1.0),
+            child: Transform.scale(scale: 0.7 + 0.3 * t, child: child),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.emoji_events, size: 22, color: deltaColor),
+              const SizedBox(width: 6),
+              Text(
+                '$deltaText ${strings.trophies}',
+                style: TextStyle(
+                  fontFamily: 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  color: deltaColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (rankedUp) ...[
+          const SizedBox(height: 8),
+          Text(
+            strings.rankUp,
+            style: TextStyle(
+              fontFamily: 'Baloo2',
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              color: rank.color,
+            ),
+          ),
+        ],
+        const SizedBox(height: 14),
+        // Rank badge + progress toward the next rank.
+        RankBadge(rank: rank, trophies: trophies),
+        const SizedBox(height: 8),
+        _RankProgressBar(trophies: trophies, strings: strings),
+        const SizedBox(height: 16),
+        // Match stats.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _StatCell(label: strings.matchFlipped, value: '${entry.flipped}'),
+            _StatCell(label: strings.matchMargin, value: '${entry.scoreDiff}'),
+            _StatCell(label: strings.matchStreak, value: '$currentStreak'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// A thin progress bar from the current rank floor to the next rank, or a full
+/// bar labelled "top rank" once Efsane is reached.
+class _RankProgressBar extends StatelessWidget {
+  const _RankProgressBar({required this.trophies, required this.strings});
+
+  final int trophies;
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final toNext = trophiesToNext(trophies);
+    final rank = rankFor(trophies);
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: rankProgress(trophies),
+            minHeight: 7,
+            backgroundColor: const Color(0xFFE7E2D6),
+            valueColor: AlwaysStoppedAnimation<Color>(rank.color),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          toNext == null ? strings.topRank : '$trophies (+$toNext)',
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontWeight: FontWeight.w700,
+            fontSize: 11.5,
+            color: GameColors.inkSoft,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  const _StatCell({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'Baloo2',
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            color: GameColors.ink,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontWeight: FontWeight.w700,
+            fontSize: 11.5,
+            color: GameColors.inkSoft,
+          ),
+        ),
+      ],
     );
   }
 }
