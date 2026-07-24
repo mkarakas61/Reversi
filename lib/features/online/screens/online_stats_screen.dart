@@ -9,6 +9,7 @@ import '../../../core/models/xp_level.dart';
 import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../shared/widgets/rank_badge.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
 
 /// Detailed online ranked statistics screen. Reached from the profile screen's
@@ -97,6 +98,13 @@ class _Body extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
       children: [
+        _Section(
+          title: strings.rankLabel,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: RankBadge(rank: stats.rank, trophies: stats.trophies),
+          ),
+        ),
         _Section(
           title: '${strings.level} $level',
           child: _XpProgressRow(xp: xp, level: level, strings: strings),

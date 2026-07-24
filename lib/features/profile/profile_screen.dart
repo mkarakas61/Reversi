@@ -9,6 +9,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
 import '../../shared/widgets/guest_upsell_card.dart';
+import '../../shared/widgets/rank_badge.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
 /// record, plus sign-out. Reached from the menu profile chip. Level/XP and the
@@ -96,6 +97,11 @@ class ProfileScreen extends StatelessWidget {
                                 level: profile.level,
                                 xp: profile.xp,
                                 label: strings.level,
+                              ),
+                              const SizedBox(height: 14),
+                              RankBadge(
+                                rank: profile.online.rank,
+                                trophies: profile.online.trophies,
                               ),
                               const SizedBox(height: 14),
                               _OnlineRecordCard(

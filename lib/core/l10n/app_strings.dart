@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../settings/app_settings.dart';
 import '../game/game_settings.dart';
 import '../models/game_stats.dart';
+import '../models/rank.dart';
 
 class AppStrings {
   AppStrings(this.locale);
@@ -158,6 +159,14 @@ class AppStrings {
       'statsWins': 'Wins',
       'viewAll': 'View all',
       'youLost': 'You Lost',
+      'rankCaylak': 'Rookie',
+      'rankAcemi': 'Novice',
+      'rankKalfa': 'Journeyman',
+      'rankUsta': 'Master',
+      'rankBuyukusta': 'Grandmaster',
+      'rankEfsane': 'Legend',
+      'rankLabel': 'Rank',
+      'trophies': 'Trophies',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -297,6 +306,14 @@ class AppStrings {
       'statsWins': 'Galibiyet',
       'viewAll': 'Tümünü gör',
       'youLost': 'Kaybettin',
+      'rankCaylak': 'Çaylak',
+      'rankAcemi': 'Acemi',
+      'rankKalfa': 'Kalfa',
+      'rankUsta': 'Usta',
+      'rankBuyukusta': 'Büyük Usta',
+      'rankEfsane': 'Efsane',
+      'rankLabel': 'Rütbe',
+      'trophies': 'Kupa',
     },
   };
 
@@ -384,6 +401,20 @@ class AppStrings {
       case BoardTheme.cicek: return _get('themeCicek');
     }
   }
+
+  String rankTitle(RankId rank) {
+    switch (rank) {
+      case RankId.caylak: return _get('rankCaylak');
+      case RankId.acemi: return _get('rankAcemi');
+      case RankId.kalfa: return _get('rankKalfa');
+      case RankId.usta: return _get('rankUsta');
+      case RankId.buyukusta: return _get('rankBuyukusta');
+      case RankId.efsane: return _get('rankEfsane');
+    }
+  }
+
+  String get rankLabel => _get('rankLabel');
+  String get trophies => _get('trophies');
 
   String coinColorLabel(CoinColor color) {
     switch (color) {
