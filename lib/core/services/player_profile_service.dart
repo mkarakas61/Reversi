@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/online_stats.dart';
-import '../models/xp_level.dart';
 
 /// Another player's public profile + ranked stats, read from `users/{uid}`.
 class PublicProfile {
@@ -9,13 +8,11 @@ class PublicProfile {
     required this.stats,
     this.name,
     this.photoUrl,
-    this.level = 1,
   });
 
   final OnlineStats stats;
   final String? name;
   final String? photoUrl;
-  final int level;
 }
 
 /// One-shot reader for another player's public profile — used to show the
@@ -39,7 +36,6 @@ class PlayerProfileService {
         stats: OnlineStats.fromMap(data['online'] as Map<String, dynamic>?),
         name: data['displayName'] as String?,
         photoUrl: data['photoUrl'] as String?,
-        level: XpLevel.level((data['xp'] as num?)?.toInt() ?? 0),
       );
     } catch (_) {
       return null;

@@ -320,7 +320,6 @@ class _GameBody extends StatelessWidget {
                         builder: (_) => _OpponentStatsSheet(
                           name: opponentProfile!.name ?? oppName,
                           photoUrl: opponentProfile!.photoUrl ?? oppPhoto,
-                          level: opponentProfile!.level,
                           stats: opponentProfile!.stats,
                           strings: strings,
                         ),
@@ -902,14 +901,12 @@ class _OpponentStatsSheet extends StatelessWidget {
   const _OpponentStatsSheet({
     required this.name,
     required this.photoUrl,
-    required this.level,
     required this.stats,
     required this.strings,
   });
 
   final String name;
   final String? photoUrl;
-  final int level;
   final OnlineStats stats;
   final AppStrings strings;
 
@@ -955,15 +952,6 @@ class _OpponentStatsSheet extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           fontSize: 20,
                           color: GameColors.ink,
-                        ),
-                      ),
-                      Text(
-                        '${strings.level} $level',
-                        style: const TextStyle(
-                          fontFamily: 'Nunito',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: GameColors.inkSoft,
                         ),
                       ),
                     ],

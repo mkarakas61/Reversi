@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/profile/profile_scope.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/models/online_stats.dart';
+import '../../../core/models/rank.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
@@ -117,7 +119,7 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                       _PlayerLine(
                         name: me?.displayName ?? strings.playerYou,
                         photoUrl: me?.photoUrl,
-                        level: me?.level ?? 1,
+                        rank: (me?.online ?? OnlineStats.empty).rank,
                         strings: strings,
                         highlight: true,
                       ),
@@ -136,7 +138,7 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                       _PlayerLine(
                         name: opponent['name'] as String? ?? '—',
                         photoUrl: opponent['photo'] as String?,
-                        level: (opponent['level'] as num?)?.toInt() ?? 1,
+                        rank: rankFor((opponent['trophies'] as num?)?.toInt() ?? 0),
                         strings: strings,
                         wins: (opponent['wins'] as num?)?.toInt() ?? 0,
                         losses: (opponent['losses'] as num?)?.toInt() ?? 0,
@@ -194,7 +196,7 @@ class _PlayerLine extends StatelessWidget {
   const _PlayerLine({
     required this.name,
     required this.photoUrl,
-    required this.level,
+    required this.rank,
     required this.strings,
     this.highlight = false,
     this.showRecord = false,
@@ -205,7 +207,7 @@ class _PlayerLine extends StatelessWidget {
 
   final String name;
   final String? photoUrl;
-  final int level;
+  final Rank rank;
   final AppStrings strings;
   final bool highlight;
   final bool showRecord;
@@ -250,14 +252,22 @@ class _PlayerLine extends StatelessWidget {
                     color: GameColors.ink,
                   ),
                 ),
-                Text(
-                  '${strings.level} $level',
-                  style: const TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: GameColors.inkSoft,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.military_tech, size: 13, color: rank.color),
+                    const SizedBox(width: 3),
+                    Text(
+                      strings.rankTitle(rank.id),
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: Color.alphaBlend(
+                            const Color(0x33000000), rank.color),
+                      ),
+                    ),
+                  ],
                 ),
                 if (showRecord)
                   Text(

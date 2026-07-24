@@ -104,7 +104,7 @@ function playerInfo(ticket: DocumentData) {
   return {
     name: ticket.displayName ?? null,
     photo: ticket.photoUrl ?? null,
-    level: ticket.level ?? 1,
+    trophies: ticket.trophies ?? 0,
     wins: ticket.wins ?? 0,
     losses: ticket.losses ?? 0,
     draws: ticket.draws ?? 0,

@@ -42,13 +42,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Future<({int rank, String value})> _computeMyRank(Profile profile) async {
-    final strings = AppStrings.of(context);
     int myValue;
     String display;
     if (_period == LeaderboardPeriod.allTime) {
-      if (_metric == LeaderboardMetric.level) {
-        myValue = profile.xp;
-        display = '${strings.level} ${profile.level}';
+      if (_metric == LeaderboardMetric.trophy) {
+        myValue = profile.online.trophies;
+        display = '$myValue 🏆';
       } else {
         myValue = profile.online.wins;
         display = '$myValue';
@@ -56,9 +55,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     } else {
       final mine =
           await LeaderboardService.instance.myWeeklyEntry(profile.uid);
-      if (_metric == LeaderboardMetric.level) {
-        myValue = mine?.xpGained ?? 0;
-        display = '+$myValue XP';
+      if (_metric == LeaderboardMetric.trophy) {
+        myValue = mine?.trophyGained ?? 0;
+        display = '+$myValue 🏆';
       } else {
         myValue = mine?.wins ?? 0;
         display = '$myValue';
@@ -225,8 +224,8 @@ class _PeriodMetricPicker extends StatelessWidget {
               label: Text(strings.statsWins),
             ),
             ButtonSegment(
-              value: LeaderboardMetric.level,
-              label: Text(strings.level),
+              value: LeaderboardMetric.trophy,
+              label: Text(strings.trophies),
             ),
           ],
           selected: {metric},
@@ -316,8 +315,8 @@ class _LeaderboardRow extends StatelessWidget {
     final value = metric == LeaderboardMetric.wins
         ? '${entry.wins ?? 0}'
         : period == LeaderboardPeriod.allTime
-            ? '${strings.level} ${entry.level ?? 1}'
-            : '+${entry.xpGained ?? 0} XP';
+            ? '${entry.trophies ?? 0} 🏆'
+            : '+${entry.trophyGained ?? 0} 🏆';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

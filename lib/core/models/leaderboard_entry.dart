@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 enum LeaderboardPeriod { weekly, allTime }
 
 /// Which stat the leaderboard ranks by. For [LeaderboardPeriod.weekly],
-/// [level] ranks by XP gained *this week* (there's no weekly level, so
-/// xpGained is the closest weekly analog to "climbing").
-enum LeaderboardMetric { level, wins }
+/// [trophy] ranks by net trophies gained *this week* (there's no weekly rank,
+/// so trophy climb is the closest weekly analog).
+enum LeaderboardMetric { trophy, wins }
 
 /// One ranked row. Only the fields relevant to the source collection are
 /// populated — see [LeaderboardEntry.fromAllTimeUser] /
@@ -18,17 +18,21 @@ class LeaderboardEntry {
     required this.uid,
     this.displayName,
     this.photoUrl,
-    this.level,
+    this.trophies,
     this.wins,
-    this.xpGained,
+    this.trophyGained,
   });
 
   final String uid;
   final String? displayName;
   final String? photoUrl;
-  final int? level;
+
+  /// Lifetime trophy total (all-time board).
+  final int? trophies;
   final int? wins;
-  final int? xpGained;
+
+  /// Net trophies gained this ISO week (weekly board).
+  final int? trophyGained;
 
   factory LeaderboardEntry.fromAllTimeUser(
       String uid, Map<String, dynamic> data) {
@@ -37,7 +41,7 @@ class LeaderboardEntry {
       uid: uid,
       displayName: data['displayName'] as String?,
       photoUrl: data['photoUrl'] as String?,
-      level: (data['level'] as num?)?.toInt() ?? 1,
+      trophies: (online?['trophies'] as num?)?.toInt() ?? 0,
       wins: (online?['wins'] as num?)?.toInt() ?? 0,
     );
   }
@@ -49,7 +53,7 @@ class LeaderboardEntry {
       displayName: data['displayName'] as String?,
       photoUrl: data['photoUrl'] as String?,
       wins: (data['wins'] as num?)?.toInt() ?? 0,
-      xpGained: (data['xpGained'] as num?)?.toInt() ?? 0,
+      trophyGained: (data['trophyGained'] as num?)?.toInt() ?? 0,
     );
   }
 }

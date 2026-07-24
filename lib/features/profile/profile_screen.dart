@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import '../../core/profile/profile_scope.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/models/online_stats.dart';
-import '../../core/models/xp_level.dart';
+import '../../core/models/rank.dart';
 import '../online/screens/online_stats_screen.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/guest_upsell_card.dart';
-import '../../shared/widgets/rank_badge.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
 /// record, plus sign-out. Reached from the menu profile chip. Level/XP and the
@@ -94,15 +93,9 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 14),
-                              _LevelCard(
-                                level: profile.level,
-                                xp: profile.xp,
-                                label: strings.level,
-                              ),
-                              const SizedBox(height: 14),
-                              RankBadge(
-                                rank: profile.online.rank,
-                                trophies: profile.online.trophies,
+                              _RankCard(
+                                stats: profile.online,
+                                strings: strings,
                               ),
                               const SizedBox(height: 14),
                               _OnlineRecordCard(
@@ -161,24 +154,18 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-/// Level badge plus a progress bar toward the next level. The exact XP curve is
-/// formalized in REV-40; here the bar fills proportionally within the current
-/// 100-XP band so it animates meaningfully once the server awards XP.
-class _LevelCard extends StatelessWidget {
-  const _LevelCard({
-    required this.level,
-    required this.xp,
-    required this.label,
-  });
+/// Rank medal + trophy count with a progress bar toward the next rank
+/// (REV-81 — replaced the old level/XP card; the ladder is trophies now).
+class _RankCard extends StatelessWidget {
+  const _RankCard({required this.stats, required this.strings});
 
-  final int level;
-  final int xp;
-  final String label;
+  final OnlineStats stats;
+  final AppStrings strings;
 
   @override
   Widget build(BuildContext context) {
-    final progress = XpLevel.levelProgress(xp);
-
+    final rank = stats.rank;
+    final toNext = trophiesToNext(stats.trophies);
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,23 +176,12 @@ class _LevelCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [GameColors.accent, GameColors.onAccent],
-                  ),
+                  color: rank.color.withValues(alpha: 0.16),
+                  border: Border.all(color: rank.color, width: 2),
                 ),
-                child: Text(
-                  '$level',
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                ),
+                child: Icon(Icons.military_tech, size: 24, color: rank.color),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -213,7 +189,7 @@ class _LevelCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '$label $level',
+                      strings.rankTitle(rank.id),
                       style: const TextStyle(
                         fontFamily: 'Baloo2',
                         fontWeight: FontWeight.w800,
@@ -222,7 +198,8 @@ class _LevelCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '$xp XP',
+                      '${stats.trophies} ${strings.trophies}'
+                      '${toNext == null ? ' · ${strings.topRank}' : ' (+$toNext)'}',
                       style: const TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w700,
@@ -239,10 +216,10 @@ class _LevelCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: progress,
+              value: rankProgress(stats.trophies),
               minHeight: 8,
               backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-              valueColor: const AlwaysStoppedAnimation(GameColors.accent),
+              valueColor: AlwaysStoppedAnimation(rank.color),
             ),
           ),
         ],
