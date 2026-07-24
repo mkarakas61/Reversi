@@ -123,8 +123,10 @@ void main() {
     await tester.tap(find.text('Türkçe'));
     await tester.pumpAndSettle();
 
-    // The settings screen re-renders in Turkish immediately, confirming the
-    // locale switch propagated app-wide.
+    // The coin section sits below the board grid, so scroll it into view
+    // first. Finding its Turkish labels confirms the locale switch propagated
+    // app-wide.
+    await tester.scrollUntilVisible(find.text('Senin taşın'), 200);
     expect(find.text('Senin taşın'), findsOneWidget);
     expect(find.text('Taş rengi'), findsOneWidget);
   });

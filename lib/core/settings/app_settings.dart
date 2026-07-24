@@ -78,17 +78,9 @@ class SettingsController extends ChangeNotifier {
 
   void setAppTheme(AppThemeId theme) {
     if (_settings.appTheme == theme) return;
-    // Keep the board selection valid for the theme: the custom (wood) theme
-    // only offers wood + mermer + cicek, while the original theme has none of
-    // these image-based boards.
-    const customBoards = {BoardTheme.wood, BoardTheme.mermer, BoardTheme.cicek};
-    var board = _settings.board;
-    if (theme == AppThemeId.wood) {
-      if (!customBoards.contains(board)) board = BoardTheme.wood;
-    } else if (board == BoardTheme.mermer || board == BoardTheme.cicek) {
-      board = BoardTheme.wood;
-    }
-    _update(_settings.copyWith(appTheme: theme, board: board));
+    // Theme, board and coin are independent (REV-70): the app theme only sets
+    // the menu / colour shell and never forces the selected board to change.
+    _update(_settings.copyWith(appTheme: theme));
   }
 
   void setBoard(BoardTheme board) {
