@@ -180,7 +180,11 @@ Kaynak: `~/Downloads/-FAMİLY BUSİNESS- ...pdf` (toplantı notları). Katılım
 - Coin: online galibiyet + (araştırma sonrası) **reklam izleme** + doğrudan satın alma (IAP). Reklam **caiz mi** araştırması + uygun reklam türü **dağıtımcı firma** ile görüşülecek → reklam task'ı **bloklu**.
 - Mağazada kozmetik (tahta/taş/çerçeve) + **offline "hamle geri alma"** satışı (bkz. §8 — offline için iptal kararı gevşetildi; online'a DOKUNULMAZ).
 
-**Task eşlemesi (2026-07-24 uygulandı):** güncellenen mevcut → REV-60 (Set A onaylandı), REV-62 (Güzelsi + bağımsızlık + 3/3), REV-63 (taş bağımsız + undo ürünü), REV-65 (tüm sesler + müzik), REV-67 (kupa/rütbe client modeli), REV-70 (bağımsızlık uygulaması, silme yok). Yeni açılanlar (Mustafa): rütbe/kupa **sunucu motoru**, maç sonu **sonuç ekranı**, maç ekranı **rütbe etiketi + rakip istatistik**, **online kendi teması**, **offline undo satışı**, **reklamla coin (bloklu)**.
+**Task eşlemesi (2026-07-24 uygulandı):** güncellenen mevcut → REV-60 (Set A onaylandı), REV-62 (Güzelsi + bağımsızlık + 3/3), REV-63 (taş bağımsız + undo ürünü), REV-65 (tüm sesler + müzik), REV-67 (kupa/rütbe client modeli), REV-70 (bağımsızlık uygulaması, silme yok). Yeni açılanlar: REV-73 rütbe/kupa **sunucu motoru**, REV-74 maç sonu **sonuç ekranı**, REV-75 maç ekranı **rütbe etiketi + rakip istatistik**, REV-76 **online kendi teması**, REV-77 **offline undo satışı**, REV-78 **reklamla coin (bloklu)**.
+
+**Proje bölünmesi (2026-07-24):** Epic 12 ikiye ayrıldı (toplantı yeni bir gövde doğurdu).
+- **Proje 12 · "Profil, Tasarım & Mağaza"** (`bb9af353-...`): tasarım + mağaza + profil + tema/tahta/taş + ses + ekonomi. Kalan: REV-60/61/62/63/64/65/66/68/69/70/71/72 + REV-77 (offline undo) + REV-78 (reklam, bloklu).
+- **Proje 13 · "Rütbe, Kupa & Maç Deneyimi"** (`0f5344ce-0ce4-4feb-967b-ea2387a5fa42`): rütbe mekaniği + online maç deneyimi. İçindekiler: **REV-67** (kupa/rütbe client modeli), **REV-73** (kupa sunucu motoru), **REV-74** (maç sonu ekranı), **REV-75** (maç ekranı rütbe+rakip istatistik), **REV-76** (online kendi teması). Kanonik model §7C-3/4. Kupa eşikleri şimdilik önerilen değerlerde (0/30/100/250/550/1000), canlı veriyle ileride tune edilecek.
 
 ### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu") — ✅ 7/7 kod tarafı tamam (2026-07-15)
 
