@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/game/reversi_game.dart';
 import '../../../core/theme/board_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import 'checker_painter.dart';
 
 class Slab extends StatelessWidget {
   const Slab({
@@ -85,7 +86,10 @@ class Slab extends StatelessWidget {
         child: SizedBox(
           width: feltSize,
           height: feltSize,
-          child: CustomPaint(painter: GridPainter(palette: p)),
+          child: CustomPaint(
+            painter: p == null ? const CheckerPainter() : null,
+            foregroundPainter: GridPainter(palette: p),
+          ),
         ),
       ),
     );

@@ -42,6 +42,11 @@ class GameColors {
   static const gridLine = Color(0x9E2E1B0B);
   static const gridHi = Color(0x33FFE8C4);
   static const starDot = Color(0xD9281709);
+
+  // Wood-theme checkerboard tints, painted over wood-surface.png so the grain
+  // shows through. Dark squares read as walnut, light squares as maple.
+  static const checkerDark = Color(0x66271607);
+  static const checkerLight = Color(0x1FFFF1D8);
 }
 
 const creamShellGradient = LinearGradient(
