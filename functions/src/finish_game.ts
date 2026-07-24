@@ -10,6 +10,7 @@ import {onDocumentUpdated} from "firebase-functions/v2/firestore";
 
 import {replay, ReplayMove, Disc} from "./reversi";
 import {earnedXp, earnedCoins, level, GameOutcome} from "./xp_level";
+import {trophyDelta, rankFor} from "./trophy";
 import {isGuest} from "./guest";
 import {weekId} from "./leaderboard";
 
@@ -165,10 +166,18 @@ function applyReward(
   const bestStreak = online.bestStreak ?? 0;
   const totalFlipped = online.totalFlipped ?? 0;
   const bestScoreDiff = online.bestScoreDiff ?? 0;
+  const trophies = online.trophies ?? 0;
 
   const outcome: GameOutcome =
     winnerColor === null ? "draw" : winnerColor === myColor ? "win" : "loss";
   const oppLevel = level((oppData?.xp as number) ?? 0);
+
+  // Trophy ladder (REV-73): loss penalty scales with the PRE-game rank, so the
+  // rank must be read from `trophies` before the delta is applied. Trophies
+  // never drop below zero.
+  const gainedTrophies = trophyDelta(outcome, scoreDiff, trophies);
+  const newTrophies = Math.max(0, trophies + gainedTrophies);
+  const newRank = rankFor(newTrophies).id;
 
   const gainedXp = earnedXp({
     outcome,
@@ -201,6 +210,11 @@ function applyReward(
         totalFlipped: totalFlipped + myFlips,
         bestScoreDiff:
           outcome === "win" ? Math.max(bestScoreDiff, scoreDiff) : bestScoreDiff,
+        // Trophy ladder + derived rank (REV-73). `rank` is denormalized for
+        // cheap reads (match screen, opponent preview); it self-heals every
+        // game so it can never drift from `trophies`.
+        trophies: newTrophies,
+        rank: newRank,
       },
       updatedAt: FieldValue.serverTimestamp(),
     },
@@ -217,6 +231,11 @@ function applyReward(
       scoreDiff,
       flipped: myFlips,
       oppLevel,
+      // Trophy change this game + resulting total/rank (REV-73), so the
+      // match-result screen (REV-74) can show "+3 kupa" and rank progress.
+      trophyDelta: gainedTrophies,
+      trophies: newTrophies,
+      rank: newRank,
     },
     {merge: true}
   );
