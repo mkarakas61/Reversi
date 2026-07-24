@@ -126,11 +126,24 @@ class _WoodBoardState extends State<WoodBoard>
         Offset project(Offset p) => MatrixUtils.transformPoint(transform, p);
 
         (Offset, double) cellGeometry(int r, int c) {
-          final centerLocal =
-              Offset(_framePad + (c + 0.5) * cell, _framePad + (r + 0.5) * cell);
-          final center = project(centerLocal);
-          final edge = project(centerLocal + Offset(cell / 2, 0));
-          final coinW = (edge.dx - center.dx).abs() * 2 * 0.86;
+          // Derive the coin from the SAME projected square the checker/grid
+          // painters draw, so piece and cell share one source of truth. Using
+          // the projected quad's visual (area) center — not the projection of
+          // the cell's center point — matches where the eye reads the square's
+          // middle under perspective, which is where the misalignment came from.
+          final x0 = _framePad + c * cell;
+          final y0 = _framePad + r * cell;
+          final tl = project(Offset(x0, y0));
+          final tr = project(Offset(x0 + cell, y0));
+          final br = project(Offset(x0 + cell, y0 + cell));
+          final bl = project(Offset(x0, y0 + cell));
+          final center = Offset(
+            (tl.dx + tr.dx + br.dx + bl.dx) / 4,
+            (tl.dy + tr.dy + br.dy + bl.dy) / 4,
+          );
+          final topW = (tr.dx - tl.dx).abs();
+          final botW = (br.dx - bl.dx).abs();
+          final coinW = (topW + botW) / 2 * 0.86;
           return (center, coinW);
         }
 
