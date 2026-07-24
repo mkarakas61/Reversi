@@ -5,7 +5,9 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-24** · Son commit: `8d77e95` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-25** · Son commit: `9dab795` · Sürüm: `0.1.0+1`
+
+> **⏳ TEST BEKLEYEN TOPLU İŞ — 10 iş In Review (hepsi kodlandı + prod deploy + APK telefon/emülatörde):** REV-67, 70, 73, 74, 75, 76, 79, 80, 81, 82. Rütbe/kupa sistemi (XP tamamen kaldırıldı), tema tüm ekranlarda (Güzelsi/Orijinal), tema/tahta/taş **tam bağımsız — her taş her tahtada** (emülatörde görsel doğrulandı: mermer taş turkuaz tahtada), maç deneyimi (sonuç ekranı ±kupa, rütbe etiketi, rakip istatistik). **Mustafa cihazda tam test edip Done'a çekecek.** Bilinen küçük kozmetik: Güzelsi temasında offline oyuncu-kartı avatarı seçilen coin yerine ahşap disk gösteriyor (bug değil). **Kalan Todo:** REV-60/61 (Enes tasarım kararı), REV-62/63/64/65 (Enes tasarım/ses — In Review'daki dokümanlar Todo'ya çekilmişti, karar bekliyor), REV-68/69/71/72/77 (mağaza — Enes asset'lerine bağlı), REV-78 (reklam — bloklu).
 
 ---
 
