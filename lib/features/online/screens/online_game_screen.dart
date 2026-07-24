@@ -7,9 +7,11 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/game/reversi_game.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/online_game.dart';
+import '../../../core/models/online_stats.dart';
 import '../../../core/models/progress_history.dart';
 import '../../../core/models/rank.dart';
 import '../../../core/services/online_game_service.dart';
+import '../../../core/services/player_profile_service.dart';
 import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/coin_palette.dart';
@@ -51,6 +53,10 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   Timer? _heartbeat;
   bool _heartbeatStarted = false;
   bool _claiming = false;
+  // The opponent's public profile + ranked stats, fetched once when the game
+  // loads (REV-75). Null for a guest opponent or until the fetch returns.
+  PublicProfile? _oppProfile;
+  bool _oppFetchStarted = false;
 
   @override
   void dispose() {
@@ -117,6 +123,18 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     }
   }
 
+  /// Reads the opponent's public profile once (rank label + tap-to-view stats,
+  /// REV-75). Skipped for a guest opponent (no `users` doc).
+  void _maybeFetchOpponent(OnlineGame g, String myUid) {
+    if (_oppFetchStarted) return;
+    _oppFetchStarted = true;
+    final oppUid = g.opponentUid(myUid);
+    if (g.infoFor(oppUid)['isGuest'] == true) return;
+    PlayerProfileService.instance.fetch(oppUid).then((p) {
+      if (mounted && p != null) setState(() => _oppProfile = p);
+    });
+  }
+
   Future<void> _confirmLeave(OnlineGame? g, String myUid) async {
     // Finished, cancelled, or not yet loaded: just leave, no action.
     if (g == null || g.isFinished || g.isCancelled) {
@@ -181,6 +199,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         final g = snapshot.data;
         if (g != null) {
           _sync(g, myUid, strings);
+          _maybeFetchOpponent(g, myUid);
           if (g.isFinished || g.isCancelled) {
             _heartbeat?.cancel();
           }
@@ -223,6 +242,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         infoMessage: _infoMessage,
                         onInfoDismissed: _dismissInfo,
                         onLeave: () => _confirmLeave(g, myUid),
+                        opponentProfile: _oppProfile,
                       ),
               ),
             ),
@@ -243,6 +263,7 @@ class _GameBody extends StatelessWidget {
     required this.infoMessage,
     required this.onInfoDismissed,
     required this.onLeave,
+    required this.opponentProfile,
   });
 
   final OnlineGame game;
@@ -253,6 +274,10 @@ class _GameBody extends StatelessWidget {
   final String? infoMessage;
   final VoidCallback onInfoDismissed;
   final VoidCallback onLeave;
+
+  /// Opponent's public profile for the rank label + tap-to-view stats (REV-75);
+  /// null for a guest opponent or until the one-shot fetch returns.
+  final PublicProfile? opponentProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +293,8 @@ class _GameBody extends StatelessWidget {
 
     final opp = game.infoFor(game.opponentUid(myUid));
     final me = ProfileScope.of(context).profile;
+    final oppName = opp['name'] as String? ?? '—';
+    final oppPhoto = opp['photo'] as String?;
 
     return Stack(
       children: [
@@ -275,11 +302,29 @@ class _GameBody extends StatelessWidget {
           children: [
             _TopBar(title: strings.onlinePlay, onLeave: onLeave),
             _PlayerStrip(
-              name: opp['name'] as String? ?? '—',
-              photoUrl: opp['photo'] as String?,
+              name: oppName,
+              photoUrl: oppPhoto,
               score: game.game.scoreFor(oppColor),
               coin: settings.opponentCoin,
               active: !game.isFinished && !isMyTurn,
+              rank: opponentProfile?.stats.rank,
+              // Tap the opponent to view their full online stats (REV-75).
+              onTap: opponentProfile == null
+                  ? null
+                  : () {
+                      SoundService.instance.playSfx(Sfx.button);
+                      showModalBottomSheet<void>(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => _OpponentStatsSheet(
+                          name: opponentProfile!.name ?? oppName,
+                          photoUrl: opponentProfile!.photoUrl ?? oppPhoto,
+                          level: opponentProfile!.level,
+                          stats: opponentProfile!.stats,
+                          strings: strings,
+                        ),
+                      );
+                    },
             ),
             Expanded(
               child: Padding(
@@ -310,6 +355,7 @@ class _GameBody extends StatelessWidget {
               score: game.game.scoreFor(myColor),
               coin: settings.yourCoin,
               active: isMyTurn,
+              rank: (me != null && !me.isGuest) ? me.online.rank : null,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -438,6 +484,8 @@ class _PlayerStrip extends StatelessWidget {
     required this.score,
     required this.coin,
     required this.active,
+    this.rank,
+    this.onTap,
   });
 
   final String name;
@@ -446,14 +494,22 @@ class _PlayerStrip extends StatelessWidget {
   final CoinColor coin;
   final bool active;
 
+  /// The player's rank, shown as a compact badge above the name (REV-75); null
+  /// for a guest or an unknown opponent.
+  final Rank? rank;
+
+  /// Tapping the strip opens the player's full online stats (opponent only).
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
     final palette = coinPalettes[coin]!;
+    final strings = AppStrings.of(context);
+    final r = rank;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: active ? 0.96 : 0.82),
         borderRadius: BorderRadius.circular(16),
@@ -462,31 +518,69 @@ class _PlayerStrip extends StatelessWidget {
           width: 2.5,
         ),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-            backgroundImage: hasUrl ? NetworkImage(url) : null,
-            child: hasUrl
-                ? null
-                : const Icon(Icons.person_rounded,
-                    size: 18, color: GameColors.onAccent),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                color: GameColors.ink,
-              ),
-            ),
-          ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+                  backgroundImage: hasUrl ? NetworkImage(url) : null,
+                  child: hasUrl
+                      ? null
+                      : const Icon(Icons.person_rounded,
+                          size: 18, color: GameColors.onAccent),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (r != null) ...[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.military_tech, size: 12, color: r.color),
+                            const SizedBox(width: 3),
+                            Text(
+                              strings.rankTitle(r.id),
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 11,
+                                color: Color.alphaBlend(
+                                    const Color(0x33000000), r.color),
+                              ),
+                            ),
+                            if (onTap != null) ...[
+                              const SizedBox(width: 3),
+                              const Icon(Icons.info_outline,
+                                  size: 11, color: GameColors.inkSoft),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 1),
+                      ],
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: GameColors.ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
           Container(
             width: 34,
             height: 34,
@@ -512,9 +606,12 @@ class _PlayerStrip extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
   }
 }
 
@@ -794,6 +891,115 @@ class _StatCell extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Bottom sheet showing an opponent's full online record, opened by tapping the
+/// opponent strip during a match (REV-75).
+class _OpponentStatsSheet extends StatelessWidget {
+  const _OpponentStatsSheet({
+    required this.name,
+    required this.photoUrl,
+    required this.level,
+    required this.stats,
+    required this.strings,
+  });
+
+  final String name;
+  final String? photoUrl;
+  final int level;
+  final OnlineStats stats;
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl;
+    final hasUrl = url != null && url.isNotEmpty;
+    final winRatePercent = (stats.winRate * 100).round();
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+                  backgroundImage: hasUrl ? NetworkImage(url) : null,
+                  child: hasUrl
+                      ? null
+                      : const Icon(Icons.person_rounded,
+                          size: 24, color: GameColors.onAccent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 20,
+                          color: GameColors.ink,
+                        ),
+                      ),
+                      Text(
+                        '${strings.level} $level',
+                        style: const TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: GameColors.inkSoft,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                RankBadge(rank: stats.rank, trophies: stats.trophies),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _StatCell(label: strings.statsWins, value: '${stats.wins}'),
+                _StatCell(label: strings.statsLosses, value: '${stats.losses}'),
+                _StatCell(label: strings.statsDraws, value: '${stats.draws}'),
+                _StatCell(
+                    label: strings.statsWinRate, value: '%$winRatePercent'),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _StatCell(
+                    label: strings.matchStreak,
+                    value: '${stats.currentStreak}'),
+                _StatCell(
+                    label: strings.statsBestStreak,
+                    value: '${stats.bestStreak}'),
+                _StatCell(
+                    label: strings.statsBestScoreDiff,
+                    value: '${stats.bestScoreDiff}'),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
