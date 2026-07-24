@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-24** · Son commit: `826d7fd` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-24** · Son commit: `8d77e95` · Sürüm: `0.1.0+1`
 
 ---
 
@@ -39,7 +39,7 @@ Son güncelleme: **2026-07-24** · Son commit: `826d7fd` · Sürüm: `0.1.0+1`
 ### Test durumu
 - 84/84 Flutter testi + 25/25 functions testi yeşil. Release APK derleniyor.
 - Restorasyon sonrası (452b102) **telefona kuruldu, açılış + otomatik Google oturumu doğrulandı**. ✅ **2 hesaplı tam online smoke test YAPILDI (2026-07-24, `9721dbf` build, telefon+emülatör):** misafir↔misafir ve misafir↔imzalı eşleşme/oyun sorunsuz bitti, istatistikler işliyor. Misafir online giriş fix'i (`c2269a3`) + prod deploy doğrulandı.
-- Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-81e9dd5.apk` (2026-07-23, release-imzalı, universal, GitHub main ile aynı — `81e9dd5`).
+- Ekip test APK'sı: `~/Desktop/Reversi-0.1.0-8d77e95.apk` (2026-07-24, release-imzalı, universal, `8d77e95` — rütbe/kupa + XP kaldırma + tema + mermer/çiçek render dahil). Emülatöre kuruldu; **telefon kablosuz bağlantısı düştü → yeni eşleştirme kodu gerekli.**
 
 ## 4. MİMARİ
 
