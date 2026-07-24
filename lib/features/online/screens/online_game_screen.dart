@@ -19,8 +19,10 @@ import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/info_popup.dart';
 import '../../../shared/widgets/rank_badge.dart';
+import '../../../core/theme/board_palette.dart';
 import '../../board/board_move.dart';
 import '../../board/wood_board.dart';
+import '../widgets/online_board.dart';
 import '../../settings/settings_screen.dart';
 
 /// Live online match. Both clients render from the shared game document; the
@@ -332,19 +334,39 @@ class _GameBody extends StatelessWidget {
                 child: Center(
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: WoodBoard(
-                      board: game.game.board,
-                      validMoves: isMyTurn ? game.game.validMoves : const {},
-                      lastMove: game.game.lastMove,
-                      theme: settings.board,
-                      blackCoin: blackCoin,
-                      whiteCoin: whiteCoin,
-                      move: move,
-                      onCellTap: (pos) {
-                        if (!isMyTurn) return;
-                        OnlineGameService.instance.submitMove(game, pos, myUid);
-                      },
-                    ),
+                    // Route by board type (REV-80): asset boards (wood/mermer/
+                    // cicek) render via OnlineBoard with their baked discs;
+                    // gradient boards via WoodBoard with the player's coins.
+                    child: rendersWithOnlineBoard(settings.board)
+                        ? OnlineBoard(
+                            board: game.game.board,
+                            validMoves:
+                                isMyTurn ? game.game.validMoves : const {},
+                            lastMove: game.game.lastMove,
+                            showHints: isMyTurn,
+                            theme: settings.board,
+                            move: move,
+                            onCellTap: (pos) {
+                              if (!isMyTurn) return;
+                              OnlineGameService.instance
+                                  .submitMove(game, pos, myUid);
+                            },
+                          )
+                        : WoodBoard(
+                            board: game.game.board,
+                            validMoves:
+                                isMyTurn ? game.game.validMoves : const {},
+                            lastMove: game.game.lastMove,
+                            theme: settings.board,
+                            blackCoin: blackCoin,
+                            whiteCoin: whiteCoin,
+                            move: move,
+                            onCellTap: (pos) {
+                              if (!isMyTurn) return;
+                              OnlineGameService.instance
+                                  .submitMove(game, pos, myUid);
+                            },
+                          ),
                   ),
                 ),
               ),

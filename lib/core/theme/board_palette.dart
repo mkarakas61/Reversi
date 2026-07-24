@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../settings/app_settings.dart';
 
+/// Boards that `WoodBoard` can't draw (marble slab, floral board) are rendered
+/// by `OnlineBoard` from their baked-in image assets + matched discs. Wood and
+/// the gradient boards stay on `WoodBoard` (procedural coins). REV-80: routing
+/// is by the board itself, not the app theme, so marble/flower render correctly
+/// under either theme, offline and online (previously they only worked in the
+/// wood theme and broke — flower fell back to brown wood — otherwise).
+bool rendersWithOnlineBoard(BoardTheme theme) =>
+    theme == BoardTheme.mermer || theme == BoardTheme.cicek;
+
 class BoardPalette {
   const BoardPalette({
     required this.frame,
