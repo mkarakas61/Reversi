@@ -107,6 +107,8 @@ firestore.rules  ·  firestore.indexes.json
 | 2026-07-15 | **REV-66 (sunucu: coin açılışı + cüzdan/mağaza altyapısı) tamamlandı, In Review'a taşındı — Epic 12 kod sırasının ilk halkası.** `finish_game.ts`: coin ödülü açıldı (`earnedCoins`, galibiyet 10/beraberlik 5/mağlubiyet 2), **back-fill YAPILMADI** (bugünden itibaren sayılır — bu bir ürün kararıdır, Mustafa isterse ayrı bir migration ile geriye dönük eklenebilir). Yeni `purchaseItem` callable Function: transaction ile bakiye kontrolü + düşme + `ownedItems`'a ekleme, zaten-sahip/yetersiz-bakiye hataları. Yeni `catalog.ts` — **katalog şu an bilerek BOŞ**, REV-61 (çerçeveler)/REV-62 (tahtalar)/REV-63 (mağaza tasarımı) teslim edilince REV-68/70'te doldurulacak; o ana kadar her satın alma "not-found" döner. `coins`/`ownedItems`/`equipped` alanları zaten mevcut kural mimarisiyle Functions-only (client update kuralı yalnız `displayName`/`photoUrl`/`updatedAt`'e izin veriyor) — kural değişikliği gerekmedi. 25/25 functions testi yeşil (1 yeni). **Henüz prod'a deploy edilmedi.** |
 | 2026-07-15 | **Düzeltme:** REV-67..72 yanlışlıkla In Progress'te bırakılmıştı (bloklu olduklarını sadece yorumla belirtmiştim, board'da taşımamıştım) — rutin her 6 saatte bunları yeniden keşfedip gereksiz yorum üretirdi. Kuralımıza uygun şekilde hepsini **Todo'ya** geri çektim. Enes REV-60..65'ten birini teslim edince ilgili REV-6x In Progress'e çekilir. |
 | 2026-07-17..18 | **Enes'in ajanı REV-60..65'i teslim etti** (zincirleme PR'lar #10→#15, GitHub'da), Linear'da **In Review**'a taşıdı. Hepsi **yalnız tasarım dokümanı** (`TASARIM/rev-6x-*.md`) — kod/pubspec/asset PNG'lerine dokunulmadı; somut görsel/ses assetleri "ekip kararı sonrası Gemini'de / kayıt yapılarak üretilecek" notuyla erteli. |
+| 2026-07-23 | **Aile toplantısı** (Family Business). Reversi için kararlar: yayıncı firmayla görüşme; varsayılan tema turkuaz-krem + Ayşe'nin "Güzelsi" alternatifi; tema/tahta/taş tam bağımsız; 3 ücretsiz+3 ücretli tahta; rütbe seti onayı; kupa mantığı + mağlubiyet puan düşüşü; iç ekonomi/coin+reklam+IAP; görev dağılımı (Ayşe/Enes tasarım+ses aynı hesap, Sena yardımcı, Enes test). Tüm kararlar **§7C**'de kanonik. |
+| 2026-07-24 | **Toplantı kararları Claude ile task'lara işlendi.** Rütbe sistemi Mustafa ile çalışıldı → tek "kupa" merdiveni (skor farkına bağlı kazanç, rütbeye göre artan mağlubiyet cezası, öz-dengeli). Mevcut Epic 12 task'ları (REV-60/62/63/65/67/70) toplantı kararlarına göre güncellendi; yeni task'lar açıldı (rütbe/kupa sunucu motoru, maç sonu sonuç ekranı, maç ekranı rütbe+rakip istatistik, online kendi teması, offline undo satışı, reklamla coin). Ayrıntı §7C. |
 | 2026-07-24 | **Enes'in REV-60..65 teslimleri Claude ile kontrol edildi.** Teknik doğruluk kontrolü (XP eğrisi, `AppThemeId`/`BoardTheme` kuplajı, `catalog.ts`/`purchase.ts` şeması, `coin_palette.dart`, ekran iskeletleri kaynak kodla karşılaştırıldı) → **hata bulunmadı**, dokümanlar kod gerçeğiyle birebir tutarlı. Ama: (a) **PR #10-#15'ten hiçbiri merge edilmedi** (main'de değil, şimdilik bilerek merge edilmiyor), (b) **her task'ta ekip kararı bekleyen açık noktalar var** (ünvan seti, kademe eşikleri, fiyat mutlak değerleri, shell tercihi vb.), (c) **REV-62 ile REV-63 arasında çelişki:** REV-62 disk-renk seçicisinin (`CoinColor`) tamamen kaldırılmasını önerirken REV-63 mağazada "Taş Renkleri" diye ücretli kategori öneriyor — Enes'in kendi dokümanında da flaglenmiş, karara bağlanmalı. (d) **REV-65'te gerçek ses dosyası yok**, yalnız yönerge (seslendirme insan işi + tetik noktaları henüz kodda yok). Bu yüzden **REV-60..65 hepsi tekrar Todo'ya çekildi**, her birine Linear'da bu bulguları özetleyen teknik yorum eklendi (Enes'in ajanı okuyup devam edebilsin diye). Mustafa'nın 2026-07-23 ekip toplantısı notları geldiğinde kararlar + olası yeni task'lar buraya işlenecek. |
 
 ## 6. TEST ORTAMI
@@ -141,7 +143,44 @@ Linear projesi: `12 · Profil, Tasarım & Mağaza` (id `bb9af353-dafb-4cfe-a87b-
 - REV-67 Seviye ünvanları modeli · REV-68 Çerçeveli avatar + profil detayları · REV-69 Mağaza ekranı kodu (`features/store/`)
 - REV-70 Tema elemesi uygulaması + ayarlar sadeleştirme · REV-71 Mağaza yönlendirmeleri · REV-72 Play Billing IAP (son halka; Play Console ürün tanımı Mustafa'da)
 
-**Bekleyen karar toplantıları:** (1) REV-60 ünvan/kademe onayı, (2) REV-62 eleme + tema ayrımı. Sonuçlar bu dosyaya işlenecek.
+**Bekleyen karar toplantıları:** ✅ İkisi de 2026-07-23 aile toplantısında karara bağlandı → bkz. **§7C**.
+
+### 7C. AİLE TOPLANTISI KARARLARI (2026-07-23) — kanonik
+
+Kaynak: `~/Downloads/-FAMİLY BUSİNESS- ...pdf` (toplantı notları). Katılım: Süleyman, Cahide, Enes, Mustafa, Ayşe, Sena, Betül, Hamza. Bu bölüm toplantıda kesinleşen kararların **tek kanonik kaydıdır**; task içerikleri buna göre güncellendi/açıldı (2026-07-24, Mustafa'nın Claude oturumu).
+
+**1. Görev dağılımı (netleşti):**
+- **Ayşe + Enes aynı bilgisayarı/Linear hesabını (argedikas@gmail.com) paylaşıyor** → tüm **görsel tasarım + ses** task'ları tek kimlik olarak **Enes**'e atanır. **Sena** ses/müzikte yardımcı — **ona ayrı task açılmaz.**
+- Enes ayrıca oyun testi/bug tespiti yapacak (toplantı görev dağılımı), ama Linear'da tasarım/ses task'ları onda kalıyor.
+- Mustafa: Reversi kodlaması + iç ekonomi/puanlama hesaplama + TASK açımı. Yayıncı (dağıtımcı) firmayla anlaşma sürecinde.
+
+**2. Tema / tahta / taş — tam bağımsızlık:**
+- **Varsayılan tema = Turkuaz-Krem klasik** (mevcut `original`). Ayşe'nin **"Güzelsi"** tasarımı (bugünkü **"Özel"** temasının yeni adı) **alternatif tema**.
+- **"Güzelsi" yalnız menü görünümü + genel renk düzenine (shell) etki eder** — tahtaya/taşa DOKUNMAZ.
+- Bugün "Özel" seçilince gelen **3 tahta + 6 taş rengi**, temaya bağlı olmaktan çıkıp **tahta/taş seçimi bölümünde** diğerleriyle birlikte **serbestçe** seçilebilir olur. Tema + tahta + taş = **üç bağımsız eksen**, hiçbir kuplaj yok (mevcut `setAppTheme` board'u zorlama davranışı kalkar; **temalar SİLİNMEZ**).
+- **3 ücretsiz + 3 ücretli/kilitli tahta.** Kilitli ürünler mağazada **hafif şeffaf + kilit simgesi** ile.
+- **Online'da her oyuncu KENDİ seçtiği tema/tahtayı görür** (rakibinkini değil).
+
+**3. Rütbe / Kupa sistemi — tek merdiven (kanonik model):**
+- Tek para birimi **"Kupa"** (trophy), iniş-çıkışlı. **Rütbe = kupa eşiği:** Çaylak · Acemi · Kalfa · Usta · Büyük Usta · Efsane. Eşikler **geometrik** artar (örn. 0 → 30 → 100 → 250 → 550 → 1000; nihai sayılar REV-67/sunucu motorunda oturur).
+- **Kazanç skor FARKINA bağlı:** galibiyet **+3 taban + fark bonusu** (ezici galibiyet ~+6'ya kadar). Beraberlik **+1**.
+- **Mağlubiyet cezası rütbeye göre artar** (Kalfa'dan itibaren başlar): Çaylak/Acemi **0** · Kalfa **−1** · Usta **−2** · Büyük Usta **−4** · Efsane **−6**.
+- **Öz-denge:** bir rütbede tutunmak için gereken galibiyet oranı = `ceza / (kazanç + ceza)` → Kalfa %25, Usta %40, B.Usta %57, Efsane %67. Ceza yükseldikçe tutunmak otomatik zorlaşır (elle dengeleme yok). Erken kademede (0 ceza) düşmeden orta seviyeye çıkılır.
+- **Çevrilen taş sayısı vb.** merdiven tabanı DEĞİL — istatistik olarak kaydedilmeye devam eder (`OnlineStats.totalFlipped` mevcut). Kupa/rütbe alanları `OnlineStats`'a + Firestore'a eklenecek.
+
+**4. Maç deneyimi UX:**
+- **Maç sonu ekranı** (bugün yalnız "Kazandın/Kaybettin + skor"): kazanılan/kaybedilen **kupa**, **rütbe ilerlemesi** ve maç istatistikleri (çevrilen taş, skor farkı, seri) gösterilecek.
+- **Maç ekranında** her iki oyuncunun **adının üstünde küçük rütbe etiketi**.
+- **Maç sırasında rakibin adına/ikonuna basınca** onun tüm online istatistikleri görünecek.
+
+**5. Ses & müzik — komple yenileme:**
+- **Tüm mevcut sesler değişecek:** 9 efekt (`place, flip, invalid, button, tick, timeup, win, lose, draw`) + 2 müzik (`menu_music, game_music`). Ek yeni sesler: mağaza satın alma, coin kazanma, rütbe/kademe atlama, (ops.) kuşanma. + **telifsiz müzik** seçimi. Sena yardımcı.
+
+**6. İç ekonomi / mağaza:**
+- Coin: online galibiyet + (araştırma sonrası) **reklam izleme** + doğrudan satın alma (IAP). Reklam **caiz mi** araştırması + uygun reklam türü **dağıtımcı firma** ile görüşülecek → reklam task'ı **bloklu**.
+- Mağazada kozmetik (tahta/taş/çerçeve) + **offline "hamle geri alma"** satışı (bkz. §8 — offline için iptal kararı gevşetildi; online'a DOKUNULMAZ).
+
+**Task eşlemesi (2026-07-24 uygulandı):** güncellenen mevcut → REV-60 (Set A onaylandı), REV-62 (Güzelsi + bağımsızlık + 3/3), REV-63 (taş bağımsız + undo ürünü), REV-65 (tüm sesler + müzik), REV-67 (kupa/rütbe client modeli), REV-70 (bağımsızlık uygulaması, silme yok). Yeni açılanlar (Mustafa): rütbe/kupa **sunucu motoru**, maç sonu **sonuç ekranı**, maç ekranı **rütbe etiketi + rakip istatistik**, **online kendi teması**, **offline undo satışı**, **reklamla coin (bloklu)**.
 
 ### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu") — ✅ 7/7 kod tarafı tamam (2026-07-15)
 
@@ -163,7 +202,7 @@ Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Mu
 
 ## 8. İPTAL EDİLENLER (TEKRAR ÖNERME)
 
-- **Fantastik Mod + Mağaza (2026-06-19, ekip kararı):** flip-any/delete-any/freeze/ekstra-hamle güçleri + coin/reklam/IAP ile güç-kozmetik-undo satan mağaza. **Oyunun özünü bozduğu için iptal.** Online güçler ayrıca ağır altyapı isterdi (TS engine aksiyon tipleri, move-log şeması, sunucu-doğrulamalı envanter, ayrı eşleşme havuzu). Bir daha gündeme getirme.
+- **Fantastik Mod + Mağaza (2026-06-19, ekip kararı):** flip-any/delete-any/freeze/ekstra-hamle güçleri + coin/reklam/IAP ile güç-kozmetik-undo satan mağaza. **Oyunun özünü bozduğu için iptal.** Online güçler ayrıca ağır altyapı isterdi (TS engine aksiyon tipleri, move-log şeması, sunucu-doğrulamalı envanter, ayrı eşleşme havuzu). Bir daha gündeme getirme. **⚠️ Kısmi güncelleme (2026-07-23 toplantı):** yalnız **offline "hamle geri alma"** satışı bu iptalden istisna tutuldu (offline oyun zaten adil-rekabet dışı). **Online'da undo/güç satışı hâlâ kesin İPTAL** — online adilliği korunur.
 - **Elo puanı:** şimdilik yok; leaderboard metrikleri genişletilebilir bırakıldı.
 - **XP/seviye eğrisi grafiği (REV-58 kapsamında):** monotonik olduğu için anlamsız — Mustafa'nın kararı, eklenmeyecek.
 - **Test botu fikri:** yerine emülatör 2. client oldu.
