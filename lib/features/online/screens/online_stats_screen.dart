@@ -9,6 +9,7 @@ import '../../../core/models/xp_level.dart';
 import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/rank_badge.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
 
@@ -28,9 +29,9 @@ class OnlineStatsScreen extends StatelessWidget {
     final isGuest = profile?.isGuest ?? false;
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
+      backgroundColor: pageSurfaceColor(context),
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: pageBackgroundGradient(context)),
         child: Stack(
           children: [
             Positioned(
@@ -40,8 +41,8 @@ class OnlineStatsScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: headerGradient(context)),
                 ),
               ),
             ),

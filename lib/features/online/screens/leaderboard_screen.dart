@@ -6,6 +6,7 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/services/leaderboard_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
 import '../../menu/widgets/profile_chip.dart' show ProfileAvatar;
 
@@ -74,9 +75,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final profile = ProfileScope.of(context).profile;
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
+      backgroundColor: pageSurfaceColor(context),
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: pageBackgroundGradient(context)),
         child: Stack(
           children: [
             Positioned(
@@ -86,8 +87,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: headerGradient(context)),
                 ),
               ),
             ),

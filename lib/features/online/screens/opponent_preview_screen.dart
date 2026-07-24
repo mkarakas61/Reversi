@@ -8,6 +8,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 import 'online_game_screen.dart';
 
 /// Shown once matched: the opponent's name, photo, level and basic online
@@ -67,7 +68,7 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
       },
       child: Scaffold(
         body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: bannerGradient),
+          decoration: BoxDecoration(gradient: headerGradient(context)),
           child: SafeArea(
             child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance

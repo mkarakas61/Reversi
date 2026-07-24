@@ -16,6 +16,7 @@ import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/info_popup.dart';
 import '../../../shared/widgets/rank_badge.dart';
 import '../../board/board_move.dart';
@@ -228,7 +229,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
           },
           child: Scaffold(
             body: DecoratedBox(
-              decoration: const BoxDecoration(gradient: bannerGradient),
+              decoration: BoxDecoration(gradient: headerGradient(context)),
               child: SafeArea(
                 child: g == null
                     ? const Center(
