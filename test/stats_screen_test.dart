@@ -3,23 +3,29 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reversi/core/l10n/app_strings.dart';
 import 'package:reversi/core/models/game_stats.dart';
+import 'package:reversi/core/services/settings_storage.dart';
+import 'package:reversi/core/settings/app_settings.dart';
 import 'package:reversi/features/stats/stats_screen.dart';
 import 'package:reversi/core/services/stats_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   Future<void> pumpScreen(WidgetTester tester) async {
+    // The screen follows the app theme (REV-88), so it needs the settings.
     await tester.pumpWidget(
-      const MaterialApp(
-        locale: Locale('en'),
-        supportedLocales: AppStrings.supportedLocales,
-        localizationsDelegates: [
-          AppStrings.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        home: StatsScreen(),
+      SettingsScope(
+        controller: SettingsController(const AppSettings(), SettingsStorage()),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          supportedLocales: AppStrings.supportedLocales,
+          localizationsDelegates: [
+            AppStrings.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: StatsScreen(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

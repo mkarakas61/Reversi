@@ -5,20 +5,6 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
-import '../../online/online_tokens.dart';
-
-/// Avatar disc image for the custom (wood) theme, matching the selected board:
-/// flower coins for Çiçek, marble for Mermer, wood otherwise.
-String _avatarDisc(BoardTheme board, bool isDark) {
-  switch (board) {
-    case BoardTheme.cicek:
-      return isDark ? OnlineTokens.flowerDiscBlack : OnlineTokens.flowerDiscWhite;
-    case BoardTheme.mermer:
-      return isDark ? OnlineTokens.marbleDiscBlack : OnlineTokens.marbleDiscWhite;
-    default:
-      return isDark ? WoodTheme.discWalnut : WoodTheme.discMaple;
-  }
-}
 
 class PlayerCard extends StatelessWidget {
   const PlayerCard({
@@ -49,7 +35,6 @@ class PlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wood = isWoodTheme(context);
-    final board = SettingsScope.of(context).settings.board;
     final isDark = side == Disc.black;
     final accent = wood
         ? WoodTheme.gold
@@ -105,45 +90,36 @@ class PlayerCard extends StatelessWidget {
             ),
           Row(
             children: [
-              if (wood)
-                SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: ClipOval(
-                    child: Image.asset(
-                      _avatarDisc(board, isDark),
-                      fit: BoxFit.cover,
-                    ),
+              // The player's own tile, identical in both app themes (REV-88):
+              // the wood theme used to swap in a board-matched disc image here,
+              // which showed a disc instead of the player and ignored the coin
+              // they picked.
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color.lerp(coinColor, Colors.white, 0.2)!,
+                      Color.lerp(coinColor, Colors.black, 0.15)!,
+                    ],
                   ),
-                )
-              else
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color.lerp(coinColor, Colors.white, 0.2)!,
-                        Color.lerp(coinColor, Colors.black, 0.15)!,
-                      ],
-                    ),
-                    border:
-                        Border.all(color: const Color(0x14000000), width: 1),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    mono,
-                    style: TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                      color: monoColor,
-                    ),
+                  border: Border.all(color: const Color(0x14000000), width: 1),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  mono,
+                  style: TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    color: monoColor,
                   ),
                 ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
