@@ -272,34 +272,25 @@ class _OnlineBoardState extends State<OnlineBoard>
     // sit a touch smaller so they don't crowd their cells.
     final discSize = cell * (_flower ? 0.82 : _discFactor);
 
-    // Animating disc (flip or just-placed) for the current move. The placed
-    // disc runs the exact same flight+flip choreography as the flipped ones
-    // (both faces its own color); it just leads the wave at ring distance 0.
-    if (anim != null && disc != null) {
-      final isPlaced = pos == anim.placed;
-      if (isPlaced || anim.flipped.contains(pos)) {
-        final newColor = disc; // board already holds the post-move color
-        final oldColor = isPlaced
-            ? newColor
-            : (newColor == Disc.black ? Disc.white : Disc.black);
-        final dist = isPlaced
-            ? 0
-            : math.max(
-                (pos.row - anim.placed.row).abs(),
-                (pos.col - anim.placed.col).abs(),
-              );
-        final t = _waveT(dist);
-        // Unified card-flip for every coin skin (REV-82).
-        return Center(
-          child: AnimatedDiscView(
-            coin: _coinFor(newColor),
-            size: discSize,
-            flipFrom: isPlaced ? null : _coinFor(oldColor),
-            t: t,
-            appear: isPlaced,
-          ),
-        );
-      }
+    // Discs captured by the current move turn over. The just-placed disc is
+    // simply set down (REV-86), so it falls through to the resting disc below —
+    // which is also what carries the last-move ring.
+    if (anim != null && disc != null && anim.flipped.contains(pos)) {
+      final newColor = disc; // board already holds the post-move color
+      final oldColor = newColor == Disc.black ? Disc.white : Disc.black;
+      final dist = math.max(
+        (pos.row - anim.placed.row).abs(),
+        (pos.col - anim.placed.col).abs(),
+      );
+      // One perspective flip for every coin skin (REV-82/84).
+      return Center(
+        child: AnimatedDiscView(
+          coin: _coinFor(newColor),
+          size: discSize,
+          flipFrom: _coinFor(oldColor),
+          t: _waveT(dist),
+        ),
+      );
     }
 
     return Stack(

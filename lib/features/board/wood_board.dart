@@ -177,7 +177,17 @@ class _WoodBoardState extends State<WoodBoard>
 
               for (final pos in affected) {
                 final (center, coinW) = cellGeometry(pos.row, pos.col);
-                final isPlaced = pos == anim.placed;
+
+                // The disc you just played is simply set down — only the discs
+                // it captures turn over (REV-86).
+                if (pos == anim.placed) {
+                  coinWidgets.add(Positioned(
+                    left: center.dx - coinW / 2,
+                    top: center.dy - coinW / 2,
+                    child: DiscView(coin: newCoin, size: coinW),
+                  ));
+                  continue;
+                }
 
                 // Wave timing: this coin's own 0..1 progress, delayed by its
                 // ring distance from the placed coin.
@@ -188,18 +198,16 @@ class _WoodBoardState extends State<WoodBoard>
                 final lp = ((p * _totalMs - dist * _staggerMs) / _coinMs)
                     .clamp(0.0, 1.0);
 
-                // Unified card-flip for every coin skin (REV-82): flipped discs
-                // turn from their old coin to the new one; the placed disc fades
-                // in. Same animation on every board.
+                // One perspective flip for every coin skin (REV-82/84), the
+                // same on every board.
                 coinWidgets.add(Positioned(
                   left: center.dx - coinW / 2,
                   top: center.dy - coinW / 2,
                   child: AnimatedDiscView(
                     coin: newCoin,
                     size: coinW,
-                    flipFrom: isPlaced ? null : oldCoin,
+                    flipFrom: oldCoin,
                     t: lp,
-                    appear: isPlaced,
                   ),
                 ));
               }

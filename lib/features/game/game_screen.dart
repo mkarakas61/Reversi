@@ -505,6 +505,14 @@ class _GameScreenState extends State<GameScreen>
     final gameOver = _game.phase == GamePhase.gameOver;
     final blacksTurn = _game.currentPlayer == Disc.black;
 
+    // Hints belong to whoever is about to move: while the AI thinks they would
+    // mark the AI's options, which only reads as noise (REV-86). Two-player
+    // games always show them — both sides are human.
+    final hintsVisible = !gameOver &&
+        !(_isSinglePlayer &&
+            (_aiThinking || _game.currentPlayer != _humanDisc));
+    final hintMoves = hintsVisible ? validMoves : const <Position>{};
+
     final blackName = _isSinglePlayer
         ? strings.playerYou
         : strings.coinColorLabel(settings.yourCoin);
@@ -592,9 +600,9 @@ class _GameScreenState extends State<GameScreen>
                                     child: OnlineBoard(
                                       key: _boardKey,
                                       board: _game.board,
-                                      validMoves: validMoves,
+                                      validMoves: hintMoves,
                                       lastMove: _game.lastMove,
-                                      showHints: !gameOver,
+                                      showHints: hintsVisible,
                                       onCellTap: _play,
                                       theme: settings.board,
                                       blackCoin: settings.yourCoin,
@@ -604,7 +612,7 @@ class _GameScreenState extends State<GameScreen>
                                   )
                                 : WoodBoard(
                                     board: _game.board,
-                                    validMoves: validMoves,
+                                    validMoves: hintMoves,
                                     lastMove: _game.lastMove,
                                     onCellTap: _play,
                                     theme: settings.board,

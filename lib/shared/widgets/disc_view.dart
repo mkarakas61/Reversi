@@ -44,9 +44,9 @@ class DiscView extends StatelessWidget {
 /// an image disc's PNG — so a marble disc can turn into a turquoise coin and
 /// both ends still land exactly on their resting look.
 ///
-/// - [flipFrom] null → static disc showing [coin].
-/// - [appear] true → the just-placed disc, which runs the same flight and turn
-///   with its own skin on both faces, and pops in at launch.
+/// Only captured discs turn: the disc a player just placed is set down as a
+/// resting [DiscView] (REV-86). With [flipFrom] null this widget is exactly
+/// that resting disc.
 class AnimatedDiscView extends StatelessWidget {
   const AnimatedDiscView({
     super.key,
@@ -54,7 +54,6 @@ class AnimatedDiscView extends StatelessWidget {
     required this.size,
     this.flipFrom,
     this.t = 1.0,
-    this.appear = false,
   });
 
   /// The disc's final skin (the current board color's chosen coin).
@@ -66,9 +65,6 @@ class AnimatedDiscView extends StatelessWidget {
 
   /// Flip progress in [0, 1].
   final double t;
-
-  /// Whether this is the freshly placed disc (pops in as it launches).
-  final bool appear;
 
   /// Side wall when the disc stands edge-on, × diameter. Chosen so a procedural
   /// coin's wall at rest comes out at [kCoinRestThickness].
@@ -100,7 +96,7 @@ class AnimatedDiscView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final from = flipFrom ?? (appear ? coin : null);
+    final from = flipFrom;
     if (from == null) return DiscView(coin: coin, size: size);
 
     final p = t.clamp(0.0, 1.0);
@@ -168,7 +164,6 @@ class AnimatedDiscView extends StatelessWidget {
     // Flight arc: brisk launch, then a gentle float down that settles with zero
     // vertical speed — no abrupt click at touchdown.
     final lift = math.sin(math.pi * Curves.easeOutSine.transform(p));
-    final opacity = appear ? (p / 0.05).clamp(0.0, 1.0) : 1.0;
 
     return SizedBox(
       width: size,
@@ -183,10 +178,7 @@ class AnimatedDiscView extends StatelessWidget {
             translation: Offset(0, -_hover * lift),
             child: Transform.scale(
               scale: 1.0 + _hoverScale * lift,
-              child: Opacity(
-                opacity: opacity,
-                child: Center(child: coinBox),
-              ),
+              child: Center(child: coinBox),
             ),
           ),
         ],
