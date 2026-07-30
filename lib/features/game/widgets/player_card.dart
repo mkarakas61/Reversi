@@ -287,13 +287,19 @@ class TurnPill extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
-              fontWeight: wood ? FontWeight.w600 : FontWeight.w800,
-              fontSize: 13.5,
-              color: wood ? WoodTheme.inkScore : GameColors.onAccent,
+          // The longest status ("Computer is thinking…") outgrows a 360dp-wide
+          // screen, so the label gives way rather than overflowing the pill.
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                fontWeight: wood ? FontWeight.w600 : FontWeight.w800,
+                fontSize: 13.5,
+                color: wood ? WoodTheme.inkScore : GameColors.onAccent,
+              ),
             ),
           ),
         ],

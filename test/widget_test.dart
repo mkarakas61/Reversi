@@ -114,6 +114,35 @@ void main() {
     expect(find.text('AI (Normal)'), findsOneWidget);
   });
 
+  testWidgets('single player hides hints while the AI is to move',
+      (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.text('Single Player'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Easy'));
+    await tester.pump(); // start route transition
+    await tester.pump(const Duration(milliseconds: 400));
+
+    WoodBoard board() => tester.widget<WoodBoard>(find.byType(WoodBoard));
+
+    // The human (black) is to move, so the board gets moves to hint.
+    expect(board().validMoves, isNotEmpty);
+
+    // Black plays: the turn passes to the AI and the hints go away, so they
+    // never mark the AI's options (REV-86).
+    board().onCellTap(const Position(2, 3));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(board().validMoves, isEmpty);
+
+    // Tear the game down before letting the AI's thinking delay elapse: its
+    // move runs in an isolate that never lands under the test clock, so the
+    // loop is left to bail out on `mounted` instead.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 4));
+  });
+
   testWidgets('can switch to Turkish from settings', (tester) async {
     await pumpApp(tester);
 
