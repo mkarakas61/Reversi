@@ -6,6 +6,7 @@ import '../../core/game/reversi_game.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/board_palette.dart';
 import '../../shared/widgets/disc_view.dart';
+import '../../shared/widgets/last_move_marker.dart';
 import 'board_move.dart';
 import 'painters/slab_painter.dart';
 import 'widgets/hint_widget.dart';
@@ -211,6 +212,20 @@ class _WoodBoardState extends State<WoodBoard>
                   ),
                 ));
               }
+            }
+
+            // Laid on top of the disc that was played last, so the move stays
+            // findable now that the placed disc doesn't animate (REV-87).
+            final lastMove = widget.lastMove;
+            final lastDisc =
+                lastMove == null ? null : widget.board[lastMove.row][lastMove.col];
+            if (lastMove != null && lastDisc != null) {
+              final (center, coinW) = cellGeometry(lastMove.row, lastMove.col);
+              coinWidgets.add(Positioned(
+                left: center.dx - coinW / 2,
+                top: center.dy - coinW / 2,
+                child: LastMoveMarker(coin: _coinFor(lastDisc), size: coinW),
+              ));
             }
 
             return SizedBox(

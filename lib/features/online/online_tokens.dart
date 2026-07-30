@@ -56,7 +56,6 @@ class OnlineTokens {
   // Board accents
   static const Color hintFill = Color(0x80C9A66B); // rgba(201,166,107,.5)
   static const Color hintRing = Color(0x8CFFF6E4); // rgba(255,246,228,.55)
-  static const Color lastMoveRing = Color(0xE6C9A66B); // rgba(201,166,107,.9)
 
   // Board geometry (board-crop.png is 754 x 713). Grid fractions measured from
   // the baked-in checkerboard squares so discs center exactly in each square.

@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import '../../../core/game/reversi_game.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../shared/widgets/disc_view.dart';
+import '../../../shared/widgets/last_move_marker.dart';
 import '../../board/board_move.dart';
 import '../online_tokens.dart';
 
 /// 3D tilted wooden board faithful to the "Online Oyna" handoff: a board-crop
 /// PNG with an 8x8 grid of disc PNGs overlaid, legal-move hints, and a
-/// last-move ring. Walnut = black/you, Maple = white/opponent.
+/// last-move marker. Walnut = black/you, Maple = white/opponent.
 class OnlineBoard extends StatefulWidget {
   const OnlineBoard({
     super.key,
@@ -274,7 +275,7 @@ class _OnlineBoardState extends State<OnlineBoard>
 
     // Discs captured by the current move turn over. The just-placed disc is
     // simply set down (REV-86), so it falls through to the resting disc below —
-    // which is also what carries the last-move ring.
+    // which is also what carries the last-move marker.
     if (anim != null && disc != null && anim.flipped.contains(pos)) {
       final newColor = disc; // board already holds the post-move color
       final oldColor = newColor == Disc.black ? Disc.white : Disc.black;
@@ -301,13 +302,13 @@ class _OnlineBoardState extends State<OnlineBoard>
             child: SizedBox(
               width: discSize,
               height: discSize,
-              child: _Disc(
-                coin: _coinFor(disc),
-                size: discSize,
-                isLast: isLast,
-                pulse: _pulse,
-              ),
+              child: _Disc(coin: _coinFor(disc), size: discSize),
             ),
+          ),
+        // Laid on top of the disc played last (REV-87).
+        if (disc != null && isLast)
+          Center(
+            child: LastMoveMarker(coin: _coinFor(disc), size: discSize),
           ),
         if (isHint) _Hint(cell: cell, pulse: _pulse, flower: _flower),
       ],
@@ -316,21 +317,14 @@ class _OnlineBoardState extends State<OnlineBoard>
 }
 
 class _Disc extends StatelessWidget {
-  const _Disc({
-    required this.coin,
-    required this.size,
-    required this.isLast,
-    required this.pulse,
-  });
+  const _Disc({required this.coin, required this.size});
 
   final CoinColor coin;
   final double size;
-  final bool isLast;
-  final AnimationController pulse;
 
   @override
   Widget build(BuildContext context) {
-    Widget image = AnimatedSwitcher(
+    return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       transitionBuilder: (child, anim) => FadeTransition(
         opacity: anim,
@@ -340,40 +334,6 @@ class _Disc extends StatelessWidget {
         ),
       ),
       child: DiscView(key: ValueKey<CoinColor>(coin), coin: coin, size: size),
-    );
-
-    if (!isLast) return image;
-
-    // Last-move ring (rev-ring): pulsing accent border on the disc.
-    return AnimatedBuilder(
-      animation: pulse,
-      builder: (context, child) {
-        final t = (math.sin(pulse.value * 2 * math.pi) + 1) / 2;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            child!,
-            Positioned.fill(
-              child: Transform.scale(
-                scale: 0.9 + 0.15 * t,
-                child: Opacity(
-                  opacity: 0.4 + 0.55 * t,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: OnlineTokens.lastMoveRing,
-                        width: 2.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-      child: image,
     );
   }
 }
