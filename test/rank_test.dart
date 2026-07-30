@@ -39,6 +39,23 @@ void main() {
     });
   });
 
+  group('rankBand', () {
+    test('gives the current floor and the next threshold', () {
+      expect(rankBand(0), (0, 30)); // Çaylak → Acemi
+      expect(rankBand(36), (30, 100)); // Acemi → Kalfa
+      expect(rankBand(100), (100, 250)); // on the Kalfa floor
+    });
+
+    test('has no ceiling at the top rank', () {
+      expect(rankBand(1000), (1000, null));
+      expect(rankBand(5000), (1000, null));
+    });
+
+    test('clamps negatives into the first band', () {
+      expect(rankBand(-5), (0, 30));
+    });
+  });
+
   group('rankProgress', () {
     test('is 0 at a rank floor and ~1 just below the next', () {
       expect(rankProgress(100), 0.0); // Kalfa floor

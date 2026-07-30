@@ -10,6 +10,7 @@ import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/guest_upsell_card.dart';
+import 'rank_road_screen.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
 /// record, plus sign-out. Reached from the menu profile chip. Level/XP and the
@@ -154,8 +155,10 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-/// Rank medal + trophy count with a progress bar toward the next rank
-/// (REV-81 — replaced the old level/XP card; the ladder is trophies now).
+/// Rank medal + trophy count with a progress bar through the current rank band
+/// (REV-81 — replaced the old level/XP card; the ladder is trophies now). The
+/// bar is labelled with the band's own two thresholds rather than a "how many
+/// left" count, and the whole card opens the trophy road.
 class _RankCard extends StatelessWidget {
   const _RankCard({required this.stats, required this.strings});
 
@@ -165,8 +168,16 @@ class _RankCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rank = stats.rank;
-    final toNext = trophiesToNext(stats.trophies);
+    final (floor, ceil) = rankBand(stats.trophies);
     return _Card(
+      onTap: () {
+        SoundService.instance.playSfx(Sfx.button);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => RankRoadScreen(trophies: stats.trophies),
+          ),
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -198,8 +209,7 @@ class _RankCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${stats.trophies} ${strings.trophies}'
-                      '${toNext == null ? ' · ${strings.topRank}' : ' (+$toNext)'}',
+                      '${stats.trophies} ${strings.trophies}',
                       style: const TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w700,
@@ -210,6 +220,8 @@ class _RankCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const Icon(Icons.chevron_right,
+                  size: 22, color: GameColors.inkSoft),
             ],
           ),
           const SizedBox(height: 12),
@@ -222,11 +234,27 @@ class _RankCard extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation(rank.color),
             ),
           ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Text('$floor', style: _bandLabelStyle),
+              const Spacer(),
+              Text(ceil == null ? strings.topRank : '$ceil',
+                  style: _bandLabelStyle),
+            ],
+          ),
         ],
       ),
     );
   }
 }
+
+const TextStyle _bandLabelStyle = TextStyle(
+  fontFamily: 'Nunito',
+  fontWeight: FontWeight.w700,
+  fontSize: 12,
+  color: GameColors.inkSoft,
+);
 
 class _OnlineRecordCard extends StatelessWidget {
   const _OnlineRecordCard({required this.stats, required this.strings});
@@ -385,17 +413,20 @@ class _SignOutButton extends StatelessWidget {
 }
 
 class _Card extends StatelessWidget {
-  const _Card({required this.child});
+  const _Card({required this.child, this.onTap});
 
   final Widget child;
 
+  /// When set, the whole card is tappable (with an ink ripple).
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final radius = BorderRadius.circular(20);
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: radius,
         boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
@@ -404,7 +435,14 @@ class _Card extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Padding(padding: const EdgeInsets.all(16), child: child),
+        ),
+      ),
     );
   }
 }

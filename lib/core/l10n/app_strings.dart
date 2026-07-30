@@ -175,6 +175,8 @@ class AppStrings {
       'trophies': 'Trophies',
       'rankUp': 'Rank up!',
       'topRank': 'Top rank',
+      'trophyRoad': 'Trophy Road',
+      'youAreHere': 'You are here',
       'matchFlipped': 'Flipped',
       'matchMargin': 'Margin',
       'matchStreak': 'Streak',
@@ -333,6 +335,8 @@ class AppStrings {
       'trophies': 'Kupa',
       'rankUp': 'Rütbe atladın!',
       'topRank': 'En yüksek rütbe',
+      'trophyRoad': 'Kupa Yolu',
+      'youAreHere': 'Buradasın',
       'matchFlipped': 'Çevrilen',
       'matchMargin': 'Fark',
       'matchStreak': 'Seri',
@@ -439,6 +443,8 @@ class AppStrings {
   String get trophies => _get('trophies');
   String get rankUp => _get('rankUp');
   String get topRank => _get('topRank');
+  String get trophyRoad => _get('trophyRoad');
+  String get youAreHere => _get('youAreHere');
   String get matchFlipped => _get('matchFlipped');
   String get matchMargin => _get('matchMargin');
   String get matchStreak => _get('matchStreak');

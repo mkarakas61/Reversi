@@ -850,17 +850,25 @@ class _RewardSection extends StatelessWidget {
   }
 }
 
-/// A thin progress bar from the current rank floor to the next rank, or a full
-/// bar labelled "top rank" once Efsane is reached.
+/// A thin progress bar across the current rank band, labelled at its ends with
+/// the band's own thresholds (the next rank's threshold gives way to "top rank"
+/// once Efsane is reached).
 class _RankProgressBar extends StatelessWidget {
   const _RankProgressBar({required this.trophies, required this.strings});
 
   final int trophies;
   final AppStrings strings;
 
+  static const _bandLabel = TextStyle(
+    fontFamily: 'Nunito',
+    fontWeight: FontWeight.w700,
+    fontSize: 11.5,
+    color: GameColors.inkSoft,
+  );
+
   @override
   Widget build(BuildContext context) {
-    final toNext = trophiesToNext(trophies);
+    final (floor, ceil) = rankBand(trophies);
     final rank = rankFor(trophies);
     return Column(
       children: [
@@ -874,14 +882,12 @@ class _RankProgressBar extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        Text(
-          toNext == null ? strings.topRank : '$trophies (+$toNext)',
-          style: const TextStyle(
-            fontFamily: 'Nunito',
-            fontWeight: FontWeight.w700,
-            fontSize: 11.5,
-            color: GameColors.inkSoft,
-          ),
+        Row(
+          children: [
+            Text('$floor', style: _bandLabel),
+            const Spacer(),
+            Text(ceil == null ? strings.topRank : '$ceil', style: _bandLabel),
+          ],
         ),
       ],
     );

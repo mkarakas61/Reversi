@@ -52,6 +52,18 @@ int? trophiesToNext(int trophies) {
   return kRanks[idx + 1].minTrophies - trophies;
 }
 
+/// The trophy band of the rank held at [trophies]: its inclusive floor and the
+/// next rank's threshold, which is `null` at the top rank. These are the two
+/// numbers shown at the ends of a rank progress bar (so the player reads where
+/// the band starts and ends instead of a bare "how many left" count).
+(int, int?) rankBand(int trophies) {
+  final idx = kRanks.indexOf(rankFor(trophies));
+  return (
+    kRanks[idx].minTrophies,
+    idx == kRanks.length - 1 ? null : kRanks[idx + 1].minTrophies,
+  );
+}
+
 /// Progress in `[0, 1]` through the current rank band toward the next rank;
 /// `1.0` once the top rank is reached. Used by the profile / match-result
 /// progress bars (REV-67 display, REV-74).

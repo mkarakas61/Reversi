@@ -5,9 +5,16 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-25** · Son commit: `9dab795` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-07-30** · Son commit: `9dab795` · Sürüm: `0.1.0+1`
 
-> **⏳ TEST BEKLEYEN TOPLU İŞ — 10 iş In Review (hepsi kodlandı + prod deploy + APK telefon/emülatörde):** REV-67, 70, 73, 74, 75, 76, 79, 80, 81, 82. Rütbe/kupa sistemi (XP tamamen kaldırıldı), tema tüm ekranlarda (Güzelsi/Orijinal), tema/tahta/taş **tam bağımsız — her taş her tahtada** (emülatörde görsel doğrulandı: mermer taş turkuaz tahtada), maç deneyimi (sonuç ekranı ±kupa, rütbe etiketi, rakip istatistik). **Mustafa cihazda tam test edip Done'a çekecek.** Bilinen küçük kozmetik: Güzelsi temasında offline oyuncu-kartı avatarı seçilen coin yerine ahşap disk gösteriyor (bug değil). **Kalan Todo:** REV-60/61 (Enes tasarım kararı), REV-62/63/64/65 (Enes tasarım/ses — In Review'daki dokümanlar Todo'ya çekilmişti, karar bekliyor), REV-68/69/71/72/77 (mağaza — Enes asset'lerine bağlı), REV-78 (reklam — bloklu).
+> **🔎 2026-07-30 CİHAZ TESTİ (Mustafa) — 3 maddede geri bildirim, 2'si düzeltildi:**
+> 1. **Rütbe sistemi çalışıyor.** Tek sorun: "36 Kupa (+64)" gösterimi anlaşılmıyordu → **REV-83** ile kalan kupa gösterimi hem profilden hem maç sonu ekranından kaldırıldı, çubuğun uçlarına bandın kendi eşikleri yazıldı (30 … 100). Ayrıca profil rütbe kartı tıklanabilir oldu → yeni **Kupa Yolu** ekranı (dikey yol, rütbeler bir sağ bir sol, oyuncunun konumu çizgide işaretli, tema-duyarlı).
+> 2. **Tema/tahta/taş bağımsızlığı çalışıyor**, ama taş animasyonu perspektifini kaybetmişti (REV-82 regresyonu) → **REV-84** ile hacimli devrilme geri getirildi (kenar kalınlığı + havada yay + yer gölgesi), bu kez **hem prosedürel hem resim-disk taşlar** için, karışık çift dahil. Gerçek 3D ışık/hacim hedefi ayrı iş: **REV-85** (Blender'dan kare dizisi, Enes'te).
+> 3. **Tema diğer ekranlarda sorunsuz.** Yeni Kupa Yolu ekranı da tema-duyarlı yazıldı.
+>
+> Emülatör notu: bir kez adb'ye cevap vermeyecek şekilde kilitlendi (CPU ~%300, `offline`), Android Studio'dan **Cold Boot** ile düzeldi.
+
+> **⏳ TEST BEKLEYEN TOPLU İŞ — 12 iş In Review (hepsi kodlandı + prod deploy + APK telefon/emülatörde):** REV-67, 70, 73, 74, 75, 76, 79, 80, 81, 82, **83, 84**. Rütbe/kupa sistemi (XP tamamen kaldırıldı), tema tüm ekranlarda (Güzelsi/Orijinal), tema/tahta/taş **tam bağımsız — her taş her tahtada** (emülatörde görsel doğrulandı: mermer taş turkuaz tahtada), maç deneyimi (sonuç ekranı ±kupa, rütbe etiketi, rakip istatistik). **Mustafa cihazda tam test edip Done'a çekecek.** Bilinen küçük kozmetik: Güzelsi temasında offline oyuncu-kartı avatarı seçilen coin yerine ahşap disk gösteriyor (bug değil). **Kalan Todo:** REV-60/61 (Enes tasarım kararı), REV-62/63/64/65 (Enes tasarım/ses — In Review'daki dokümanlar Todo'ya çekilmişti, karar bekliyor), REV-68/69/71/72/77 (mağaza — Enes asset'lerine bağlı), REV-78 (reklam — bloklu).
 
 ---
 
@@ -198,7 +205,12 @@ Kaynak: `~/Downloads/-FAMİLY BUSİNESS- ...pdf` (toplantı notları). Katılım
 
 **Proje bölünmesi (2026-07-24):** Epic 12 ikiye ayrıldı (toplantı yeni bir gövde doğurdu).
 - **Proje 12 · "Profil, Tasarım & Mağaza"** (`bb9af353-...`): tasarım + mağaza + profil + tema/tahta/taş + ses + ekonomi. Kalan: REV-60/61/62/63/64/65/66/68/69/70/71/72 + REV-77 (offline undo) + REV-78 (reklam, bloklu).
-- **Proje 13 · "Rütbe, Kupa & Maç Deneyimi"** (`0f5344ce-0ce4-4feb-967b-ea2387a5fa42`): rütbe mekaniği + online maç deneyimi. İçindekiler: **REV-67** (kupa/rütbe client modeli), **REV-73** (kupa sunucu motoru), **REV-74** (maç sonu ekranı), **REV-75** (maç ekranı rütbe+rakip istatistik), **REV-76** (online kendi teması). Kanonik model §7C-3/4. Kupa eşikleri şimdilik önerilen değerlerde (0/30/100/250/550/1000), canlı veriyle ileride tune edilecek.
+- **Proje 13 · "Rütbe, Kupa & Maç Deneyimi"** (`0f5344ce-0ce4-4feb-967b-ea2387a5fa42`): rütbe mekaniği + online maç deneyimi. İçindekiler: **REV-67** (kupa/rütbe client modeli), **REV-73** (kupa sunucu motoru), **REV-74** (maç sonu ekranı), **REV-75** (maç ekranı rütbe+rakip istatistik), **REV-76** (online kendi teması), **REV-83** (eşik etiketleri + Kupa Yolu ekranı, 2026-07-30 cihaz testinden). Kanonik model §7C-3/4. Kupa eşikleri şimdilik önerilen değerlerde (0/30/100/250/550/1000), canlı veriyle ileride tune edilecek.
+
+**2026-07-30 cihaz testinden açılan işler:**
+- **REV-83** (proje 13, In Review) — "(+64)" kaldırıldı, çubuk uçlarına eşikler; yeni **Kupa Yolu** ekranı (`lib/features/profile/rank_road_screen.dart`), profil rütbe kartından açılıyor, tema-duyarlı. `rankBand()` + 3 test.
+- **REV-84** (proje 12, In Review) — taş çevirme perspektifi geri geldi. REV-82'de kaybolmasının sebebi: eski `FlipCoinPainter` resim-diskleri çizemediği için ortak payda düz dikey ezme yapılmıştı. Yeni geometri taş türünden bağımsız (`phase` = duruş sıkışması → π kenar-üstü → yeni duruş), **her yarım tur kendi taşının çizicisiyle** çiziliyor → karışık çift (mermer ↔ turkuaz) çalışıyor. Yüz/kenar çizimi `paintCoinFace`/`paintCoinWall` olarak ortaklaştı; duran `CoinView` de aynı fonksiyonları kullanıyor, animasyon ile duruş **kayamaz**. Ayar düğmeleri `AnimatedDiscView` içinde: `_hover` 0.45, `_thickness` 0.25, `_hoverScale` 0.12. `flip_coin_painter.dart` silindi.
+- **REV-85** (proje 12, Todo, **Enes**) — gerçek 3D görünüm: Blender'da taş başına **yarım tur** kare dizisi render edilecek (10 deri × ~15 kare, şeffaf PNG, 160px, kamera/ışık her taşta birebir aynı), oyun sprite olarak oynatır. Runtime 3D motoru (flutter_scene/three_dart) **elendi** — tahta 2B perspektif projeksiyonu, canlı 3D tahtayı+dokunmayı sıfırdan yazmak + 64 taş animasyonda kare düşürme riski demek. Blender hattı hazır: `blender/` (dal `origin/worktree-blender-3d`).
 
 ### 7B. FAZ 2 (Linear proje "11 · Online Geliştirme: Misafir, İstatistik & Lider Tablosu") — ✅ 7/7 kod tarafı tamam (2026-07-15)
 
