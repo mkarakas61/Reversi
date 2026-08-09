@@ -5,7 +5,26 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-07-30** · Son commit: `5310a70` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-09** · Son commit: `da9486b` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🖼️ 2026-08-09 — REV-61 KADEME ÇERÇEVELERİ UYGULANDI (kod tarafı):** Çalışma dizininde
+> commit edilmemiş halde duran yarım iş bulundu ve tamamlandı. Enes'in ürettiği **6 kademe
+> çerçevesi** (`assets/frames/tier/`, 512² şeffaf PNG) artık uygulamada:
+> **profil avatarı** kendi rütbesinin çerçevesini takıyor (ana vitrin, ∅96),
+> **Kupa Yolu** her durakta o rütbenin çerçevesini önizliyor (56pt kutu),
+> **menü çipi** (∅22) çerçeve yerine rütbe renk halkası gösteriyor — süsler o boyutta okunmuyor
+> (spec §6.3 önerisi uygulandı).
+> **Spec'ten sapma:** REV-61 §3.1 "açıklık tüm çerçevelerde sabit %76" diyordu; üretilen assetler
+> öyle çıkmadı (taçlı Büyük Usta/Efsane açıklığı ~%44-49 ve aşağı kaymış). Tek katsayı avatarı
+> 6 çerçevenin 4'ünde kaydırırdı → her çerçeve alfa kanalından ölçülmüş kendi açıklığını taşıyor
+> (`RankFrame` in `lib/core/models/rank.dart`). Assetleri yeniden ürettirirsen bu sayılar da
+> güncellenmeli — `test/rank_frame_test.dart` (9 test) geometriyi kilitliyor.
+> **Yapılmadı:** leaderboard satırında çerçeve (§6.3). Haftalık tabloda `trophies` alanı yok
+> (`LeaderboardEntry.fromWeeklyPlayer` yalnız `trophyGained` taşıyor) → satırların yarısı
+> çerçeveli yarısı çerçevesiz olurdu. Ürün kararı gerekiyor; spec §8'de zaten açık soru.
+> **Satılık çerçeveler (§5, 5 adet)** de yok — assetleri üretilmedi, mağaza halkasına bağlı.
+> Ayrıca iOS Runner hedefine "[CP] Copy Pods Resources" fazı + Podfile.lock eklendi (`501d098`).
+> Test: **105 yeşil**, analyze temiz.
 
 > **🔎 2026-07-30 CİHAZ TESTİ (Mustafa) — 3 maddede geri bildirim, 2'si düzeltildi:**
 > 1. **Rütbe sistemi çalışıyor.** Tek sorun: "36 Kupa (+64)" gösterimi anlaşılmıyordu → **REV-83** ile kalan kupa gösterimi hem profilden hem maç sonu ekranından kaldırıldı, çubuğun uçlarına bandın kendi eşikleri yazıldı (30 … 100). Ayrıca profil rütbe kartı tıklanabilir oldu → yeni **Kupa Yolu** ekranı (dikey yol, rütbeler bir sağ bir sol, oyuncunun konumu çizgide işaretli, tema-duyarlı).
@@ -16,7 +35,7 @@ Son güncelleme: **2026-07-30** · Son commit: `5310a70` (GitHub main'e push edi
 
 > **✅ 15 İŞ DONE (2026-07-30, Mustafa cihazda test edip kapattı):** REV-67, 70, 73, 74, 75, 76, 79, 80, 81, 82, 83, 84, 86, 87, 88. Rütbe/kupa sistemi (XP tamamen kaldırıldı), tema tüm ekranlarda (Güzelsi/Orijinal), tema/tahta/taş **tam bağımsız — her taş her tahtada**, maç deneyimi (sonuç ekranı ±kupa, rütbe etiketi, rakip istatistik), Kupa Yolu ekranı, perspektifli taş animasyonu + son hamle nişanı. **In Review kuyruğu boş.** Kod GitHub `main`'de (`5310a70`); sunucu tarafı (`functions/`) bu turda değişmedi, prod zaten güncel. **Proje 13 (Rütbe, Kupa & Maç Deneyimi) tamamen kapandı.**
 >
-> **Kalan Todo:** REV-60/61 (Enes tasarım kararı), REV-62/63/64/65 (Enes tasarım/ses — In Review'daki dokümanlar Todo'ya çekilmişti, karar bekliyor), REV-68/69/71/72/77 (mağaza — Enes asset'lerine bağlı), REV-78 (reklam — bloklu). **Sıradaki doğal adım:** mağaza halkası Enes'in asset'lerine bağlı; onlar gelmeden kodlanacak bağımsız iş kalmadı.
+> **Kalan Todo:** REV-60 (Enes tasarım kararı), **REV-61 kademe çerçeveleri kod tarafı 2026-08-09'da uygulandı** (yukarı bak; satılık çerçeveler + leaderboard gösterimi hâlâ açık), REV-62/63/64/65 (Enes tasarım/ses — In Review'daki dokümanlar Todo'ya çekilmişti, karar bekliyor), REV-68/69/71/72/77 (mağaza — Enes asset'lerine bağlı), REV-78 (reklam — bloklu). **Sıradaki doğal adım:** mağaza halkası Enes'in asset'lerine bağlı; onlar gelmeden kodlanacak bağımsız iş kalmadı.
 
 ---
 
