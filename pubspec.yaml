@@ -36,6 +36,7 @@ flutter:
     - assets/marble/
     - assets/flower/
     - assets/audio/
+    - assets/frames/tier/
   fonts:
     - family: Baloo2
       fonts:

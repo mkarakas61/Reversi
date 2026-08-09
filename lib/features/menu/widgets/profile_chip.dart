@@ -88,7 +88,11 @@ class _ProfileChipState extends State<ProfileChip> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ProfileAvatar(photoUrl: profile.photoUrl, radius: 11),
+          ProfileAvatar(
+            photoUrl: profile.photoUrl,
+            radius: 11,
+            ringColor: profile.online.rank.color,
+          ),
           const SizedBox(width: 7),
           Text(firstName),
         ],
@@ -99,16 +103,26 @@ class _ProfileChipState extends State<ProfileChip> {
 
 /// Circular profile photo, falling back to a person icon when there is no URL.
 class ProfileAvatar extends StatelessWidget {
-  const ProfileAvatar({super.key, required this.photoUrl, required this.radius});
+  const ProfileAvatar({
+    super.key,
+    required this.photoUrl,
+    required this.radius,
+    this.ringColor,
+  });
 
   final String? photoUrl;
   final double radius;
+
+  /// Rank identity colour drawn as a thin ring around the photo (REV-61 §6.3).
+  /// At chip size (∅22) the frame art's crowns and wings turn to mush, so the
+  /// rank shows up as its colour alone; null draws no ring at all.
+  final Color? ringColor;
 
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
-    return CircleAvatar(
+    final photo = CircleAvatar(
       radius: radius,
       backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
       backgroundImage: hasUrl ? NetworkImage(url) : null,
@@ -116,5 +130,21 @@ class ProfileAvatar extends StatelessWidget {
           ? null
           : Icon(Icons.person_rounded, size: radius, color: GameColors.onAccent),
     );
+
+    final ring = ringColor;
+    if (ring == null) return photo;
+
+    // The ring sits outside the photo, so the widget grows by the stroke rather
+    // than eating into the face.
+    return Container(
+      padding: const EdgeInsets.all(_ringWidth),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: ring, width: _ringWidth),
+      ),
+      child: photo,
+    );
   }
+
+  static const double _ringWidth = 2;
 }

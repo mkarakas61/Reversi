@@ -6,6 +6,7 @@ import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/rank_badge.dart';
+import '../../shared/widgets/rank_frame_view.dart';
 
 /// The trophy road: the whole rank ladder on one vertical line, ranks hanging
 /// off it right/left in turn from Çaylak down to Efsane, with the player's own
@@ -85,8 +86,10 @@ class _Road extends StatelessWidget {
   final int trophies;
   final AppStrings strings;
 
-  /// Vertical space each rank gets on the road.
-  static const double _rowHeight = 96;
+  /// Vertical space each rank gets on the road. The card's three rows come to
+  /// ~106pt at default text scale; the headroom here is what keeps it from
+  /// overflowing once the system font is scaled up (holds to ~1.35×).
+  static const double _rowHeight = 152;
 
   /// Width reserved down the middle for the line, its nodes and the marker.
   static const double _gutter = 66;
@@ -187,6 +190,10 @@ class _RankStop extends StatelessWidget {
   /// Whether the card hugs the road from the left side.
   final bool alignEnd;
 
+  /// Edge of the frame preview in the card's third row. Kept in step with
+  /// `_Road._rowHeight`, which has to clear the card's full three-row height.
+  static const double _frameSize = 56;
+
   @override
   Widget build(BuildContext context) {
     final reached = trophies >= rank.minTrophies;
@@ -245,6 +252,13 @@ class _RankStop extends StatelessWidget {
                   color: GameColors.inkSoft,
                 ),
               ),
+              // Third row: the avatar frame this rank unlocks, shown empty so
+              // the ladder reads as "what I will be wearing" and not just a
+              // list of thresholds. Boxed rather than sized-to-opening, so
+              // every card keeps the same height despite the crowned frames
+              // having smaller openings.
+              const SizedBox(height: 6),
+              RankFrameView.boxed(frame: rank.frame, size: _frameSize),
             ],
           ),
         ),

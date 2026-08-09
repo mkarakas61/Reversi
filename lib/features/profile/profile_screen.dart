@@ -10,6 +10,7 @@ import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/guest_upsell_card.dart';
+import '../../shared/widgets/rank_frame_view.dart';
 import 'rank_road_screen.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
@@ -81,7 +82,10 @@ class ProfileScreen extends StatelessWidget {
                               _SignOutButton(label: strings.signOut),
                             ]
                           : [
-                              _Avatar(photoUrl: profile.photoUrl),
+                              _Avatar(
+                                photoUrl: profile.photoUrl,
+                                rank: profile.online.rank,
+                              ),
                               const SizedBox(height: 14),
                               Text(
                                 profile.displayName ?? '',
@@ -119,14 +123,45 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.photoUrl});
+  const _Avatar({required this.photoUrl, this.rank});
 
   final String? photoUrl;
+
+  /// Rank whose frame wraps the photo (REV-61). Null for guests, who have no
+  /// trophies and so no rank to wear — they keep the plain white ring.
+  final Rank? rank;
+
+  /// Photo diameter. Fixed across ranks: the frames grow around it, so Efsane
+  /// reads as grander than Çaylak without the face changing size (REV-61 §6.1).
+  static const double _photoDiameter = 96;
 
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
+    final photo = CircleAvatar(
+      radius: _photoDiameter / 2,
+      backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+      backgroundImage: hasUrl ? NetworkImage(url) : null,
+      child: hasUrl
+          ? null
+          : const Icon(Icons.person_rounded,
+              size: 48, color: GameColors.onAccent),
+    );
+
+    final frame = rank?.frame;
+    if (frame != null) {
+      // The frame is its own ring, so the white ring and its drop shadow go —
+      // stacking both put a hard white edge under the ornament.
+      return Center(
+        child: RankFrameView.around(
+          frame: frame,
+          openingDiameter: _photoDiameter,
+          child: photo,
+        ),
+      );
+    }
+
     return Center(
       child: Container(
         padding: const EdgeInsets.all(4),
@@ -141,15 +176,7 @@ class _Avatar extends StatelessWidget {
             ),
           ],
         ),
-        child: CircleAvatar(
-          radius: 48,
-          backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-          backgroundImage: hasUrl ? NetworkImage(url) : null,
-          child: hasUrl
-              ? null
-              : const Icon(Icons.person_rounded,
-                  size: 48, color: GameColors.onAccent),
-        ),
+        child: photo,
       ),
     );
   }
