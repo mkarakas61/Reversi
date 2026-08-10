@@ -5,7 +5,21 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-09** · Son commit: `da9486b` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-10** · Son commit: `54a3387` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🪵 2026-08-10 — BLENDER AHŞAP HATTI MAIN'E ALINDI (`worktree-blender-3d` → `main`):**
+> Dal 10 gündür yerelde push'suz duruyordu; önce GitHub'a push edildi, sonra güncel main'e
+> merge edildi (**çakışma çıkmadı** — REV-87 son hamle nişanı ve REV-84 taş animasyonu
+> `wood_board.dart`'ta korundu, 105 test yeşil, analyze temiz).
+> **Getirdikleri:** ahşap assetleri Blender render'larıyla yenilendi (`assets/wood/` — board-crop
+> 1.1 → 2.9 MB, disk/çerçeve/yüzey dosyaları küçüldü, net ~+0.9 MB), offline ahşap tahtaya
+> **ceviz/akçaağaç satranç deseni** (`lib/features/board/painters/checker_painter.dart`),
+> taş-kare hizası `cellGeometry` üzerinden düzeltildi, `blender/` üretim hattı
+> (addon + .blend modelleri + prompt notları) ve `board-visual` skill'i repoya girdi.
+> **⚠️ Cihaz onayı YOK:** tahtanın görünümü değişti, Mustafa henüz cihazda görmedi (S21 FE
+> kontrolü bekliyordu). İlk cihaz testinde tahtaya bakılmalı. Render kaynakları
+> (`blender/renders/frames*`, ~159 MB) bilerek repoya alınmadı — REV-85 iptal edildiği için
+> kare dizilerine gerek yok.
 
 > **🖼️ 2026-08-09 — REV-61 KADEME ÇERÇEVELERİ UYGULANDI (kod tarafı):** Çalışma dizininde
 > commit edilmemiş halde duran yarım iş bulundu ve tamamlandı. Enes'in ürettiği **6 kademe
