@@ -17,6 +17,7 @@ import '../../core/services/sound_service.dart';
 import '../../core/services/stats_storage.dart';
 import '../../core/settings/app_settings.dart';
 import '../board/board_move.dart';
+import '../../core/theme/board_palette.dart';
 import '../board/wood_board.dart';
 import '../online/widgets/online_board.dart';
 import 'overlays/game_over_overlay.dart';
@@ -498,12 +499,19 @@ class _GameScreenState extends State<GameScreen>
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final settings = SettingsScope.of(context).settings;
-    final wood = settings.appTheme == AppThemeId.wood;
     final validMoves = _game.validMoves;
     final blackScore = _game.scoreFor(Disc.black);
     final whiteScore = _game.scoreFor(Disc.white);
     final gameOver = _game.phase == GamePhase.gameOver;
     final blacksTurn = _game.currentPlayer == Disc.black;
+
+    // Hints belong to whoever is about to move: while the AI thinks they would
+    // mark the AI's options, which only reads as noise (REV-86). Two-player
+    // games always show them — both sides are human.
+    final hintsVisible = !gameOver &&
+        !(_isSinglePlayer &&
+            (_aiThinking || _game.currentPlayer != _humanDisc));
+    final hintMoves = hintsVisible ? validMoves : const <Position>{};
 
     final blackName = _isSinglePlayer
         ? strings.playerYou
@@ -587,22 +595,24 @@ class _GameScreenState extends State<GameScreen>
                           child: EntrySlide(
                             progress: camera,
                             beginOffset: const Offset(0, 0.35),
-                            child: wood
+                            child: rendersWithOnlineBoard(settings.board)
                                 ? Center(
                                     child: OnlineBoard(
                                       key: _boardKey,
                                       board: _game.board,
-                                      validMoves: validMoves,
+                                      validMoves: hintMoves,
                                       lastMove: _game.lastMove,
-                                      showHints: !gameOver,
+                                      showHints: hintsVisible,
                                       onCellTap: _play,
                                       theme: settings.board,
+                                      blackCoin: settings.yourCoin,
+                                      whiteCoin: settings.opponentCoin,
                                       move: _lastMove,
                                     ),
                                   )
                                 : WoodBoard(
                                     board: _game.board,
-                                    validMoves: validMoves,
+                                    validMoves: hintMoves,
                                     lastMove: _game.lastMove,
                                     onCellTap: _play,
                                     theme: settings.board,
@@ -667,9 +677,8 @@ class _GameScreenState extends State<GameScreen>
                 onPlayAgain: _startNewGame,
                 onMenu: () => Navigator.of(context).maybePop(),
                 strings: _resolveGameOver(strings, settings),
-                flowerBoardKey: wood && settings.board == BoardTheme.cicek
-                    ? _boardKey
-                    : null,
+                flowerBoardKey:
+                    settings.board == BoardTheme.cicek ? _boardKey : null,
               ),
           ],
         ),

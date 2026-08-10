@@ -24,4 +24,17 @@ class ProgressHistoryService {
         .map((snap) =>
             snap.docs.map((d) => HistoryEntry.fromMap(d.data())).toList());
   }
+
+  /// Streams a single game's history doc (`users/{uid}/history/{gameId}`),
+  /// emitting `null` until the reward function has written it. The match-result
+  /// screen (REV-74) uses this to reveal the trophy change once it lands.
+  Stream<HistoryEntry?> watchReward(String uid, String gameId) {
+    return _db
+        .collection('users')
+        .doc(uid)
+        .collection('history')
+        .doc(gameId)
+        .snapshots()
+        .map((d) => d.exists ? HistoryEntry.fromMap(d.data()!) : null);
+  }
 }

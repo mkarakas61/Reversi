@@ -28,9 +28,11 @@ class LeaderboardService {
 
   String _field(LeaderboardPeriod period, LeaderboardMetric metric) {
     if (period == LeaderboardPeriod.allTime) {
-      return metric == LeaderboardMetric.level ? 'xp' : 'online.wins';
+      return metric == LeaderboardMetric.trophy
+          ? 'online.trophies'
+          : 'online.wins';
     }
-    return metric == LeaderboardMetric.level ? 'xpGained' : 'wins';
+    return metric == LeaderboardMetric.trophy ? 'trophyGained' : 'wins';
   }
 
   /// The top [topN] entries for a period/metric combination, best first.

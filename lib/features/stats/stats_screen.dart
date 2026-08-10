@@ -6,6 +6,7 @@ import '../../core/models/game_stats.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/services/stats_storage.dart';
 import '../../core/theme/game_colors.dart';
+import '../../core/theme/wood_theme.dart';
 
 /// Lifetime statistics screen, reached from the main menu. Shows totals,
 /// streaks, a win/loss/draw pie chart and a per-mode breakdown, plus a
@@ -67,9 +68,9 @@ class _StatsScreenState extends State<StatsScreen> {
     final stats = _stats;
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
+      backgroundColor: pageSurfaceColor(context),
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: pageBackgroundGradient(context)),
         child: Stack(
           children: [
             Positioned(
@@ -79,8 +80,8 @@ class _StatsScreenState extends State<StatsScreen> {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: headerGradient(context)),
                 ),
               ),
             ),

@@ -19,8 +19,6 @@ class Profile {
     required this.uid,
     this.displayName,
     this.photoUrl,
-    this.level = 1,
-    this.xp = 0,
     this.online = OnlineStats.empty,
     this.isGuest = false,
   });
@@ -28,15 +26,14 @@ class Profile {
   final String uid;
   final String? displayName;
   final String? photoUrl;
-  final int level;
-  final int xp;
   final OnlineStats online;
   final bool isGuest;
 }
 
 /// Holds the player's [Profile]. On sign-in it shows the account's name/photo
 /// immediately, persists the profile to Firestore (`users/{uid}`) and then
-/// streams that document so server-written fields (level, xp) stay live.
+/// streams that document so server-written fields (online stats / trophies)
+/// stay live.
 class ProfileController extends ChangeNotifier {
   ProfileController(this._auth, {ProfileService? service})
       : _service = service ?? ProfileService.instance {
@@ -106,8 +103,6 @@ class ProfileController extends ChangeNotifier {
           uid: user.uid,
           displayName: data['displayName'] as String? ?? user.displayName,
           photoUrl: data['photoUrl'] as String? ?? user.photoURL,
-          level: (data['level'] as num?)?.toInt() ?? 1,
-          xp: (data['xp'] as num?)?.toInt() ?? 0,
           online: OnlineStats.fromMap(data['online'] as Map<String, dynamic>?),
         );
         notifyListeners();

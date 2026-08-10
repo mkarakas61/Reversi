@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/settings/app_settings.dart';
-import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
-import '../../online/online_tokens.dart';
+import '../../../shared/widgets/disc_view.dart';
 
 class GameOverCard extends StatelessWidget {
   const GameOverCard({
@@ -136,41 +135,12 @@ class ScoreBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wood = isWoodTheme(context);
-    final palette = coinPalettes[coin]!;
-    // Custom-disc boards (Çiçek/Mermer) show their themed coin instead of the
-    // flat coin-color gradient, so the badge matches the board you played on.
-    final board = SettingsScope.of(context).settings.board;
-    final themedDisc =
-        board == BoardTheme.cicek || board == BoardTheme.mermer;
+    // The score badge shows the player's chosen coin skin (REV-82) — procedural
+    // or image disc — via the shared DiscView, on any board.
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (themedDisc)
-          SizedBox(
-            width: 22,
-            height: 22,
-            child: Image.asset(
-              OnlineTokens.discFor(board, isDark: isDark),
-              fit: BoxFit.contain,
-            ),
-          )
-        else
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4),
-                colors: [palette.faceTop, palette.faceBottom],
-                stops: const [0.0, 0.72],
-              ),
-              boxShadow: const [
-                BoxShadow(
-                    color: Color(0x33000000), blurRadius: 2, spreadRadius: -1),
-              ],
-            ),
-          ),
+        DiscView(coin: coin, size: 22),
         const SizedBox(width: 7),
         Text(
           '$score',

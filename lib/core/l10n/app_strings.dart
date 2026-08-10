@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../settings/app_settings.dart';
 import '../game/game_settings.dart';
 import '../models/game_stats.dart';
+import '../models/rank.dart';
 
 class AppStrings {
   AppStrings(this.locale);
@@ -79,6 +80,12 @@ class AppStrings {
       'coinWhite': 'White',
       'coinTurquoise': 'Turquoise',
       'coinOrange': 'Orange',
+      'coinWalnut': 'Walnut',
+      'coinMaple': 'Maple',
+      'coinMarbleBlack': 'Marble Black',
+      'coinMarbleWhite': 'Marble White',
+      'coinFlowerPurple': 'Flower Purple',
+      'coinFlowerPink': 'Flower Pink',
       'youWon': 'You Won!',
       'winnerTitle': '{name} Wins!',
       'drawTitle': "It's a Draw!",
@@ -158,6 +165,21 @@ class AppStrings {
       'statsWins': 'Wins',
       'viewAll': 'View all',
       'youLost': 'You Lost',
+      'rankCaylak': 'Rookie',
+      'rankAcemi': 'Novice',
+      'rankKalfa': 'Journeyman',
+      'rankUsta': 'Master',
+      'rankBuyukusta': 'Grandmaster',
+      'rankEfsane': 'Legend',
+      'rankLabel': 'Rank',
+      'trophies': 'Trophies',
+      'rankUp': 'Rank up!',
+      'topRank': 'Top rank',
+      'trophyRoad': 'Trophy Road',
+      'youAreHere': 'You are here',
+      'matchFlipped': 'Flipped',
+      'matchMargin': 'Margin',
+      'matchStreak': 'Streak',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -220,6 +242,12 @@ class AppStrings {
       'coinWhite': 'Beyaz',
       'coinTurquoise': 'Turkuaz',
       'coinOrange': 'Turuncu',
+      'coinWalnut': 'Ceviz',
+      'coinMaple': 'Akçaağaç',
+      'coinMarbleBlack': 'Mermer Siyah',
+      'coinMarbleWhite': 'Mermer Beyaz',
+      'coinFlowerPurple': 'Çiçek Mor',
+      'coinFlowerPink': 'Çiçek Pembe',
       'youWon': 'Sen Kazandın!',
       'winnerTitle': '{name} Kazandı!',
       'drawTitle': 'Berabere!',
@@ -297,6 +325,21 @@ class AppStrings {
       'statsWins': 'Galibiyet',
       'viewAll': 'Tümünü gör',
       'youLost': 'Kaybettin',
+      'rankCaylak': 'Çaylak',
+      'rankAcemi': 'Acemi',
+      'rankKalfa': 'Kalfa',
+      'rankUsta': 'Usta',
+      'rankBuyukusta': 'Büyük Usta',
+      'rankEfsane': 'Efsane',
+      'rankLabel': 'Rütbe',
+      'trophies': 'Kupa',
+      'rankUp': 'Rütbe atladın!',
+      'topRank': 'En yüksek rütbe',
+      'trophyRoad': 'Kupa Yolu',
+      'youAreHere': 'Buradasın',
+      'matchFlipped': 'Çevrilen',
+      'matchMargin': 'Fark',
+      'matchStreak': 'Seri',
     },
   };
 
@@ -385,12 +428,39 @@ class AppStrings {
     }
   }
 
+  String rankTitle(RankId rank) {
+    switch (rank) {
+      case RankId.caylak: return _get('rankCaylak');
+      case RankId.acemi: return _get('rankAcemi');
+      case RankId.kalfa: return _get('rankKalfa');
+      case RankId.usta: return _get('rankUsta');
+      case RankId.buyukusta: return _get('rankBuyukusta');
+      case RankId.efsane: return _get('rankEfsane');
+    }
+  }
+
+  String get rankLabel => _get('rankLabel');
+  String get trophies => _get('trophies');
+  String get rankUp => _get('rankUp');
+  String get topRank => _get('topRank');
+  String get trophyRoad => _get('trophyRoad');
+  String get youAreHere => _get('youAreHere');
+  String get matchFlipped => _get('matchFlipped');
+  String get matchMargin => _get('matchMargin');
+  String get matchStreak => _get('matchStreak');
+
   String coinColorLabel(CoinColor color) {
     switch (color) {
       case CoinColor.black: return _get('coinBlack');
       case CoinColor.white: return _get('coinWhite');
       case CoinColor.turquoise: return _get('coinTurquoise');
       case CoinColor.orange: return _get('coinOrange');
+      case CoinColor.walnut: return _get('coinWalnut');
+      case CoinColor.maple: return _get('coinMaple');
+      case CoinColor.marbleBlack: return _get('coinMarbleBlack');
+      case CoinColor.marbleWhite: return _get('coinMarbleWhite');
+      case CoinColor.flowerPurple: return _get('coinFlowerPurple');
+      case CoinColor.flowerPink: return _get('coinFlowerPink');
     }
   }
 

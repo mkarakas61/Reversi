@@ -5,20 +5,6 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
-import '../../online/online_tokens.dart';
-
-/// Avatar disc image for the custom (wood) theme, matching the selected board:
-/// flower coins for Çiçek, marble for Mermer, wood otherwise.
-String _avatarDisc(BoardTheme board, bool isDark) {
-  switch (board) {
-    case BoardTheme.cicek:
-      return isDark ? OnlineTokens.flowerDiscBlack : OnlineTokens.flowerDiscWhite;
-    case BoardTheme.mermer:
-      return isDark ? OnlineTokens.marbleDiscBlack : OnlineTokens.marbleDiscWhite;
-    default:
-      return isDark ? WoodTheme.discWalnut : WoodTheme.discMaple;
-  }
-}
 
 class PlayerCard extends StatelessWidget {
   const PlayerCard({
@@ -49,7 +35,6 @@ class PlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wood = isWoodTheme(context);
-    final board = SettingsScope.of(context).settings.board;
     final isDark = side == Disc.black;
     final accent = wood
         ? WoodTheme.gold
@@ -57,9 +42,9 @@ class PlayerCard extends StatelessWidget {
     final statusColor = wood ? WoodTheme.goldText : accent;
     final nameColor = wood ? WoodTheme.inkName : GameColors.ink;
     final scoreColor = wood ? WoodTheme.inkScore : GameColors.ink;
-    final palette = coinPalettes[coin]!;
+    final coinColor = coinAccentColor(coin);
     final monoColor =
-        ThemeData.estimateBrightnessForColor(palette.faceMid) == Brightness.light
+        ThemeData.estimateBrightnessForColor(coinColor) == Brightness.light
             ? GameColors.ink
             : Colors.white;
 
@@ -105,42 +90,36 @@ class PlayerCard extends StatelessWidget {
             ),
           Row(
             children: [
-              if (wood)
-                SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: ClipOval(
-                    child: Image.asset(
-                      _avatarDisc(board, isDark),
-                      fit: BoxFit.cover,
-                    ),
+              // The player's own tile, identical in both app themes (REV-88):
+              // the wood theme used to swap in a board-matched disc image here,
+              // which showed a disc instead of the player and ignored the coin
+              // they picked.
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color.lerp(coinColor, Colors.white, 0.2)!,
+                      Color.lerp(coinColor, Colors.black, 0.15)!,
+                    ],
                   ),
-                )
-              else
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [palette.faceTop, palette.faceBottom],
-                    ),
-                    border:
-                        Border.all(color: const Color(0x14000000), width: 1),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    mono,
-                    style: TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                      color: monoColor,
-                    ),
+                  border: Border.all(color: const Color(0x14000000), width: 1),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  mono,
+                  style: TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    color: monoColor,
                   ),
                 ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -209,7 +188,16 @@ class ScoreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = coinPalettes[coin]!;
+    final palette = coinPalettes[coin];
+    // Image discs (marble/flower/wood) show their PNG; procedural coins keep
+    // the small radial swatch (REV-82).
+    if (palette == null) {
+      return SizedBox(
+        width: 19,
+        height: 19,
+        child: Image.asset(coinAssets[coin]!, fit: BoxFit.contain),
+      );
+    }
     return Container(
       width: 19,
       height: 19,
@@ -275,13 +263,19 @@ class TurnPill extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
-              fontWeight: wood ? FontWeight.w600 : FontWeight.w800,
-              fontSize: 13.5,
-              color: wood ? WoodTheme.inkScore : GameColors.onAccent,
+          // The longest status ("Computer is thinking…") outgrows a 360dp-wide
+          // screen, so the label gives way rather than overflowing the pill.
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                fontWeight: wood ? FontWeight.w600 : FontWeight.w800,
+                fontSize: 13.5,
+                color: wood ? WoodTheme.inkScore : GameColors.onAccent,
+              ),
             ),
           ),
         ],

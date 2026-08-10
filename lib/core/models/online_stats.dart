@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'rank.dart';
+
 /// Lifetime online (ranked) statistics for a player, stored under the
 /// `online` map of the Firestore `users/{uid}` document. Kept separate from the
 /// local single-player stats ([GameStats]) because online win/loss is ranked
@@ -15,6 +17,7 @@ class OnlineStats {
     this.bestStreak = 0,
     this.totalFlipped = 0,
     this.bestScoreDiff = 0,
+    this.trophies = 0,
   });
 
   final int wins;
@@ -31,12 +34,20 @@ class OnlineStats {
   /// Largest score gap in a won online game.
   final int bestScoreDiff;
 
+  /// Trophy (kupa) count on the ranked ladder — server-authoritative (REV-73).
+  /// The rank is derived from this ([rank]); the server also stores a
+  /// denormalized `rank` string but the client always re-derives to be safe.
+  final int trophies;
+
   static const empty = OnlineStats();
 
   int get totalGames => wins + losses + draws;
 
   /// Win rate in `[0, 1]`, or 0 when no online games have been played.
   double get winRate => totalGames == 0 ? 0 : wins / totalGames;
+
+  /// Current rank on the trophy ladder, derived from [trophies].
+  Rank get rank => rankFor(trophies);
 
   /// Parses the `online` map from a Firestore user document. Tolerates missing
   /// or partial data so older/empty profiles decode cleanly.
@@ -51,6 +62,7 @@ class OnlineStats {
       bestStreak: read('bestStreak'),
       totalFlipped: read('totalFlipped'),
       bestScoreDiff: read('bestScoreDiff'),
+      trophies: read('trophies'),
     );
   }
 
@@ -62,5 +74,6 @@ class OnlineStats {
         'bestStreak': bestStreak,
         'totalFlipped': totalFlipped,
         'bestScoreDiff': bestScoreDiff,
+        'trophies': trophies,
       };
 }

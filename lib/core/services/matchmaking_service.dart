@@ -21,7 +21,7 @@ class MatchmakingService {
       'uid': profile.uid,
       'displayName': profile.displayName,
       'photoUrl': profile.photoUrl,
-      'level': profile.level,
+      'trophies': stats.trophies,
       'wins': stats.wins,
       'losses': stats.losses,
       'draws': stats.draws,

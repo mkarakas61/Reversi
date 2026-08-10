@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 
 import '../../../core/game/reversi_game.dart';
 import '../../../core/settings/app_settings.dart';
+import '../../../shared/widgets/disc_view.dart';
+import '../../../shared/widgets/last_move_marker.dart';
 import '../../board/board_move.dart';
 import '../online_tokens.dart';
 
 /// 3D tilted wooden board faithful to the "Online Oyna" handoff: a board-crop
 /// PNG with an 8x8 grid of disc PNGs overlaid, legal-move hints, and a
-/// last-move ring. Walnut = black/you, Maple = white/opponent.
+/// last-move marker. Walnut = black/you, Maple = white/opponent.
 class OnlineBoard extends StatefulWidget {
   const OnlineBoard({
     super.key,
@@ -19,6 +21,8 @@ class OnlineBoard extends StatefulWidget {
     required this.showHints,
     required this.onCellTap,
     this.theme = BoardTheme.wood,
+    this.blackCoin = CoinColor.walnut,
+    this.whiteCoin = CoinColor.maple,
     this.move,
   });
 
@@ -27,6 +31,10 @@ class OnlineBoard extends StatefulWidget {
   final Position? lastMove;
   final bool showHints;
   final ValueChanged<Position> onCellTap;
+
+  /// The disc skins for each side (REV-82) — any coin renders on any board.
+  final CoinColor blackCoin;
+  final CoinColor whiteCoin;
 
   /// Selected board variant. [mermer] renders the marble slab + marble discs;
   /// [cicek] renders the floral board; everything else renders the wood board.
@@ -121,38 +129,9 @@ class _OnlineBoardState extends State<OnlineBoard>
     super.dispose();
   }
 
-  String _discAsset(Disc d) {
-    if (_marble) {
-      return d == Disc.black
-          ? OnlineTokens.marbleDiscBlack
-          : OnlineTokens.marbleDiscWhite;
-    }
-    if (_flower) {
-      return d == Disc.black
-          ? OnlineTokens.flowerDiscBlack
-          : OnlineTokens.flowerDiscWhite;
-    }
-    return d == Disc.black ? OnlineTokens.discWalnut : OnlineTokens.discMaple;
-  }
-
-  // Edge (rim) color shown while a disc is rotating on its side, so the flip
-  // reads as a real coin with thickness instead of a vanishing flat image.
-  Color _discEdge(Disc d) {
-    if (_marble) {
-      return d == Disc.black
-          ? const Color(0xFF111114)
-          : const Color(0xFFC9C3B5);
-    }
-    if (_flower) {
-      // Rose-gold rim tones for the flower coins.
-      return d == Disc.black
-          ? const Color(0xFF5A1B38) // deep wine rim under the purple coin
-          : const Color(0xFFD9A9A6); // soft rose rim under the pink coin
-    }
-    return d == Disc.black
-        ? const Color(0xFF2E1C0E)
-        : const Color(0xFFB98E55);
-  }
+  /// The chosen coin skin for a board color (REV-82): any coin on any board.
+  CoinColor _coinFor(Disc d) =>
+      d == Disc.black ? widget.blackCoin : widget.whiteCoin;
 
   @override
   Widget build(BuildContext context) {
@@ -294,46 +273,25 @@ class _OnlineBoardState extends State<OnlineBoard>
     // sit a touch smaller so they don't crowd their cells.
     final discSize = cell * (_flower ? 0.82 : _discFactor);
 
-    // Animating disc (flip or just-placed) for the current move. The placed
-    // disc runs the exact same flight+flip choreography as the flipped ones
-    // (both faces its own color); it just leads the wave at ring distance 0.
-    if (anim != null && disc != null) {
-      final isPlaced = pos == anim.placed;
-      if (isPlaced || anim.flipped.contains(pos)) {
-        final newColor = disc; // board already holds the post-move color
-        final oldColor = isPlaced
-            ? newColor
-            : (newColor == Disc.black ? Disc.white : Disc.black);
-        final dist = isPlaced
-            ? 0
-            : math.max(
-                (pos.row - anim.placed.row).abs(),
-                (pos.col - anim.placed.col).abs(),
-              );
-        final t = _waveT(dist);
-        if (t == 0) {
-          // The wave hasn't reached this disc yet.
-          if (isPlaced) return const SizedBox.shrink();
-          return Center(
-            child: SizedBox(
-              width: discSize,
-              height: discSize,
-              child: Image.asset(_discAsset(oldColor), fit: BoxFit.contain),
-            ),
-          );
-        }
-        return Center(
-          child: _FlipDisc(
-            t: t,
-            size: discSize,
-            frontAsset: _discAsset(oldColor),
-            backAsset: _discAsset(newColor),
-            frontEdge: _discEdge(oldColor),
-            backEdge: _discEdge(newColor),
-            appear: isPlaced,
-          ),
-        );
-      }
+    // Discs captured by the current move turn over. The just-placed disc is
+    // simply set down (REV-86), so it falls through to the resting disc below —
+    // which is also what carries the last-move marker.
+    if (anim != null && disc != null && anim.flipped.contains(pos)) {
+      final newColor = disc; // board already holds the post-move color
+      final oldColor = newColor == Disc.black ? Disc.white : Disc.black;
+      final dist = math.max(
+        (pos.row - anim.placed.row).abs(),
+        (pos.col - anim.placed.col).abs(),
+      );
+      // One perspective flip for every coin skin (REV-82/84).
+      return Center(
+        child: AnimatedDiscView(
+          coin: _coinFor(newColor),
+          size: discSize,
+          flipFrom: _coinFor(oldColor),
+          t: _waveT(dist),
+        ),
+      );
     }
 
     return Stack(
@@ -344,13 +302,13 @@ class _OnlineBoardState extends State<OnlineBoard>
             child: SizedBox(
               width: discSize,
               height: discSize,
-              child: _Disc(
-                disc: disc,
-                asset: _discAsset(disc),
-                isLast: isLast,
-                pulse: _pulse,
-              ),
+              child: _Disc(coin: _coinFor(disc), size: discSize),
             ),
+          ),
+        // Laid on top of the disc played last (REV-87).
+        if (disc != null && isLast)
+          Center(
+            child: LastMoveMarker(coin: _coinFor(disc), size: discSize),
           ),
         if (isHint) _Hint(cell: cell, pulse: _pulse, flower: _flower),
       ],
@@ -358,192 +316,15 @@ class _OnlineBoardState extends State<OnlineBoard>
   }
 }
 
-/// A disc performing a 3D half-turn flip on its horizontal axis. The face
-/// image is squashed vertically as it rotates and an always-visible rim bar
-/// gives the disc a real coin thickness, so it never vanishes at the edge-on
-/// midpoint.
-///
-/// Choreography: like turning a hand over — the coin lifts just enough to
-/// clear the board, makes a single half-turn at constant angular speed (old
-/// face up at launch, new face up at the end) and simply comes to rest. No
-/// impact effects; the animation ends the moment the turn completes.
-class _FlipDisc extends StatelessWidget {
-  const _FlipDisc({
-    required this.t,
-    required this.size,
-    required this.frontAsset,
-    required this.backAsset,
-    required this.frontEdge,
-    required this.backEdge,
-    this.appear = false,
-  });
-
-  final double t; // raw 0..1 progress of this disc's flip
-  final double size;
-  final String frontAsset; // shown before midpoint (old color)
-  final String backAsset; // shown after midpoint (new color)
-  final Color frontEdge;
-  final Color backEdge;
-  final bool appear; // fade in at launch (the just-placed disc)
-
-  // Slab thickness relative to the disc diameter — solid, like a checkers
-  // piece, but not chunky.
-  static const double _thicknessFactor = 0.18;
-
-  @override
-  Widget build(BuildContext context) {
-    // Flight arc: brisk launch, then a gentle float down that settles with
-    // zero vertical speed — no abrupt "click" at touchdown.
-    final height =
-        math.sin(math.pi * Curves.easeOutSine.transform(t));
-
-    // A single half-turn at constant angular speed — old face up at launch,
-    // new face up at rest. The face image is squashed rigidly with |cos|
-    // and swaps exactly at the edge-on midpoint — no crossfades.
-    final angle = math.pi * t;
-    final ac = math.cos(angle).abs();
-
-    // The coin stays rigid — only a slight uniform grow toward the camera.
-    final scale = 1.0 + 0.12 * height;
-
-    // The placed disc pops in almost instantly (no lingering ghost).
-    final opacity = appear ? (t / 0.05).clamp(0.0, 1.0) : 1.0;
-
-    final thickness = size * _thicknessFactor;
-    // Side-wall color follows the turn from old to new edge tone.
-    final edge = Color.lerp(frontEdge, backEdge, t)!;
-    final edgeLight = Color.lerp(edge, Colors.white, 0.28)!;
-    final edgeDark = Color.lerp(edge, Colors.black, 0.38)!;
-
-    // Volumetric slab: the face squashes with |cos| while the side wall
-    // (thickness · sin) emerges below it, so mid-turn the disc reads as a
-    // solid checkers piece instead of a paper card. At rest the wall is
-    // zero, matching the flat top-down disc exactly.
-    final faceH = size * ac;
-    final wallH = thickness * math.sin(angle);
-    final capR = math.max(faceH, 2.0) / 2;
-
-    final coin = SizedBox(
-      width: size,
-      height: size,
-      child: Center(
-        child: SizedBox(
-          width: size,
-          height: faceH + wallH,
-          child: Stack(
-            // First half: the far rim comes over the top while the old
-            // face slides under it. Second half: the new face opens on
-            // top with the rim below — a genuine roll, not a color swap.
-            alignment:
-                t < 0.5 ? Alignment.bottomCenter : Alignment.topCenter,
-            children: [
-              // Cylinder silhouette: elliptical caps joined by the wall.
-              // Slightly inset so it never peeks around the resting face.
-              Positioned.fill(
-                left: size * 0.02,
-                right: size * 0.02,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [edgeLight, edge, edgeDark],
-                    ),
-                    borderRadius: BorderRadius.all(
-                      Radius.elliptical(size * 0.48, capR),
-                    ),
-                  ),
-                ),
-              ),
-              // Old face before the midpoint, new face after — swapped
-              // exactly when the coin is edge-on, never seen directly.
-              if (faceH > 0.5)
-                SizedBox(
-                  width: size,
-                  height: faceH,
-                  child: Image.asset(
-                    t < 0.5 ? frontAsset : backAsset,
-                    fit: BoxFit.fill,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          // Shadow stays on the board while the coin is airborne.
-          _GroundShadow(size: size, lift: height),
-          FractionalTranslation(
-            translation: Offset(0, -0.35 * height),
-            child: Transform.scale(
-              scale: scale,
-              child: Opacity(opacity: opacity, child: coin),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Soft elliptical shadow under an airborne coin: fades in and shrinks as the
-/// coin lifts away from the board, grounding the flight arc.
-class _GroundShadow extends StatelessWidget {
-  const _GroundShadow({required this.size, required this.lift});
-
-  final double size;
-  final double lift; // 0 = resting, 1 = highest point
-
-  @override
-  Widget build(BuildContext context) {
-    if (lift <= 0.01) return const SizedBox.shrink();
-    final d = size * (0.95 - 0.22 * lift);
-    return Positioned(
-      bottom: size * 0.02,
-      child: Transform.scale(
-        scaleY: 0.34,
-        child: Container(
-          width: d,
-          height: d,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                Colors.black.withValues(alpha: 0.34 * lift),
-                Colors.transparent,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _Disc extends StatelessWidget {
-  const _Disc({
-    required this.disc,
-    required this.asset,
-    required this.isLast,
-    required this.pulse,
-  });
+  const _Disc({required this.coin, required this.size});
 
-  final Disc disc;
-  final String asset;
-  final bool isLast;
-  final AnimationController pulse;
+  final CoinColor coin;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    Widget image = AnimatedSwitcher(
+    return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       transitionBuilder: (child, anim) => FadeTransition(
         opacity: anim,
@@ -552,41 +333,7 @@ class _Disc extends StatelessWidget {
           child: child,
         ),
       ),
-      child: Image.asset(asset, key: ValueKey<Disc>(disc), fit: BoxFit.contain),
-    );
-
-    if (!isLast) return image;
-
-    // Last-move ring (rev-ring): pulsing accent border on the disc.
-    return AnimatedBuilder(
-      animation: pulse,
-      builder: (context, child) {
-        final t = (math.sin(pulse.value * 2 * math.pi) + 1) / 2;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            child!,
-            Positioned.fill(
-              child: Transform.scale(
-                scale: 0.9 + 0.15 * t,
-                child: Opacity(
-                  opacity: 0.4 + 0.55 * t,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: OnlineTokens.lastMoveRing,
-                        width: 2.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-      child: image,
+      child: DiscView(key: ValueKey<CoinColor>(coin), coin: coin, size: size),
     );
   }
 }

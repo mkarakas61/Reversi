@@ -5,10 +5,11 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/online_stats.dart';
 import '../../../core/models/progress_history.dart';
-import '../../../core/models/xp_level.dart';
 import '../../../core/services/progress_history_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
+import '../../../shared/widgets/rank_badge.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
 
 /// Detailed online ranked statistics screen. Reached from the profile screen's
@@ -22,14 +23,12 @@ class OnlineStatsScreen extends StatelessWidget {
     final strings = AppStrings.of(context);
     final profile = ProfileScope.of(context).profile;
     final stats = profile?.online ?? OnlineStats.empty;
-    final xp = profile?.xp ?? 0;
-    final level = profile?.level ?? 1;
     final isGuest = profile?.isGuest ?? false;
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
+      backgroundColor: pageSurfaceColor(context),
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: pageBackgroundGradient(context)),
         child: Stack(
           children: [
             Positioned(
@@ -39,8 +38,8 @@ class OnlineStatsScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: headerGradient(context)),
                 ),
               ),
             ),
@@ -62,8 +61,6 @@ class OnlineStatsScreen extends StatelessWidget {
                             : _Body(
                                 uid: profile!.uid,
                                 stats: stats,
-                                xp: xp,
-                                level: level,
                                 strings: strings,
                               ),
                   ),
@@ -81,15 +78,11 @@ class _Body extends StatelessWidget {
   const _Body({
     required this.uid,
     required this.stats,
-    required this.xp,
-    required this.level,
     required this.strings,
   });
 
   final String uid;
   final OnlineStats stats;
-  final int xp;
-  final int level;
   final AppStrings strings;
 
   @override
@@ -98,8 +91,11 @@ class _Body extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
       children: [
         _Section(
-          title: '${strings.level} $level',
-          child: _XpProgressRow(xp: xp, level: level, strings: strings),
+          title: strings.rankLabel,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: RankBadge(rank: stats.rank, trophies: stats.trophies),
+          ),
         ),
         _Section(
           title: strings.statsTotalGames,
@@ -127,106 +123,6 @@ class _Body extends StatelessWidget {
               ],
             );
           },
-        ),
-      ],
-    );
-  }
-}
-
-class _XpProgressRow extends StatelessWidget {
-  const _XpProgressRow({
-    required this.xp,
-    required this.level,
-    required this.strings,
-  });
-
-  final int xp;
-  final int level;
-  final AppStrings strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = XpLevel.levelProgress(xp);
-    final into = XpLevel.xpIntoLevel(xp);
-    final range = XpLevel.xpRangeForLevel(xp);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [GameColors.accent, GameColors.onAccent],
-                ),
-              ),
-              child: Text(
-                '$level',
-                style: const TextStyle(
-                  fontFamily: 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 20,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$xp XP',
-                    style: const TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: GameColors.ink,
-                    ),
-                  ),
-                  Text(
-                    '$into / $range XP',
-                    style: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      color: GameColors.inkSoft,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 8,
-            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-            valueColor: const AlwaysStoppedAnimation(GameColors.accent),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            '${strings.level} ${level + 1}',
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-              color: GameColors.inkSoft,
-            ),
-          ),
         ),
       ],
     );

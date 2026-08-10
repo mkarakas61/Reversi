@@ -60,3 +60,35 @@ const Map<CoinColor, CoinPalette> coinPalettes = {
     glossAlpha: 0.6,
   ),
 };
+
+/// Image-disc skins (REV-82): the walnut/maple wood discs, marble discs and
+/// floral discs, previously baked into the wood/marble/flower boards, are now
+/// first-class selectable coins usable on any board. A coin is procedural when
+/// it has a [coinPalettes] entry, and an image disc when it has one here.
+const Map<CoinColor, String> coinAssets = {
+  CoinColor.walnut: 'assets/wood/disc-walnut.png',
+  CoinColor.maple: 'assets/wood/disc-maple.png',
+  CoinColor.marbleBlack: 'assets/marble/disc-marble-black.png',
+  CoinColor.marbleWhite: 'assets/marble/disc-marble-white.png',
+  CoinColor.flowerPurple: 'assets/flower/disc-flower-black.png',
+  CoinColor.flowerPink: 'assets/flower/disc-flower-white.png',
+};
+
+/// Whether [coin] is an image disc (vs a procedural coin).
+bool isAssetCoin(CoinColor coin) => coinAssets.containsKey(coin);
+
+// Representative accent colour for the image discs (for score chips, brightness
+// checks and small color cues where a full disc isn't drawn).
+const Map<CoinColor, Color> _coinAccents = {
+  CoinColor.walnut: Color(0xFF5A3A1E),
+  CoinColor.maple: Color(0xFFD9B071),
+  CoinColor.marbleBlack: Color(0xFF2A2A2E),
+  CoinColor.marbleWhite: Color(0xFFDBD6CC),
+  CoinColor.flowerPurple: Color(0xFF7A3B52),
+  CoinColor.flowerPink: Color(0xFFD9A9A6),
+};
+
+/// A single representative colour for any coin — the procedural coin's mid tone,
+/// or the image disc's accent. Used where code needs a colour, not a full disc.
+Color coinAccentColor(CoinColor coin) =>
+    coinPalettes[coin]?.faceMid ?? _coinAccents[coin]!;

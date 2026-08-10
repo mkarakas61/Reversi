@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import '../../core/profile/profile_scope.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/models/online_stats.dart';
-import '../../core/models/xp_level.dart';
+import '../../core/models/rank.dart';
 import '../online/screens/online_stats_screen.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
+import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/guest_upsell_card.dart';
+import '../../shared/widgets/rank_frame_view.dart';
+import 'rank_road_screen.dart';
 
 /// The player's profile: avatar, name, level/XP and a summary of their online
 /// record, plus sign-out. Reached from the menu profile chip. Level/XP and the
@@ -32,9 +35,9 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: GameColors.creamTop,
+      backgroundColor: pageSurfaceColor(context),
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: creamShellGradient),
+        decoration: BoxDecoration(gradient: pageBackgroundGradient(context)),
         child: Stack(
           children: [
             Positioned(
@@ -44,8 +47,8 @@ class ProfileScreen extends StatelessWidget {
               height: 150,
               child: ClipPath(
                 clipper: _HeaderClipper(),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(gradient: bannerGradient),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: headerGradient(context)),
                 ),
               ),
             ),
@@ -79,7 +82,10 @@ class ProfileScreen extends StatelessWidget {
                               _SignOutButton(label: strings.signOut),
                             ]
                           : [
-                              _Avatar(photoUrl: profile.photoUrl),
+                              _Avatar(
+                                photoUrl: profile.photoUrl,
+                                rank: profile.online.rank,
+                              ),
                               const SizedBox(height: 14),
                               Text(
                                 profile.displayName ?? '',
@@ -92,10 +98,9 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 14),
-                              _LevelCard(
-                                level: profile.level,
-                                xp: profile.xp,
-                                label: strings.level,
+                              _RankCard(
+                                stats: profile.online,
+                                strings: strings,
                               ),
                               const SizedBox(height: 14),
                               _OnlineRecordCard(
@@ -118,14 +123,45 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.photoUrl});
+  const _Avatar({required this.photoUrl, this.rank});
 
   final String? photoUrl;
+
+  /// Rank whose frame wraps the photo (REV-61). Null for guests, who have no
+  /// trophies and so no rank to wear — they keep the plain white ring.
+  final Rank? rank;
+
+  /// Photo diameter. Fixed across ranks: the frames grow around it, so Efsane
+  /// reads as grander than Çaylak without the face changing size (REV-61 §6.1).
+  static const double _photoDiameter = 96;
 
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
     final hasUrl = url != null && url.isNotEmpty;
+    final photo = CircleAvatar(
+      radius: _photoDiameter / 2,
+      backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+      backgroundImage: hasUrl ? NetworkImage(url) : null,
+      child: hasUrl
+          ? null
+          : const Icon(Icons.person_rounded,
+              size: 48, color: GameColors.onAccent),
+    );
+
+    final frame = rank?.frame;
+    if (frame != null) {
+      // The frame is its own ring, so the white ring and its drop shadow go —
+      // stacking both put a hard white edge under the ornament.
+      return Center(
+        child: RankFrameView.around(
+          frame: frame,
+          openingDiameter: _photoDiameter,
+          child: photo,
+        ),
+      );
+    }
+
     return Center(
       child: Container(
         padding: const EdgeInsets.all(4),
@@ -140,39 +176,35 @@ class _Avatar extends StatelessWidget {
             ),
           ],
         ),
-        child: CircleAvatar(
-          radius: 48,
-          backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-          backgroundImage: hasUrl ? NetworkImage(url) : null,
-          child: hasUrl
-              ? null
-              : const Icon(Icons.person_rounded,
-                  size: 48, color: GameColors.onAccent),
-        ),
+        child: photo,
       ),
     );
   }
 }
 
-/// Level badge plus a progress bar toward the next level. The exact XP curve is
-/// formalized in REV-40; here the bar fills proportionally within the current
-/// 100-XP band so it animates meaningfully once the server awards XP.
-class _LevelCard extends StatelessWidget {
-  const _LevelCard({
-    required this.level,
-    required this.xp,
-    required this.label,
-  });
+/// Rank medal + trophy count with a progress bar through the current rank band
+/// (REV-81 — replaced the old level/XP card; the ladder is trophies now). The
+/// bar is labelled with the band's own two thresholds rather than a "how many
+/// left" count, and the whole card opens the trophy road.
+class _RankCard extends StatelessWidget {
+  const _RankCard({required this.stats, required this.strings});
 
-  final int level;
-  final int xp;
-  final String label;
+  final OnlineStats stats;
+  final AppStrings strings;
 
   @override
   Widget build(BuildContext context) {
-    final progress = XpLevel.levelProgress(xp);
-
+    final rank = stats.rank;
+    final (floor, ceil) = rankBand(stats.trophies);
     return _Card(
+      onTap: () {
+        SoundService.instance.playSfx(Sfx.button);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => RankRoadScreen(trophies: stats.trophies),
+          ),
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -182,23 +214,12 @@ class _LevelCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [GameColors.accent, GameColors.onAccent],
-                  ),
+                  color: rank.color.withValues(alpha: 0.16),
+                  border: Border.all(color: rank.color, width: 2),
                 ),
-                child: Text(
-                  '$level',
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                ),
+                child: Icon(Icons.military_tech, size: 24, color: rank.color),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -206,7 +227,7 @@ class _LevelCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '$label $level',
+                      strings.rankTitle(rank.id),
                       style: const TextStyle(
                         fontFamily: 'Baloo2',
                         fontWeight: FontWeight.w800,
@@ -215,7 +236,7 @@ class _LevelCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '$xp XP',
+                      '${stats.trophies} ${strings.trophies}',
                       style: const TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w700,
@@ -226,23 +247,41 @@ class _LevelCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const Icon(Icons.chevron_right,
+                  size: 22, color: GameColors.inkSoft),
             ],
           ),
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: progress,
+              value: rankProgress(stats.trophies),
               minHeight: 8,
               backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-              valueColor: const AlwaysStoppedAnimation(GameColors.accent),
+              valueColor: AlwaysStoppedAnimation(rank.color),
             ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Text('$floor', style: _bandLabelStyle),
+              const Spacer(),
+              Text(ceil == null ? strings.topRank : '$ceil',
+                  style: _bandLabelStyle),
+            ],
           ),
         ],
       ),
     );
   }
 }
+
+const TextStyle _bandLabelStyle = TextStyle(
+  fontFamily: 'Nunito',
+  fontWeight: FontWeight.w700,
+  fontSize: 12,
+  color: GameColors.inkSoft,
+);
 
 class _OnlineRecordCard extends StatelessWidget {
   const _OnlineRecordCard({required this.stats, required this.strings});
@@ -401,17 +440,20 @@ class _SignOutButton extends StatelessWidget {
 }
 
 class _Card extends StatelessWidget {
-  const _Card({required this.child});
+  const _Card({required this.child, this.onTap});
 
   final Widget child;
 
+  /// When set, the whole card is tappable (with an ink ripple).
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final radius = BorderRadius.circular(20);
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: radius,
         boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
@@ -420,7 +462,14 @@ class _Card extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Padding(padding: const EdgeInsets.all(16), child: child),
+        ),
+      ),
     );
   }
 }

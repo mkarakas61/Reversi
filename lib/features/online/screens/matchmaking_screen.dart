@@ -9,6 +9,7 @@ import '../../../core/services/matchmaking_service.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/wood_theme.dart';
 import 'online_game_screen.dart';
 import 'opponent_preview_screen.dart';
 
@@ -117,7 +118,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
       },
       child: Scaffold(
         body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: bannerGradient),
+          decoration: BoxDecoration(gradient: headerGradient(context)),
           child: SafeArea(
             child: Center(
               child: Padding(

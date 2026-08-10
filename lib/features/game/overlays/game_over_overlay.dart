@@ -47,7 +47,7 @@ class GameOverOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     Color titleColor = GameColors.ink;
     if (strings.titleCoin != null) {
-      final mid = coinPalettes[strings.titleCoin]!.faceMid;
+      final mid = coinAccentColor(strings.titleCoin!);
       titleColor =
           ThemeData.estimateBrightnessForColor(mid) == Brightness.light
               ? GameColors.ink
@@ -59,8 +59,8 @@ class GameOverOverlay extends StatelessWidget {
       GameColors.accent2,
       const Color(0xFFFFC83D),
       Colors.white,
-      coinPalettes[yourCoin]!.faceMid,
-      coinPalettes[opponentCoin]!.faceMid,
+      coinAccentColor(yourCoin),
+      coinAccentColor(opponentCoin),
     ];
 
     final celebrate =

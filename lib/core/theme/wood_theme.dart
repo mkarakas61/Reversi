@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 
 import '../settings/app_settings.dart';
+import 'game_colors.dart';
 
 /// Whether the warm wood/parchment app theme is currently active.
 bool isWoodTheme(BuildContext context) =>
     SettingsScope.of(context).settings.appTheme == AppThemeId.wood;
+
+// Theme-aware page chrome (REV-79): every screen uses these so the Güzelsi
+// (wood) ↔ Orijinal (cream/teal) app theme applies app-wide, not just on the
+// menu/settings. Güzelsi → parchment body + dark-wood header; Orijinal →
+// cream body + teal banner.
+
+/// Surface colour behind the page body gradient.
+Color pageSurfaceColor(BuildContext context) =>
+    isWoodTheme(context) ? WoodTheme.surface : GameColors.creamTop;
+
+/// Page body (content area) gradient.
+Gradient pageBackgroundGradient(BuildContext context) =>
+    isWoodTheme(context) ? WoodTheme.pageBackground : creamShellGradient;
+
+/// Header / immersive full-bleed banner gradient (white text sits on top in
+/// both themes).
+Gradient headerGradient(BuildContext context) =>
+    isWoodTheme(context) ? WoodTheme.buttonGradient : bannerGradient;
 
 /// Shared tokens for the "Ahşap" (wood) app theme — the warm handcrafted wood +
 /// cream parchment look from the Online Oyna screen, reused across all screens.
