@@ -5,7 +5,18 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-10** · Son commit: `54a3387` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `71fb5fc` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🔄 2026-08-18 — YEREL DEPO SENKRONLANDI, DURUM TESPİTİ:** Mustafa'nın makinesindeki yerel
+> `main` 10 commit geride kalmıştı (08-09/08-10 turu Enes'in makinesinden `argedikas@gmail.com`
+> kimliğiyle push edilmiş: REV-61 çerçeveleri + iOS pod fazı + Blender ahşap hattı merge'i).
+> Fast-forward ile eşitlendi, çakışma/kayıp yok. Doğrulama: `flutter analyze` temiz
+> (yalnız bilinen 2 `ai_player.dart:179` info lint'i), **105/105 test yeşil**.
+> **Durum:** Linear'da In Progress/In Review/In AI **boş**; 12 iş Todo'da ve hepsi
+> Enes'in tasarım/ses çıktısına ya da mağaza halkasına bağımlı. **Kodlanacak bağımsız iş yok.**
+> **Bekleyen tek engel:** 08-10 ahşap tahta değişikliği **cihazda hiç görülmedi** — sıradaki
+> iş bir cihaz testi turu. Ekip APK'sı Desktop'ta kalmamış, yeniden derlenmeli.
+> Linear'da REV-61 hâlâ Todo görünüyor ama kod tarafı uygulandı — kolon düzeltmesi Mustafa'nın kararına bırakıldı.
 
 > **🪵 2026-08-10 — BLENDER AHŞAP HATTI MAIN'E ALINDI (`worktree-blender-3d` → `main`):**
 > Dal 10 gündür yerelde push'suz duruyordu; önce GitHub'a push edildi, sonra güncel main'e
