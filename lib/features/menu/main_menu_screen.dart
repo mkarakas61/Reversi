@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/game/game_settings.dart';
+import '../../core/game/reversi_game.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/services/game_storage.dart';
 import '../../app/reversi_app.dart' show routeObserver;
@@ -101,6 +102,34 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     if (mounted) {
       setState(() => _savedGame = saved);
     }
+  }
+
+  /// One line describing the game "Continue" would reopen (REV-100): which mode
+  /// and difficulty, whose turn it is, and the score — e.g.
+  /// "Tek Oyuncu · Kolay · Senin sıran 6–6".
+  ///
+  /// The label alone made the menu's most prominent button the one you knew
+  /// least about. Everything here is already in the saved game; it was just
+  /// never shown.
+  String _savedGameSummary(SavedGame saved, AppStrings strings) {
+    final game = saved.game;
+    final black = game.scoreFor(Disc.black);
+    final white = game.scoreFor(Disc.white);
+    final blacksTurn = game.currentPlayer == Disc.black;
+
+    final parts = <String>[];
+    if (saved.mode == GameMode.singlePlayer) {
+      parts.add(strings.onePlayer);
+      final d = saved.difficulty;
+      if (d != null) parts.add(strings.difficultyLabel(d));
+      // In single-player black is the human, so "your turn" is literal.
+      parts.add(blacksTurn ? strings.yourMove : strings.playerAi);
+    } else {
+      parts.add(strings.twoPlayer);
+      parts.add(blacksTurn ? strings.black : strings.white);
+    }
+    parts.add('$black–$white');
+    return parts.join(' · ');
   }
 
   Future<void> _start(
@@ -313,6 +342,8 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                             label: strings.continueGame,
                             icon: Icons.play_arrow_rounded,
                             primary: true,
+                            subtitle:
+                                _savedGameSummary(_savedGame!, strings),
                             onTap: () => unawaited(_continueSaved()),
                           ),
                           const SizedBox(height: 14),

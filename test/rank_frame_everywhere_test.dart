@@ -10,7 +10,7 @@ import 'package:reversi/core/models/rank.dart';
 void main() {
   group('LeaderboardEntry rank source', () {
     test('the weekly board carries the lifetime total, so it has a rank', () {
-      final entry = LeaderboardEntry.fromWeeklyPlayer('u1', {
+      final entry = LeaderboardEntry.fromWeeklyPlayer('u1', const {
         'displayName': 'Ali',
         'wins': 3,
         'trophyGained': 42,
@@ -24,7 +24,7 @@ void main() {
     });
 
     test('weekly ranking still comes from the weekly gain, not the total', () {
-      final entry = LeaderboardEntry.fromWeeklyPlayer('u1', {
+      final entry = LeaderboardEntry.fromWeeklyPlayer('u1', const {
         'trophyGained': 42,
         'trophies': 320,
       });
@@ -37,7 +37,7 @@ void main() {
 
     test('a row written before the field existed goes unframed, not broken',
         () {
-      final entry = LeaderboardEntry.fromWeeklyPlayer('u1', {
+      final entry = LeaderboardEntry.fromWeeklyPlayer('u1', const {
         'displayName': 'Eski',
         'wins': 1,
         'trophyGained': 5,
@@ -47,7 +47,7 @@ void main() {
     });
 
     test('the all-time board reads its own total', () {
-      final entry = LeaderboardEntry.fromAllTimeUser('u1', {
+      final entry = LeaderboardEntry.fromAllTimeUser('u1', const {
         'displayName': 'Ali',
         'online': {'trophies': 1200, 'wins': 40},
       });
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('a trophy count anywhere on the ladder yields a frame', () {
-      for (final trophies in [0, 29, 30, 99, 100, 249, 550, 1000, 99999]) {
+      for (final trophies in const [0, 29, 30, 99, 100, 249, 550, 1000, 99999]) {
         expect(rankFor(trophies).frame.asset, isNotEmpty,
             reason: '$trophies trophies');
       }

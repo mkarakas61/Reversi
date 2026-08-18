@@ -10,12 +10,17 @@ class MenuButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.primary = false,
+    this.subtitle,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
   final bool primary;
+
+  /// A quieter second line under [label] — what this button will actually do,
+  /// where the label alone leaves it open. "Continue" grows one (REV-100).
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +59,11 @@ class MenuButton extends StatelessWidget {
         ],
       );
     }
+    final sub = subtitle;
     return SizedBox(
       width: 260,
-      height: 58,
+      // The subtitle earns its own height rather than squeezing the label.
+      height: sub == null ? 58 : 72,
       child: DecoratedBox(
         decoration: decoration,
         child: Material(
@@ -71,15 +78,35 @@ class MenuButton extends StatelessWidget {
                   Icon(icon, color: fg, size: 22),
                   const SizedBox(width: 10),
                   Flexible(
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        color: fg,
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily:
+                                wood ? WoodTheme.displayFont : 'Baloo2',
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                            color: fg,
+                          ),
+                        ),
+                        if (sub != null)
+                          Text(
+                            sub,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              height: 1.25,
+                              color: fg.withValues(alpha: 0.82),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
