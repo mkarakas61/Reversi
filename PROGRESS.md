@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `582a9b3` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `341cda6` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
 
 > **📱 2026-08-18 CİHAZ TESTİ (Mustafa, S21 FE kablo ile) — ahşap tahta ONAYLANDI, 2 bulgu:**
 > USB sorunu kablo/port değilmiş, telefonda USB hata ayıklama kapalıymış; açılınca sorunsuz bağlandı
@@ -20,17 +20,22 @@ Son güncelleme: **2026-08-18** · Son commit: `582a9b3` (GitHub main'e push edi
 >    solmamış ama kararmış (parlaklık 0.891 → 0.758). **Eski PNG'ler `8ca330f~1`'den geri alındı**
 >    (boyutlar birebir aynı — 530²/540² — hiza kodu etkilenmedi). Board/frame/surface assetleri
 >    YENİ halde bırakıldı, yalnız iki disk geri alındı.
-> 3. **Taş perspektifi tutarsız (AÇIK, Blender bekliyor).** Prosedürel taşlar kodla %74 dikey
->    ezilip yan duvarla çiziliyor → tahtanın açısına uyuyor. **6 asset diskin hepsi**
->    (ceviz, akçaağaç, mermer×2, çiçek×2) tam tepeden render edilmiş (alfa kutusu en/boy 1.00) →
->    yukarıdan bakıyor. Yarısı yatık yarısı düz duruyor. Kodda tutarsızlık zaten var: asset disk
->    **çevirme sırasında** eziliyor (`BoxFit.fill`), durunca daire oluyor.
->    **Ucuz çözüm (UYGULANMADI, Mustafa'nın kararı):** `_restSquash()` asset taşlar için 1.0 yerine
->    0.74 döndürsün — animasyonun yarım dönmüş hali duruş olur, duvarı kod çizer (kalınlık
->    `0.25×cos(asin(0.74))=0.168`, prosedürelle aynı). Ama o duvar gerçek ahşap değil,
->    `_wallColors` ile taşın ortalama renginden türetilmiş düz bant. Mustafa "ezme uygulama,
->    yeni Blender'ı bekleyelim" dedi → **asıl çözüm: ahşap diskleri Blender'da tahtanın açısıyla
->    yeniden render etmek.** Ticket açılmadı, karar bekliyor.
+> 3. **Taş perspektifi tutarsızdı → DÜZELTİLDİ (REV-89, In Review).** Prosedürel taşlar kodla %74
+>    dikey ezilip yan duvarla çiziliyordu → tahtanın açısına uyuyordu. **6 asset diskin hepsi**
+>    (ceviz, akçaağaç, mermer×2, çiçek×2) tam tepeden render edilmişti (alfa kutusu en/boy 1.00) →
+>    yukarıdan bakıyordu. Kodda tutarsızlık zaten vardı: asset disk **çevirme sırasında** eziliyor
+>    (`BoxFit.fill`), durunca daire oluyordu.
+>    **Mustafa'nın çözümü** ("dönme animasyonunda kalınlık veriyorsak, yarım dönmüş halini sabit taş
+>    olarak kullanamaz mıyız?") uygulandı: `_restSquash()` kaldırıldı, **her taş türü aynı duruş
+>    açısında** (0.74); yeni `_RestingAssetDisc` PNG'yi ezip altına `_FlipWallPainter` ile duvar
+>    çiziyor. Duvar `0.25×cos(asin(0.74))=0.168` → prosedürelin `kCoinRestThickness`=0.17'siyle aynı,
+>    iki tür taş tahtada aynı yükseklikte duruyor. `_wallColors` + `_kAssetWallInset` dosya seviyesine
+>    çıktı; duruş ve animasyon aynı sabitleri paylaşıyor, kayamaz. `test/disc_view_test.dart` 4 test,
+>    toplam 109 yeşil. Cihazda doğrulandı — taşlar tahtanın açısında, yan duvarları görünüyor.
+>    **⚠️ Tam çözüm DEĞİL:** duvar gerçek render edilmiş ahşap değil, taşın renginden türetilmiş düz
+>    bant. Mustafa "blender ile de aynı şeyi yapacağız" dedi → **asset diskler Blender'da tahtanın
+>    açısıyla yeniden render edilecek**; o tur gelince buradaki ezme kaldırılır (PNG kendi
+>    perspektifini taşır). Ceviz/akçaağacın yanı sıra **mermer ve çiçek setleri de** aynı durumda.
 
 > **🔄 2026-08-18 — YEREL DEPO SENKRONLANDI, DURUM TESPİTİ:** Mustafa'nın makinesindeki yerel
 > `main` 10 commit geride kalmıştı (08-09/08-10 turu Enes'in makinesinden `argedikas@gmail.com`
