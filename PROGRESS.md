@@ -5,7 +5,32 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `71fb5fc` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `582a9b3` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **📱 2026-08-18 CİHAZ TESTİ (Mustafa, S21 FE kablo ile) — ahşap tahta ONAYLANDI, 2 bulgu:**
+> USB sorunu kablo/port değilmiş, telefonda USB hata ayıklama kapalıymış; açılınca sorunsuz bağlandı
+> (hafızadaki "USB bozuk, kablosuz kullan" notu bu yüzden yanlışmış). APK `582a9b3`'ten kuruldu,
+> çalışma anı logu temiz, crash yok.
+> 1. **Yeni Blender ahşap tahtası onaylandı** — "en iyi tahtalardan biri olmuş, hiçbir sorun yok".
+>    Ceviz/akçaağaç satranç deseni ve taş-kare hizası cihazda doğrulandı. 08-10'dan beri bekleyen
+>    cihaz onayı **kapandı**.
+> 2. **Ahşap taşlar soluktu → DÜZELTİLDİ.** Sebep kodda filtre değil, `8ca330f` (Enes, 24 Tem)
+>    "Refresh wood assets with Blender 3D renders" commit'inin ürettiği yeni PNG'lerin kendisiydi:
+>    ceviz doygunluğu 0.498 → 0.214 (−%57), farklı renk sayısı 8362 → 3031 (−%64); akçaağaç
+>    solmamış ama kararmış (parlaklık 0.891 → 0.758). **Eski PNG'ler `8ca330f~1`'den geri alındı**
+>    (boyutlar birebir aynı — 530²/540² — hiza kodu etkilenmedi). Board/frame/surface assetleri
+>    YENİ halde bırakıldı, yalnız iki disk geri alındı.
+> 3. **Taş perspektifi tutarsız (AÇIK, Blender bekliyor).** Prosedürel taşlar kodla %74 dikey
+>    ezilip yan duvarla çiziliyor → tahtanın açısına uyuyor. **6 asset diskin hepsi**
+>    (ceviz, akçaağaç, mermer×2, çiçek×2) tam tepeden render edilmiş (alfa kutusu en/boy 1.00) →
+>    yukarıdan bakıyor. Yarısı yatık yarısı düz duruyor. Kodda tutarsızlık zaten var: asset disk
+>    **çevirme sırasında** eziliyor (`BoxFit.fill`), durunca daire oluyor.
+>    **Ucuz çözüm (UYGULANMADI, Mustafa'nın kararı):** `_restSquash()` asset taşlar için 1.0 yerine
+>    0.74 döndürsün — animasyonun yarım dönmüş hali duruş olur, duvarı kod çizer (kalınlık
+>    `0.25×cos(asin(0.74))=0.168`, prosedürelle aynı). Ama o duvar gerçek ahşap değil,
+>    `_wallColors` ile taşın ortalama renginden türetilmiş düz bant. Mustafa "ezme uygulama,
+>    yeni Blender'ı bekleyelim" dedi → **asıl çözüm: ahşap diskleri Blender'da tahtanın açısıyla
+>    yeniden render etmek.** Ticket açılmadı, karar bekliyor.
 
 > **🔄 2026-08-18 — YEREL DEPO SENKRONLANDI, DURUM TESPİTİ:** Mustafa'nın makinesindeki yerel
 > `main` 10 commit geride kalmıştı (08-09/08-10 turu Enes'in makinesinden `argedikas@gmail.com`
