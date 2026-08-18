@@ -6,9 +6,37 @@ import '../../core/settings/app_settings.dart';
 import '../../core/theme/coin_palette.dart';
 import 'coin_view.dart';
 
+/// Transparent margin an image disc's PNG carries around the artwork, ×
+/// diameter — the painted wall is inset by this much to stay under the disc.
+const double _kAssetWallInset = 0.03;
+
+/// Side wall of a disc at rest, × diameter: [AnimatedDiscView._thickness] seen
+/// at the resting elevation, so a turn settles exactly on [DiscView].
+final double _kRestWall =
+    AnimatedDiscView._thickness * math.cos(math.asin(kCoinRestFaceSquash));
+
+/// Edge tones for [coin]'s side wall: the procedural coin's own edge colours,
+/// or shades derived from an image disc's representative colour.
+(Color, Color) _wallColors(CoinColor coin) {
+  final palette = coinPalettes[coin];
+  if (palette != null) return (palette.edgeLight, palette.edgeDark);
+  final accent = coinAccentColor(coin);
+  return (
+    Color.lerp(accent, Colors.white, 0.18)!,
+    Color.lerp(accent, Colors.black, 0.42)!,
+  );
+}
+
 /// A single disc face, sized to fit a [size]×[size] square and centered. Draws
 /// a procedural coin ([coinPalettes]) or an image disc ([coinAssets]) — so any
 /// selectable coin renders on any board (REV-82).
+///
+/// Both kinds rest at the same elevation (REV-89): the board is seen at a tilt,
+/// so a disc lying on it shows a [kCoinRestFaceSquash]-tall face standing on a
+/// side wall. A procedural coin paints that pose; an image disc — rendered
+/// straight down, so full height would read as a sticker seen from above — is
+/// squashed into it and given a painted wall. This is the exact pose
+/// [AnimatedDiscView] settles into, so a turn lands flush.
 class DiscView extends StatelessWidget {
   const DiscView({super.key, required this.coin, required this.size});
 
@@ -20,16 +48,55 @@ class DiscView extends StatelessWidget {
     final palette = coinPalettes[coin];
     final Widget disc = palette != null
         ? CoinView(palette: palette, width: size)
-        : Image.asset(
-            coinAssets[coin]!,
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-          );
+        : _RestingAssetDisc(coin: coin, size: size);
     return SizedBox(
       width: size,
       height: size,
       child: Center(child: disc),
+    );
+  }
+}
+
+/// An image disc lying on the board: the PNG squashed to the resting elevation,
+/// standing on a wall painted in the disc's own edge tones.
+class _RestingAssetDisc extends StatelessWidget {
+  const _RestingAssetDisc({required this.coin, required this.size});
+
+  final CoinColor coin;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final faceH = size * kCoinRestFaceSquash;
+    final wallH = size * _kRestWall;
+    final (light, dark) = _wallColors(coin);
+    return SizedBox(
+      width: size,
+      height: faceH + wallH,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _FlipWallPainter(
+                light: light,
+                dark: dark,
+                faceH: faceH,
+                wallH: wallH,
+                below: true,
+                inset: size * _kAssetWallInset,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: faceH,
+            child: Image.asset(coinAssets[coin]!, fit: BoxFit.fill),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -76,24 +143,6 @@ class AnimatedDiscView extends StatelessWidget {
   /// Growth toward the camera at the top of the arc.
   static const double _hoverScale = 0.12;
 
-  /// Apparent face squash of [coin] at rest: image discs have their perspective
-  /// baked into the PNG and rest full height, procedural coins rest as
-  /// [CoinView]'s ellipse.
-  static double _restSquash(CoinColor coin) =>
-      isAssetCoin(coin) ? 1.0 : kCoinRestFaceSquash;
-
-  /// Edge tones for [coin]'s side wall: the procedural coin's own edge colours,
-  /// or shades derived from an image disc's representative colour.
-  static (Color, Color) _wallColors(CoinColor coin) {
-    final palette = coinPalettes[coin];
-    if (palette != null) return (palette.edgeLight, palette.edgeDark);
-    final accent = coinAccentColor(coin);
-    return (
-      Color.lerp(accent, Colors.white, 0.18)!,
-      Color.lerp(accent, Colors.black, 0.42)!,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final from = flipFrom;
@@ -102,18 +151,17 @@ class AnimatedDiscView extends StatelessWidget {
     final p = t.clamp(0.0, 1.0);
 
     // The turn as a coin tipping over in front of a tilted camera: `phase` runs
-    // from the resting elevation of the old skin, through pi (edge-on, always
-    // at the halfway point so mismatched skins still meet), to pi plus the new
-    // skin's resting elevation. sin(phase) is the apparent face squash and
-    // cos(phase) the visible side wall, which is what makes the turn read as
-    // depth rather than a vertical squeeze.
+    // from the resting elevation, through pi (edge-on at the halfway point, so
+    // mismatched skins meet), to pi plus that same elevation. sin(phase) is the
+    // apparent face squash and cos(phase) the visible side wall, which is what
+    // makes the turn read as depth rather than a vertical squeeze. Every skin
+    // rests at the same elevation (REV-89), so both ends are symmetric.
     final firstHalf = p < 0.5;
     final shown = firstHalf ? from : coin;
-    final eFrom = math.asin(_restSquash(from));
-    final eTo = math.asin(_restSquash(coin));
+    final rest = math.asin(kCoinRestFaceSquash);
     final phase = firstHalf
-        ? eFrom + (math.pi - eFrom) * (p / 0.5)
-        : math.pi + eTo * ((p - 0.5) / 0.5);
+        ? rest + (math.pi - rest) * (p / 0.5)
+        : math.pi + rest * ((p - 0.5) / 0.5);
 
     final faceK = math.sin(phase);
     final wallK = math.cos(phase);
@@ -127,7 +175,7 @@ class AnimatedDiscView extends StatelessWidget {
     final palette = coinPalettes[shown];
     // Image discs carry transparent padding around the disc, so their wall is
     // inset slightly to stay under the artwork.
-    final inset = palette == null ? size * 0.03 : 0.0;
+    final inset = palette == null ? size * _kAssetWallInset : 0.0;
 
     final coinBox = SizedBox(
       width: size,
