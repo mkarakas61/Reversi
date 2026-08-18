@@ -5,7 +5,28 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `deca4c1` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `cf3b1fd` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🧹 2026-08-18 — UX CİLASI BAŞLADI (proje 15), 2 iş In Review:** Mustafa'nın sıralaması:
+> **önce UX cilası (15) → sonra mağaza (12) → en son Play Store hazırlığı (14).** Gerekçe: QA turu
+> zaten değişen kodun üstüne yapılmalı, yayın hazırlığını sona bırakmak doğru.
+> - **REV-97 (In Review)** — `leaderboardYourRank` TR'de `'Senin sıran'`dı, `yourMove` ile birebir
+>   aynı metin → **"Sıralaman"**. Ayrıca metrik değeri iki yerde kopyalanmıştı (`_computeMyRank` +
+>   `_LeaderboardRow`) ve galibiyette hiç birim yoktu (kupada 🏆 vardı) → tek `_metricLabel()`
+>   fonksiyonu, iki metrik de yerelleştirilmiş birimini taşıyor ("17 galibiyet", "1234 kupa",
+>   "+42 kupa"). **🏆 emoji'si kaldırıldı**, yerine kelime kondu — iki benzer emoji ayrımı
+>   çözmüyordu. Mustafa emoji'yi geri isterse tek satır. Yeni metinler: `leaderboardUnitWins`,
+>   `leaderboardUnitTrophies`.
+> - **REV-96 (In Review)** — oyuncu kartındaki `Stack` kaldırıldı. Sayaç `Alignment.center`
+>   katmanındaydı, isim `Expanded` içinde; ikisi kartın aynı orta bölgesini paylaşıyordu.
+>   Kart artık tek `Row` + üç bölge: avatar (44) | isim+durum (`Expanded`) | sayaç (50) +
+>   ScoreChip + skor (44). Süresiz modda sayaç alanı isme kalıyor. Yanıp sönme korundu.
+> - **Testler:** `leaderboard_strings_test.dart` (3) + `player_card_test.dart` (4, hepsi 360dp'de
+>   en uzun gerçek isimle). **Toplam 116 yeşil**, analyze temiz.
+> - **⚠️ Cihaz doğrulaması bekliyor:** APK kuruldu ama telefon kilitliydi, süreli 2 kişilik oyunu
+>   gözle göremedim. Mustafa 30sn'lik oyunda bakmalı (özellikle sayaç kırmızı+yanıp sönerken).
+> - **Keystore:** Mustafa `key.properties` içeriğini birkaç güvenli yere yedekledi. Repo temiz —
+>   `android/.gitignore:12` kapsıyor, hiç commit edilmemiş, `.jks` de repoda yok.
 
 > **🎯 2026-08-18 — YENİ AŞAMA: PLAY STORE YAYIN YOLU (dış denetim + karar):**
 > Mustafa, ChatGPT'ye `0.1.0+1` APK'sını ve 3dk40sn ekran videosunu inceletti. Denetimin hükmü:
