@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reversi/core/l10n/app_strings.dart';
+import 'package:reversi/core/theme/metric_marks.dart';
 
 // REV-97: the leaderboard's "your rank" header used to read 'Senin sıran' in
 // Turkish — word for word the in-game "your move" label. "Sıra" means both
@@ -28,9 +29,23 @@ void main() {
         expect(s.leaderboardUnitWins, isNotEmpty);
         expect(s.leaderboardUnitTrophies, isNotEmpty);
         // A bare number under a swappable metric column is the ambiguity the
-        // units exist to remove, so the two must not read alike.
+        // units exist to remove, so the two must not read alike. Rows show a
+        // mark instead; these words are what screen readers get.
         expect(s.leaderboardUnitWins, isNot(equals(s.leaderboardUnitTrophies)));
       }
+    });
+  });
+
+  group('metric marks', () {
+    test('wins and trophies never share a mark', () {
+      // The two metrics swap under the same column, so a shared mark would put
+      // the reader back where REV-97 started.
+      expect(kWinsMark, isNot(equals(kTrophyMark)));
+    });
+
+    test('marks are present', () {
+      expect(kWinsMark, isNotEmpty);
+      expect(kTrophyMark, isNotEmpty);
     });
   });
 }

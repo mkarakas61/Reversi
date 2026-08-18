@@ -6,27 +6,54 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/services/leaderboard_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../core/theme/metric_marks.dart';
 import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
 import '../../menu/widgets/profile_chip.dart' show ProfileAvatar;
 
-/// A ranked value with the unit it is counted in — "17 galibiyet", "1234 kupa",
-/// "+42 kupa" (REV-97). The unit matters because the table swaps metrics under
-/// the same column: a bare number left the reader guessing whether it was wins
-/// or trophies. Weekly trophies are a gain over the week, so they carry a sign.
-String _metricLabel(
-  int value,
-  LeaderboardMetric metric,
-  LeaderboardPeriod period,
-  AppStrings strings,
-) {
-  if (metric == LeaderboardMetric.wins) {
-    return '$value ${strings.leaderboardUnitWins}';
+/// A ranked value carrying the mark it is counted in — "17 🏅", "1234 🏆",
+/// "+42 🏆" (REV-97). The mark matters because the table swaps metrics under the
+/// same column: a bare number left the reader guessing whether it was wins or
+/// trophies. The picker above the table names the metric in words, so down in
+/// the rows a mark says it without crowding the player's name.
+///
+/// Weekly trophies are a gain over the week, so they carry a sign.
+///
+/// Screen readers get the word instead of the mark — an emoji read aloud in the
+/// middle of a score is noise.
+class _MetricValue extends StatelessWidget {
+  const _MetricValue({
+    required this.value,
+    required this.metric,
+    required this.period,
+    required this.strings,
+    required this.style,
+  });
+
+  final int value;
+  final LeaderboardMetric metric;
+  final LeaderboardPeriod period;
+  final AppStrings strings;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final wins = metric == LeaderboardMetric.wins;
+    final signed =
+        !wins && period == LeaderboardPeriod.weekly ? '+$value' : '$value';
+    final word =
+        wins ? strings.leaderboardUnitWins : strings.leaderboardUnitTrophies;
+    return Semantics(
+      label: '$signed $word',
+      excludeSemantics: true,
+      child: Text(
+        '$signed ${wins ? kWinsMark : kTrophyMark}',
+        maxLines: 1,
+        softWrap: false,
+        style: style,
+      ),
+    );
   }
-  final unit = strings.leaderboardUnitTrophies;
-  return period == LeaderboardPeriod.allTime
-      ? '$value $unit'
-      : '+$value $unit';
 }
 
 /// Ranked leaderboard: Weekly/All-Time period × Level/Wins metric, top 50 plus
@@ -45,7 +72,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   LeaderboardMetric _metric = LeaderboardMetric.wins;
 
   late Future<List<LeaderboardEntry>> _topFuture;
-  Future<({int rank, String value})>? _rankFuture;
+  Future<({int rank, int value})>? _rankFuture;
 
   @override
   void initState() {
@@ -60,26 +87,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     });
   }
 
-  Future<({int rank, String value})> _computeMyRank(Profile profile) async {
-    final strings = AppStrings.of(context);
+  Future<({int rank, int value})> _computeMyRank(Profile profile) async {
     int myValue;
     if (_period == LeaderboardPeriod.allTime) {
       myValue = _metric == LeaderboardMetric.trophy
           ? profile.online.trophies
           : profile.online.wins;
     } else {
-      final mine =
-          await LeaderboardService.instance.myWeeklyEntry(profile.uid);
+      final mine = await LeaderboardService.instance.myWeeklyEntry(profile.uid);
       myValue = _metric == LeaderboardMetric.trophy
           ? (mine?.trophyGained ?? 0)
           : (mine?.wins ?? 0);
     }
     final rank =
         await LeaderboardService.instance.myRank(_period, _metric, myValue);
-    return (
-      rank: rank,
-      value: _metricLabel(myValue, _metric, _period, strings),
-    );
+    return (rank: rank, value: myValue);
   }
 
   @override
@@ -151,7 +173,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           },
         ),
         const SizedBox(height: 14),
-        FutureBuilder<({int rank, String value})>(
+        FutureBuilder<({int rank, int value})>(
           future: _rankFuture,
           builder: (context, snap) {
             final data = snap.data;
@@ -159,6 +181,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             return _YourRankCard(
               rank: data.rank,
               value: data.value,
+              metric: _metric,
+              period: _period,
               strings: strings,
             );
           },
@@ -254,11 +278,15 @@ class _YourRankCard extends StatelessWidget {
   const _YourRankCard({
     required this.rank,
     required this.value,
+    required this.metric,
+    required this.period,
     required this.strings,
   });
 
   final int rank;
-  final String value;
+  final int value;
+  final LeaderboardMetric metric;
+  final LeaderboardPeriod period;
   final AppStrings strings;
 
   @override
@@ -292,8 +320,11 @@ class _YourRankCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            value,
+          _MetricValue(
+            value: value,
+            metric: metric,
+            period: period,
+            strings: strings,
             style: const TextStyle(
               fontFamily: 'Nunito',
               fontWeight: FontWeight.w700,
@@ -326,12 +357,11 @@ class _LeaderboardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final raw = metric == LeaderboardMetric.wins
+    final value = metric == LeaderboardMetric.wins
         ? (entry.wins ?? 0)
         : period == LeaderboardPeriod.allTime
             ? (entry.trophies ?? 0)
             : (entry.trophyGained ?? 0);
-    final value = _metricLabel(raw, metric, period, strings);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -371,8 +401,11 @@ class _LeaderboardRow extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            value,
+          _MetricValue(
+            value: value,
+            metric: metric,
+            period: period,
+            strings: strings,
             style: const TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w800,
