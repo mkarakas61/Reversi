@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `cf3b1fd` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `3e3c7ac` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
 
 > **🧹 2026-08-18 — UX CİLASI BAŞLADI (proje 15), 2 iş In Review:** Mustafa'nın sıralaması:
 > **önce UX cilası (15) → sonra mağaza (12) → en son Play Store hazırlığı (14).** Gerekçe: QA turu
@@ -14,17 +14,24 @@ Son güncelleme: **2026-08-18** · Son commit: `cf3b1fd` (GitHub main'e push edi
 >   aynı metin → **"Sıralaman"**. Ayrıca metrik değeri iki yerde kopyalanmıştı (`_computeMyRank` +
 >   `_LeaderboardRow`) ve galibiyette hiç birim yoktu (kupada 🏆 vardı) → tek `_metricLabel()`
 >   fonksiyonu, iki metrik de yerelleştirilmiş birimini taşıyor ("17 galibiyet", "1234 kupa",
->   "+42 kupa"). **🏆 emoji'si kaldırıldı**, yerine kelime kondu — iki benzer emoji ayrımı
->   çözmüyordu. Mustafa emoji'yi geri isterse tek satır. Yeni metinler: `leaderboardUnitWins`,
->   `leaderboardUnitTrophies`.
+>   "+42 kupa"). **Revizyon (`3e3c7ac`):** Mustafa "seçim çubuğunda kelime, kişilerin yanında
+>   emoji" dedi → satırlar ve "Sıralaman" kartı emoji'ye döndü (`17 🏅`, `1234 🏆`, `+42 🏆`),
+>   seçim çubuğu zaten "Galibiyet"/"Kupa" yazıyordu. **İşaretler ortak:**
+>   `lib/core/theme/metric_marks.dart` → `kWinsMark`/`kTrophyMark`, çünkü **sabit kupa göstergesi**
+>   (Mustafa'nın istediği eklenti) aynı sembolü kullanacak. `_MetricValue` widget'ı ekranda emoji,
+>   ekran okuyucuya kelime veriyor (`Semantics`) → `leaderboardUnitWins`/`leaderboardUnitTrophies`
+>   artık erişilebilirlik metni olarak görev yapıyor (REV-105 TalkBack testine hazır).
 > - **REV-96 (In Review)** — oyuncu kartındaki `Stack` kaldırıldı. Sayaç `Alignment.center`
 >   katmanındaydı, isim `Expanded` içinde; ikisi kartın aynı orta bölgesini paylaşıyordu.
 >   Kart artık tek `Row` + üç bölge: avatar (44) | isim+durum (`Expanded`) | sayaç (50) +
 >   ScoreChip + skor (44). Süresiz modda sayaç alanı isme kalıyor. Yanıp sönme korundu.
+>   **✅ Cihazda doğrulandı** (30sn iki oyunculu): "Çiçek Pembe / sırada" → `0:28` → taş → skor
+>   yan yana, çakışma yok; sıra geçince sayaç kayboluyor ve alan isme kalıyor.
 > - **Testler:** `leaderboard_strings_test.dart` (3) + `player_card_test.dart` (4, hepsi 360dp'de
 >   en uzun gerçek isimle). **Toplam 116 yeşil**, analyze temiz.
-> - **⚠️ Cihaz doğrulaması bekliyor:** APK kuruldu ama telefon kilitliydi, süreli 2 kişilik oyunu
->   gözle göremedim. Mustafa 30sn'lik oyunda bakmalı (özellikle sayaç kırmızı+yanıp sönerken).
+> - **Kalan cihaz doğrulaması:** lider tablosu görsel olarak görülemedi — telefonda oturum
+>   kapalıydı, Mustafa'nın hesabıyla giriş yapmak doğru olmazdı. Emoji'li satırları Mustafa
+>   girip görmeli. Sayacın kırmızı+yanıp sönen hali de görülmedi (aynı widget, aynı geometri).
 > - **Keystore:** Mustafa `key.properties` içeriğini birkaç güvenli yere yedekledi. Repo temiz —
 >   `android/.gitignore:12` kapsıyor, hiç commit edilmemiş, `.jks` de repoda yok.
 
