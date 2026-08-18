@@ -5,7 +5,25 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `216c235` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `1b937d8` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **📱📱 2026-08-18 — TABLET DE BAĞLANDI + ÇERÇEVE/İPUCU REVİZYONU:**
+> Mustafa **Galaxy Tab (SM-X620, 1800×2880, dpi 320)** bağladı; artık telefon (SM-G780G) + tablet
+> ikilisiyle **iki cihazlı online test** yapılabilir (emülatöre gerek kalmadı). APK ikisine de kuruldu.
+> Tablette ilk gözlem: ayarlar ve oyun ekranı sorunsuz açılıyor, ahşap tahta büyük ve düzgün.
+> - **REV-106 revizyonu (`1b937d8`)** — Mustafa "çerçeveler çok ince kalıyor" dedi. Halka kalınlığı
+>   açıklık çapıyla doğru orantılı olduğu için **tüm açıklıklar ikiye katlandı**: lider tablosu
+>   30→60 (yuva 46→92), eşleşme önizlemesi 52→104, maç şeridi 36→72, rakip istatistik 48→96.
+>   ⚠️ Yan etki: lider tablosu satırları ~112pt oldu, 50'lik liste uzun kaydırılıyor — fazla gelirse
+>   yalnız `_opening`/`_slot` geri çekilir.
+> - **REV-101 (In Review, `1b937d8`)** — ipuçları büyütüldü (offline 0.34→0.46, online 0.30→0.46)
+>   ve kenar sabit 2px yerine **çapın %15'i** oldu → dolu nokta değil **kalın içi boş halka**.
+>   REV-87 son hamle nişanı dolu kaldığı için artık **şekil olarak** ayrışıyorlar; desenli
+>   tahtalardaki karışma sebebi buydu. İki tahtanın oranı da eşitlendi (önceden farklıydı).
+>   **✅ Tablette gözle doğrulandı.** REV-86 davranışı korundu (AI sırasında ipucu gizli).
+>   **Yapılmadı:** "Hamle önerilerini göster" ayarı — `AppSettings`+ayarlar ekranı gerektiriyor,
+>   REV-104'ün ayarlar düzenlemesiyle aynı yere dokunuyor, birlikte yapılmalı.
+> - **124 test yeşil**, analyze temiz.
 
 > **🖼️ 2026-08-18 — REV-106 ÇERÇEVELER + REV-100 DEVAM ET (proje 15 sürüyor):**
 > Mustafa'nın tespiti: *"bir çerçeve kazandıysam adımın ve avatarımın olduğu her yerde çerçevemi
