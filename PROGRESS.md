@@ -5,7 +5,48 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `1b937d8` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `723fe70` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🔚 2026-08-18 OTURUM KAPANIŞI — her şey canlıda, tahta temiz:**
+>
+> **Canlı durum:** Yerel `main` = `origin/main` (`723fe70`), çalışma ağacı temiz, bekleyen commit yok.
+> **`functions/`, `firestore.rules`, `firestore.indexes.json` bu oturumda HİÇ değişmedi → prod deploy
+> gerekmiyor, sunucu zaten güncel.** 124 test yeşil, analyze temiz (bilinen 2 info lint).
+> APK **hem telefona (SM-G780G) hem tablete (SM-X620)** kuruldu · `~/Desktop/Reversi-0.1.0-723fe70.apk`
+>
+> **Linear:** In AI **boş** (takılı iş yok) · Backlog **boş** (tümü Todo'ya alındı, mevcut işlerle aynı kolonda)
+>
+> **In Review (6) — Mustafa'nın cihaz onayını bekliyor:**
+> | # | İş | Cihazda görüldü mü |
+> |---|---|---|
+> | REV-96 | Süre/isim çakışması | ✅ telefonda |
+> | REV-97 | Lider tablosu metni + emoji | ❌ oturum gerekiyor |
+> | REV-100 | "Devam Et" özeti | ✅ telefonda |
+> | REV-101 | Hamle ipucu halkaları | ✅ tablette |
+> | REV-106 | Rütbe çerçeveleri (2× büyük) | ❌ oturum gerekiyor |
+> | REV-61 | Kademe çerçeveleri (eski iş) | kısmen |
+>
+> **⚠️ Sıradaki oturumun ilk işi:** Mustafa online oturum açıp **lider tablosu + eşleşme önizlemesi +
+> maç ekranındaki çerçeveleri** görmeli. Çerçeveler 2× büyütüldü ama hiç gözle görülmedi.
+> Lider tablosu satırları ~112pt oldu — uzun gelirse yalnız `_opening`/`_slot` geri çekilir.
+>
+> **Mustafa'dan karar bekleyen 3 şey (proje 15'in kalanı bunlara bağlı):**
+> 1. **REV-104** — "Güzelsi" adı kalsın mı? (Diğer maddeleri karardan bağımsız yapılabilir.)
+> 2. **REV-98** — rövanş: tam sürüm (sunucu işi + iki taraflı kabul) mü, yalnız "Yeni rakip bul" mu?
+> 3. **REV-102** — birikmiş coin bakiyeleri: kalsın / sıfırla / sıfırla+telafi? Önce Firestore'da
+>    ne kadar biriktiği ölçülmeli.
+>
+> **Engelsiz, hemen başlanabilir:** REV-103 (nasıl oynanır ekranı), REV-99 (eşleşmede otomatik
+> başlangıç — artık iki gerçek cihazla test edilebilir).
+>
+> **🔧 Test altyapısı değişti:** İki cihazlı online test için **artık emülatör gerekmiyor** —
+> telefon + tablet ikisi de kablo ile bağlı ve APK kurulu. (Eski "AVD reversi_test, Android
+> Studio'dan açılmalı" notu geçersiz.) Ayrıca **USB hiç bozuk değilmiş**: sorun telefonda USB hata
+> ayıklamanın kapalı olmasıymış; açılınca kablo sorunsuz çalıştı, kablosuz eşleştirmeye gerek yok.
+>
+> **⚠️ Hâlâ en riskli açık iş: REV-95 keystore yedeği.** Mustafa `key.properties` içeriğini birkaç
+> yere kopyaladı; **`.jks` dosyasının kendisi de** (`/Users/f/reversi-release.jks`) yedeklenmeli.
+> Repo temiz — `android/.gitignore:12` kapsıyor, hiç commit edilmemiş.
 
 > **📱📱 2026-08-18 — TABLET DE BAĞLANDI + ÇERÇEVE/İPUCU REVİZYONU:**
 > Mustafa **Galaxy Tab (SM-X620, 1800×2880, dpi 320)** bağladı; artık telefon (SM-G780G) + tablet
