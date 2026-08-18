@@ -436,12 +436,15 @@ class _RankedAvatar extends StatelessWidget {
   final String? photoUrl;
   final int? trophies;
 
-  /// Avatar diameter inside the frame — the unframed row avatar was 32 across.
-  static const double _opening = 30.0;
+  /// Avatar diameter inside the frame. Doubled from the first pass: at 30 the
+  /// ornament ring came out only a few pixels thick and read as a hairline
+  /// rather than a frame. The ring's thickness scales with the opening, so
+  /// this is the knob that makes a frame look like one.
+  static const double _opening = 60.0;
 
   /// Row height the frames are allowed to claim. Every rank reserves the same
   /// box so rows keep a common baseline whatever mix of ranks they hold.
-  static const double _slot = 46.0;
+  static const double _slot = 92.0;
 
   @override
   Widget build(BuildContext context) {

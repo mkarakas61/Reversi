@@ -234,7 +234,8 @@ class _PlayerLine extends StatelessWidget {
           // exactly where an earned frame should be doing its work.
           RankFrameView.around(
             frame: rank.frame,
-            openingDiameter: 52,
+            // Doubled (REV-106 follow-up): at 52 the ring read as a hairline.
+            openingDiameter: 104,
             child: CircleAvatar(
               radius: 26,
               backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),

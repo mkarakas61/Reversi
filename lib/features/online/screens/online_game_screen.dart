@@ -594,7 +594,7 @@ class _PlayerStrip extends StatelessWidget {
                 // The frame rides along with the rank badge below (REV-106):
                 // during a match you should be able to see who you are up
                 // against without opening anything.
-                _FramedAvatar(photoUrl: url, rank: r, radius: 18),
+                _FramedAvatar(photoUrl: url, rank: r, radius: 36),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -998,7 +998,7 @@ class _OpponentStatsSheet extends StatelessWidget {
           children: [
             Row(
               children: [
-                _FramedAvatar(photoUrl: url, rank: stats.rank, radius: 24),
+                _FramedAvatar(photoUrl: url, rank: stats.rank, radius: 48),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

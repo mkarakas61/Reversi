@@ -347,7 +347,7 @@ class _Hint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = cell * 0.3;
+    final size = cell * 0.46;
     // The flower board's pale cream center washes out the amber hint, so use a
     // darker wine/rose dot with high contrast there.
     final fill = flower ? const Color(0x807A3B52) : OnlineTokens.hintFill;
@@ -366,7 +366,7 @@ class _Hint extends StatelessWidget {
               decoration: BoxDecoration(
                 color: fill,
                 shape: BoxShape.circle,
-                border: Border.all(color: ring, width: 2),
+                border: Border.all(color: ring, width: size * 0.15),
               ),
             ),
           ),

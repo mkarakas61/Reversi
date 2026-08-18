@@ -167,7 +167,9 @@ class _WoodBoardState extends State<WoodBoard>
                 final (center, coinW) = cellGeometry(r, c);
 
                 if (isHint) {
-                  final hintSize = coinW * 0.34;
+                  // Big enough to read at a glance on a busy board, and to
+                  // stay distinct from the last-move pip (REV-101).
+                  final hintSize = coinW * 0.46;
                   coinWidgets.add(Positioned(
                     left: center.dx - hintSize / 2,
                     top: center.dy - hintSize / 2,

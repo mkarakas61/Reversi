@@ -25,6 +25,11 @@ class _HintWidgetState extends State<HintWidget>
     super.dispose();
   }
 
+  /// Ring thickness, × the hint's diameter. A ring rather than a hairline: the
+  /// hint has to read as a *shape* next to REV-87's last-move pip, which is a
+  /// small solid disc. Same colour family, different form (REV-101).
+  static const double _ringFactor = 0.15;
+
   @override
   Widget build(BuildContext context) {
     final p = widget.palette;
@@ -40,7 +45,10 @@ class _HintWidgetState extends State<HintWidget>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: fill,
-          border: Border.all(color: ring, width: 2),
+          border: Border.all(
+            color: ring,
+            width: widget.size * _ringFactor,
+          ),
         ),
       ),
     );
