@@ -5,7 +5,56 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `341cda6` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `deca4c1` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🎯 2026-08-18 — YENİ AŞAMA: PLAY STORE YAYIN YOLU (dış denetim + karar):**
+> Mustafa, ChatGPT'ye `0.1.0+1` APK'sını ve 3dk40sn ekran videosunu inceletti. Denetimin hükmü:
+> *"kapalı test için uygun, üretim yayını için hazır değil."* Tüm bulgular Claude tarafından
+> **kodda tek tek doğrulandı** — hangisinin gerçek, hangisinin yanlış olduğu aşağıda.
+>
+> **✅ Doğrulanan yayın engelleri:** hesap silme akışı YOK (`deleteAccount` → 0 eşleşme, yalnız
+> `signOut` var) · gizlilik/koşullar/lisans uygulama içinde YOK (0 eşleşme) · birleştirilmiş
+> manifestte `AD_ID` + `ACCESS_ADSERVICES_*` izinleri var (firebase_analytics'ten) ·
+> `allowBackup` beyan edilmemiş (varsayılan `true`) · Crashlytics yok · Play'e AAB gerekiyor.
+>
+> **✅ Doğrulanan UI hataları:** (a) **süre/isim çakışması** — sayaç `Stack(center)` katmanında,
+> isim `Expanded` içinde, ikisi aynı yeri paylaşıyor (`player_card.dart:73-90`), yapısal hata;
+> (b) **`leaderboardYourRank` = `'Senin sıran'`** (`app_strings.dart:276`), `yourMove` ile birebir
+> aynı metin — "sıra" *turn* olarak okunuyor, İngilizcesi doğru (`'Your rank'`);
+> (c) online maç sonu tek buton, `'Ana Menü'` sabit yazılmış (`online_result_overlay.dart:151`),
+> oysa `playAgain` metni zaten var; (d) eşleşmede manuel "Başla"; (e) "Devam Et" bağlamsız.
+>
+> **❌ Denetimin YANILDIKLARI:** "dokunma hedefleri hücrelerle örtüşmeyebilir" → **yanlış**, dokunma
+> çizim matrisinin tersinden geçiyor (`wood_board.dart:250`), hücre neredeyse dokunma da orada ·
+> "`in_app_purchase` kalıntısı var" → öyle bir bağımlılık hiç olmadı · "perspektifi azalt / düz
+> tahta ekle" → ürün yönümüze zıt, REV-89'da tam tersini yaptık ve Mustafa ahşap tahtayı onayladı.
+>
+> **🔴 DENETİMİN GÖREMEDİĞİ, EN ÖNEMLİ BULGU (REV-102):** **coin ekonomisi sunucuda ÇALIŞIYOR.**
+> `finish_game.ts:182` her online maç sonunda `coins + earnedCoins(outcome)` yazıyor;
+> `purchase.ts` + `catalog.ts` sunucu-doğrulamalı satın alma prod'da (REV-66). **İstemcide coin'i
+> gösteren tek satır yok** → oyuncular haftalardır **farkında olmadan coin biriktiriyor**.
+> Mağaza açılmadan önce bu bakiyelerin ne olacağına karar verilmeli.
+>
+> **📌 MUSTAFA'NIN KARARI:** v1.0 **tam mağaza + IAP ile** çıkacak. **Enes beklenmeyecek** —
+> başka işlerle meşgul; tasarım/ses işleri de bu ekipte üretilecek. REV-60/61/62/63/64/65
+> sahipliği Enes'ten devralındı (Linear'da atamalar güncellendi). REV-61 kod tarafı zaten
+> 2026-08-09'da uygulanmıştı, Todo'da unutulmuş → **In Review**'a çekildi.
+>
+> **🗺️ YENİ PROJE YAPISI (Linear):**
+> - **Proje 14 · Play Store Yayın Hazırlığı** (yeni) — REV-90 hesap silme 🚨, REV-91 yasal/destek
+>   ekranı 🚨, REV-92 AD_ID + Data Safety, REV-93 allowBackup, REV-94 Crashlytics,
+>   REV-95 AAB + keystore yedeği + Play App Signing SHA'ları, REV-105 QA turu.
+> - **Proje 15 · UX Cilası & Denetim Bulguları** (yeni) — REV-96 süre çakışması, REV-97 lider
+>   tablosu metni, REV-98 rövanş/yeni rakip, REV-99 otomatik başlangıç, REV-100 Devam Et bağlamı,
+>   REV-101 hamle göstergeleri, REV-103 nasıl oynanır/onboarding, REV-104 terminoloji & hiyerarşi.
+> - **Proje 12 · Profil, Tasarım & Mağaza** (mevcut) — REV-102 coin görünürlüğü 🔴 (mağazanın
+>   önkoşulu) + mevcut mağaza halkası (REV-63/64/68/69/71/72/77) + devralınan tasarım işleri.
+>
+> **Önerilen sıra:** yasal paket (14) → ucuz UI düzeltmeleri (15) → coin görünürlüğü + mağaza (12)
+> → operasyon (Crashlytics/AAB) → QA turu. Sıra Mustafa'nın onayını bekliyor.
+>
+> ⚠️ **REV-95'teki keystore yedeği geri dönüşsüz bir risk:** `android/key.properties` + keystore
+> kaybolursa uygulama bir daha güncellenemez. En kısa sürede iki ayrı güvenli yere yedeklenmeli.
 
 > **📱 2026-08-18 CİHAZ TESTİ (Mustafa, S21 FE kablo ile) — ahşap tahta ONAYLANDI, 2 bulgu:**
 > USB sorunu kablo/port değilmiş, telefonda USB hata ayıklama kapalıymış; açılınca sorunsuz bağlandı
