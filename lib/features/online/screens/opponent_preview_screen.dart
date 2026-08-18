@@ -7,6 +7,7 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/online_stats.dart';
 import '../../../core/models/rank.dart';
+import '../../../shared/widgets/rank_frame_view.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
@@ -138,7 +139,8 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                       _PlayerLine(
                         name: opponent['name'] as String? ?? '—',
                         photoUrl: opponent['photo'] as String?,
-                        rank: rankFor((opponent['trophies'] as num?)?.toInt() ?? 0),
+                        rank: rankFor(
+                            (opponent['trophies'] as num?)?.toInt() ?? 0),
                         strings: strings,
                         wins: (opponent['wins'] as num?)?.toInt() ?? 0,
                         losses: (opponent['losses'] as num?)?.toInt() ?? 0,
@@ -227,14 +229,21 @@ class _PlayerLine extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-            backgroundImage: hasUrl ? NetworkImage(url) : null,
-            child: hasUrl
-                ? null
-                : const Icon(Icons.person_rounded,
-                    size: 26, color: GameColors.onAccent),
+          // Both players wear their rank frame here (REV-106) — this is the
+          // one screen where you size each other up before a match, so it is
+          // exactly where an earned frame should be doing its work.
+          RankFrameView.around(
+            frame: rank.frame,
+            openingDiameter: 52,
+            child: CircleAvatar(
+              radius: 26,
+              backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+              backgroundImage: hasUrl ? NetworkImage(url) : null,
+              child: hasUrl
+                  ? null
+                  : const Icon(Icons.person_rounded,
+                      size: 26, color: GameColors.onAccent),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

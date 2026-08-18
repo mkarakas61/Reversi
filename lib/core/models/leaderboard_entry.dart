@@ -54,6 +54,11 @@ class LeaderboardEntry {
       photoUrl: data['photoUrl'] as String?,
       wins: (data['wins'] as num?)?.toInt() ?? 0,
       trophyGained: (data['trophyGained'] as num?)?.toInt() ?? 0,
+      // The weekly doc carries the player's lifetime total too (the server
+      // stamps it every game), which is what their rank — and so their frame —
+      // is read from. Ranking by it is the all-time board's job; here it is
+      // only identity. Rows written before the field existed leave it null.
+      trophies: (data['trophies'] as num?)?.toInt(),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/leaderboard_entry.dart';
+import '../../../core/models/rank.dart';
 import '../../../core/profile/profile_scope.dart';
 import '../../../core/services/leaderboard_service.dart';
 import '../../../core/services/sound_service.dart';
@@ -9,6 +10,7 @@ import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/metric_marks.dart';
 import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
+import '../../../shared/widgets/rank_frame_view.dart';
 import '../../menu/widgets/profile_chip.dart' show ProfileAvatar;
 
 /// A ranked value carrying the mark it is counted in — "17 🏅", "1234 🏆",
@@ -387,7 +389,7 @@ class _LeaderboardRow extends StatelessWidget {
               ),
             ),
           ),
-          ProfileAvatar(photoUrl: entry.photoUrl, radius: 16),
+          _RankedAvatar(photoUrl: entry.photoUrl, trophies: entry.trophies),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -414,6 +416,48 @@ class _LeaderboardRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A leaderboard row's avatar wearing the player's rank frame (REV-106).
+///
+/// A frame you earned should show up wherever your name does, not only on your
+/// own profile — otherwise the reward is invisible to everyone but you.
+///
+/// The opening is kept small enough that a row stays a row; the frames grow
+/// around it, so the crowned ranks take more vertical space and read as grander
+/// without pushing the avatars out of line. [trophies] is null on rows written
+/// before the server stamped the field, and those simply go unframed.
+class _RankedAvatar extends StatelessWidget {
+  const _RankedAvatar({required this.photoUrl, required this.trophies});
+
+  final String? photoUrl;
+  final int? trophies;
+
+  /// Avatar diameter inside the frame — the unframed row avatar was 32 across.
+  static const double _opening = 30.0;
+
+  /// Row height the frames are allowed to claim. Every rank reserves the same
+  /// box so rows keep a common baseline whatever mix of ranks they hold.
+  static const double _slot = 46.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final photo = ProfileAvatar(photoUrl: photoUrl, radius: _opening / 2);
+    final t = trophies;
+    if (t == null) return SizedBox(width: _slot, child: Center(child: photo));
+
+    return SizedBox(
+      width: _slot,
+      height: _slot,
+      child: Center(
+        child: RankFrameView.around(
+          frame: rankFor(t).frame,
+          openingDiameter: _opening,
+          child: photo,
+        ),
       ),
     );
   }

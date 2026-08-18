@@ -20,6 +20,7 @@ import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/info_popup.dart';
 import '../../../shared/widgets/rank_badge.dart';
 import '../../../core/theme/board_palette.dart';
+import '../../../shared/widgets/rank_frame_view.dart';
 import '../../board/board_move.dart';
 import '../../board/wood_board.dart';
 import '../widgets/online_board.dart';
@@ -501,6 +502,46 @@ class _RoundIconButton extends StatelessWidget {
   }
 }
 
+/// A player's photo wearing their rank frame (REV-106).
+///
+/// An earned frame belongs everywhere the player's name shows, not just on
+/// their own profile. Falls back to the bare avatar when the rank is unknown —
+/// guests have none, and an opponent's rank can be missing on older games.
+class _FramedAvatar extends StatelessWidget {
+  const _FramedAvatar({
+    required this.photoUrl,
+    required this.rank,
+    required this.radius,
+  });
+
+  final String? photoUrl;
+  final Rank? rank;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl;
+    final hasUrl = url != null && url.isNotEmpty;
+    final avatar = CircleAvatar(
+      radius: radius,
+      backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
+      backgroundImage: hasUrl ? NetworkImage(url) : null,
+      child: hasUrl
+          ? null
+          : Icon(Icons.person_rounded,
+              size: radius, color: GameColors.onAccent),
+    );
+
+    final frame = rank?.frame;
+    if (frame == null) return avatar;
+    return RankFrameView.around(
+      frame: frame,
+      openingDiameter: radius * 2,
+      child: avatar,
+    );
+  }
+}
+
 class _PlayerStrip extends StatelessWidget {
   const _PlayerStrip({
     required this.name,
@@ -528,7 +569,6 @@ class _PlayerStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
-    final hasUrl = url != null && url.isNotEmpty;
     final coinColor = coinAccentColor(coin);
     final strings = AppStrings.of(context);
     final r = rank;
@@ -551,15 +591,10 @@ class _PlayerStrip extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-                  backgroundImage: hasUrl ? NetworkImage(url) : null,
-                  child: hasUrl
-                      ? null
-                      : const Icon(Icons.person_rounded,
-                          size: 18, color: GameColors.onAccent),
-                ),
+                // The frame rides along with the rank badge below (REV-106):
+                // during a match you should be able to see who you are up
+                // against without opening anything.
+                _FramedAvatar(photoUrl: url, rank: r, radius: 18),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -605,40 +640,40 @@ class _PlayerStrip extends StatelessWidget {
                     ],
                   ),
                 ),
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color.lerp(coinColor, Colors.white, 0.25)!,
-                  Color.lerp(coinColor, Colors.black, 0.2)!,
-                ],
-              ),
-            ),
-            child: Text(
-              '$score',
-              style: TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                color: ThemeData.estimateBrightnessForColor(coinColor) ==
-                        Brightness.light
-                    ? GameColors.ink
-                    : Colors.white,
-              ),
-            ),
-          ),
-                ],
-              ),
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.lerp(coinColor, Colors.white, 0.25)!,
+                        Color.lerp(coinColor, Colors.black, 0.2)!,
+                      ],
+                    ),
+                  ),
+                  child: Text(
+                    '$score',
+                    style: TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: ThemeData.estimateBrightnessForColor(coinColor) ==
+                              Brightness.light
+                          ? GameColors.ink
+                          : Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 }
 
@@ -776,16 +811,18 @@ class _RewardSection extends StatelessWidget {
     final trophies = entry.trophies;
     final delta = entry.trophyDelta;
     final rank = rankFor(trophies);
-    final rankedUp =
-        delta > 0 && rankFor(trophies - delta).id != rank.id;
+    final rankedUp = delta > 0 && rankFor(trophies - delta).id != rank.id;
 
     final Color deltaColor = delta > 0
         ? const Color(0xFF1F9D57)
         : delta < 0
             ? const Color(0xFFC0392B)
             : GameColors.inkSoft;
-    final String deltaText =
-        delta > 0 ? '+$delta' : delta < 0 ? '$delta' : '±0';
+    final String deltaText = delta > 0
+        ? '+$delta'
+        : delta < 0
+            ? '$delta'
+            : '±0';
 
     return Column(
       children: [
@@ -946,7 +983,6 @@ class _OpponentStatsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
-    final hasUrl = url != null && url.isNotEmpty;
     final winRatePercent = (stats.winRate * 100).round();
     return SafeArea(
       top: false,
@@ -962,15 +998,7 @@ class _OpponentStatsSheet extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: GameColors.onAccent.withValues(alpha: 0.12),
-                  backgroundImage: hasUrl ? NetworkImage(url) : null,
-                  child: hasUrl
-                      ? null
-                      : const Icon(Icons.person_rounded,
-                          size: 24, color: GameColors.onAccent),
-                ),
+                _FramedAvatar(photoUrl: url, rank: stats.rank, radius: 24),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
