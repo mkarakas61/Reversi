@@ -5,7 +5,29 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `3e3c7ac` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-18** · Son commit: `216c235` (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🖼️ 2026-08-18 — REV-106 ÇERÇEVELER + REV-100 DEVAM ET (proje 15 sürüyor):**
+> Mustafa'nın tespiti: *"bir çerçeve kazandıysam adımın ve avatarımın olduğu her yerde çerçevemi
+> görmeliyim."* Haklı — çerçeve yalnız profil ve Kupa Yolu'ndaydı, yani sadece kendine bakarken.
+> - **REV-106 (In Review, `3287062`)** — **REV-61'in "engeli" YANLIŞMIŞ.** REV-61 "haftalık tabloda
+>   `trophies` alanı yok" diyordu; sunucu `finish_game.ts:241`'de o alanı **zaten yazıyor**, sadece
+>   `LeaderboardEntry.fromWeeklyPlayer` okumuyordu. **Sunucu değişikliği/deploy gerekmedi.**
+>   Çerçeve eklenen yerler: lider tablosu satırları (yeni `_RankedAvatar`, 30pt açıklık + sabit
+>   46pt yuva → satırlar ortak taban çizgisini korur, taçlılar kutuyu daha çok doldurup görkemli
+>   durur), eşleşme önizlemesi (sen + rakip, 52pt), maç ekranı oyuncu şeritleri ve rakip istatistik
+>   sayfası (yeni `_FramedAvatar`, 36/48pt). **Menü çipi ∅22 dokunulmadı** (REV-61 §6.3 kararı
+>   geçerli). Rütbesi bilinmeyen çerçevesiz düşüyor, çökmüyor. `rank_frame_everywhere_test.dart` 6 test.
+> - **REV-100 (In Review, `216c235`)** — "Devam Et" artık ne açacağını söylüyor:
+>   `Tek Oyuncu · Kolay · Senin sıran · 3–3`. `MenuButton`'a `subtitle` eklendi (alt satır varken
+>   buton 58→72). **Denetimin ikinci şüphesi yersizmiş:** buton zaten kayıtlı oyun yokken
+>   gizleniyordu (`if (_savedGame != null)`), cihazda doğrulandı. **✅ Cihazda doğrulandı.**
+> - **124 test yeşil**, analyze temiz.
+> - **⚠️ REV-106 cihaz doğrulaması bekliyor:** üç ekran da online oturum istiyor, telefonda oturum
+>   kapalıydı — Mustafa'nın hesabıyla giriş yapmak doğru olmazdı. Mustafa girip bakmalı; özellikle
+>   **maç ekranındaki 36pt çerçeve** fazla küçük kalıyor mu (REV-61 ∅22'de vazgeçmişti).
+> - **Proje 15'te kalan:** REV-98 (rövanş, sunucu kapsamı kararı gerek), REV-99 (otomatik başlangıç),
+>   REV-101 (hamle göstergeleri), REV-103 (nasıl oynanır), REV-104 (terminoloji — "Güzelsi" kararı).
 
 > **🧹 2026-08-18 — UX CİLASI BAŞLADI (proje 15), 2 iş In Review:** Mustafa'nın sıralaması:
 > **önce UX cilası (15) → sonra mağaza (12) → en son Play Store hazırlığı (14).** Gerekçe: QA turu
