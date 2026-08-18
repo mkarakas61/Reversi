@@ -70,110 +70,121 @@ class PlayerCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      // One row, three regions: avatar | name+status | clock+score. The clock
+      // used to be a centred Stack layer behind this row, which put it in the
+      // same place as the name — on a timed two-player game the two drew over
+      // each other (REV-96). As a real row member it takes its own space and
+      // the name yields to it instead.
+      child: Row(
         children: [
-          if (countdown != null)
+          // The player's own tile, identical in both app themes (REV-88):
+          // the wood theme used to swap in a board-matched disc image here,
+          // which showed a disc instead of the player and ignored the coin
+          // they picked.
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.lerp(coinColor, Colors.white, 0.2)!,
+                  Color.lerp(coinColor, Colors.black, 0.15)!,
+                ],
+              ),
+              border: Border.all(color: const Color(0x14000000), width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              mono,
+              style: TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: monoColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: nameColor,
+                  ),
+                ),
+                SizedBox(
+                  height: 15,
+                  child: Text(
+                    active ? statusText.toLowerCase() : '',
+                    style: TextStyle(
+                      fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (countdown != null) ...[
+            const SizedBox(width: 8),
             AnimatedOpacity(
               opacity: countdownVisible ? 1.0 : 0.15,
               duration: const Duration(milliseconds: 220),
-              child: Text(
-                countdown!,
-                style: TextStyle(
-                  fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 24,
-                  height: 1,
-                  color: countdownUrgent ? const Color(0xFFE0312B) : accent,
-                ),
-              ),
-            ),
-          Row(
-            children: [
-              // The player's own tile, identical in both app themes (REV-88):
-              // the wood theme used to swap in a board-matched disc image here,
-              // which showed a disc instead of the player and ignored the coin
-              // they picked.
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color.lerp(coinColor, Colors.white, 0.2)!,
-                      Color.lerp(coinColor, Colors.black, 0.15)!,
-                    ],
-                  ),
-                  border: Border.all(color: const Color(0x14000000), width: 1),
-                ),
-                alignment: Alignment.center,
+              // Fixed width so the clock doesn't shuffle the row every second
+              // as the digits change; wide enough for the longest "M:SS".
+              child: SizedBox(
+                width: 50,
                 child: Text(
-                  mono,
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                    color: monoColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: nameColor,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15,
-                      child: Text(
-                        active ? statusText.toLowerCase() : '',
-                        style: TextStyle(
-                          fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          color: statusColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!wood) ...[
-                ScoreChip(coin: coin),
-                const SizedBox(width: 8),
-              ],
-              SizedBox(
-                width: 44,
-                child: Text(
-                  '$score',
+                  countdown!,
                   textAlign: TextAlign.right,
                   maxLines: 1,
                   softWrap: false,
-                  overflow: TextOverflow.visible,
                   style: TextStyle(
                     fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 24,
                     height: 1,
-                    color: scoreColor,
+                    color: countdownUrgent ? const Color(0xFFE0312B) : accent,
                   ),
                 ),
               ),
-            ],
+            ),
+          ],
+          if (!wood) ...[
+            const SizedBox(width: 8),
+            ScoreChip(coin: coin),
+          ],
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 44,
+            child: Text(
+              '$score',
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.visible,
+              style: TextStyle(
+                fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+                fontWeight: FontWeight.w700,
+                fontSize: 28,
+                height: 1,
+                color: scoreColor,
+              ),
+            ),
           ),
         ],
       ),
@@ -209,8 +220,7 @@ class ScoreChip extends StatelessWidget {
           stops: const [0.0, 0.72],
         ),
         boxShadow: const [
-          BoxShadow(
-              color: Color(0x40000000), blurRadius: 2, spreadRadius: -1),
+          BoxShadow(color: Color(0x40000000), blurRadius: 2, spreadRadius: -1),
         ],
       ),
     );
@@ -235,7 +245,9 @@ class TurnPill extends StatelessWidget {
         gradient: wood ? WoodTheme.cardGradient : null,
         color: wood ? null : Colors.white,
         borderRadius: BorderRadius.circular(999),
-        border: wood ? Border.all(color: WoodTheme.cardIdleBorder, width: 1.5) : null,
+        border: wood
+            ? Border.all(color: WoodTheme.cardIdleBorder, width: 1.5)
+            : null,
         boxShadow: const [
           BoxShadow(color: Color(0x12000000), offset: Offset(0, 4)),
           BoxShadow(

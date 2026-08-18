@@ -110,6 +110,8 @@ class AppStrings {
       'leaderboard': 'Leaderboard',
       'leaderboardAllTime': 'All-Time',
       'leaderboardEmpty': 'No one has played a ranked match yet.',
+      'leaderboardUnitTrophies': 'trophies',
+      'leaderboardUnitWins': 'wins',
       'leaderboardWeekly': 'Weekly',
       'leaderboardYourRank': 'Your rank',
       'leaveOnlineBody': "If you leave, you'll forfeit this match.",
@@ -272,8 +274,10 @@ class AppStrings {
       'leaderboard': 'Lider Tablosu',
       'leaderboardAllTime': 'Tüm Zamanlar',
       'leaderboardEmpty': 'Henüz kimse sıralı maç oynamadı.',
+      'leaderboardUnitTrophies': 'kupa',
+      'leaderboardUnitWins': 'galibiyet',
       'leaderboardWeekly': 'Haftalık',
-      'leaderboardYourRank': 'Senin sıran',
+      'leaderboardYourRank': 'Sıralaman',
       'leaveOnlineBody': 'Çıkarsan bu maçı kaybedersin.',
       'level': 'Seviye',
       'music': 'Müzik',
@@ -497,6 +501,8 @@ class AppStrings {
   String get leaderboard => _get('leaderboard');
   String get leaderboardAllTime => _get('leaderboardAllTime');
   String get leaderboardEmpty => _get('leaderboardEmpty');
+  String get leaderboardUnitTrophies => _get('leaderboardUnitTrophies');
+  String get leaderboardUnitWins => _get('leaderboardUnitWins');
   String get leaderboardWeekly => _get('leaderboardWeekly');
   String get leaderboardYourRank => _get('leaderboardYourRank');
   String get leaveOnlineBody => _get('leaveOnlineBody');

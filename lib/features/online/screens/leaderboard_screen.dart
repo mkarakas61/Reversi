@@ -10,6 +10,25 @@ import '../../../core/theme/wood_theme.dart';
 import '../../../shared/widgets/guest_upsell_card.dart';
 import '../../menu/widgets/profile_chip.dart' show ProfileAvatar;
 
+/// A ranked value with the unit it is counted in — "17 galibiyet", "1234 kupa",
+/// "+42 kupa" (REV-97). The unit matters because the table swaps metrics under
+/// the same column: a bare number left the reader guessing whether it was wins
+/// or trophies. Weekly trophies are a gain over the week, so they carry a sign.
+String _metricLabel(
+  int value,
+  LeaderboardMetric metric,
+  LeaderboardPeriod period,
+  AppStrings strings,
+) {
+  if (metric == LeaderboardMetric.wins) {
+    return '$value ${strings.leaderboardUnitWins}';
+  }
+  final unit = strings.leaderboardUnitTrophies;
+  return period == LeaderboardPeriod.allTime
+      ? '$value $unit'
+      : '+$value $unit';
+}
+
 /// Ranked leaderboard: Weekly/All-Time period × Level/Wins metric, top 50 plus
 /// "your rank". Reached from the main menu whenever there's an online
 /// identity (Google or guest) — guests see a sign-in upsell instead of the
@@ -42,30 +61,25 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Future<({int rank, String value})> _computeMyRank(Profile profile) async {
+    final strings = AppStrings.of(context);
     int myValue;
-    String display;
     if (_period == LeaderboardPeriod.allTime) {
-      if (_metric == LeaderboardMetric.trophy) {
-        myValue = profile.online.trophies;
-        display = '$myValue 🏆';
-      } else {
-        myValue = profile.online.wins;
-        display = '$myValue';
-      }
+      myValue = _metric == LeaderboardMetric.trophy
+          ? profile.online.trophies
+          : profile.online.wins;
     } else {
       final mine =
           await LeaderboardService.instance.myWeeklyEntry(profile.uid);
-      if (_metric == LeaderboardMetric.trophy) {
-        myValue = mine?.trophyGained ?? 0;
-        display = '+$myValue 🏆';
-      } else {
-        myValue = mine?.wins ?? 0;
-        display = '$myValue';
-      }
+      myValue = _metric == LeaderboardMetric.trophy
+          ? (mine?.trophyGained ?? 0)
+          : (mine?.wins ?? 0);
     }
     final rank =
         await LeaderboardService.instance.myRank(_period, _metric, myValue);
-    return (rank: rank, value: display);
+    return (
+      rank: rank,
+      value: _metricLabel(myValue, _metric, _period, strings),
+    );
   }
 
   @override
@@ -312,11 +326,12 @@ class _LeaderboardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final value = metric == LeaderboardMetric.wins
-        ? '${entry.wins ?? 0}'
+    final raw = metric == LeaderboardMetric.wins
+        ? (entry.wins ?? 0)
         : period == LeaderboardPeriod.allTime
-            ? '${entry.trophies ?? 0} 🏆'
-            : '+${entry.trophyGained ?? 0} 🏆';
+            ? (entry.trophies ?? 0)
+            : (entry.trophyGained ?? 0);
+    final value = _metricLabel(raw, metric, period, strings);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
