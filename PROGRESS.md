@@ -5,7 +5,44 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-19** · Son commit: `afedcb0` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-19** · Son commit: `d6c5e1e` · Sürüm: `0.1.0+1`
+
+> **🔁 2026-08-19 — REV-98 RÖVANŞ (In Review, `d6c5e1e`) — ⚠️ SUNUCU PROD'A DEPLOY EDİLDİ:**
+>
+> Maç sonu kartında artık üç yol var: **Tekrar Oyna · Yeni Rakip Bul · Ana Menü.**
+> **Bu, haftalardır ilk `functions/` deploy'u** — `requestRematch` + `respondRematch`
+> europe-west1'e **create** edildi. Mevcut fonksiyonlara dokunulmadı (yalnız bu ikisi deploy
+> edildi), **kural/index değişikliği yok**.
+>
+> **⚠️ DENETİMİN DOSYA YOLU YANLIŞMIŞ:** `online_result_overlay.dart` **ölü kod** — onu kullanan
+> tek ekran `OnlineMatchScreen`, yani rakibi yerel AI olan eski sahte "Online Oyna" ekranı;
+> gerçek online geldiğinden beri hiçbir yerden açılmıyor. Canlı sonuç kartı
+> `online_game_screen.dart` içindeki `_ResultOverlay` ve orada metin **sabit değildi**,
+> `strings.mainMenu` kullanılıyordu. Bulgunun özü (tek buton) yine de doğruydu; iş canlı kartta
+> yapıldı. Ölü ekranın temizliği ayrı iş olarak işaretlendi.
+>
+> **Neden callable, neden istemci yazımı değil:** güvenlik kuralları `allow update`'i
+> `status == 'active'` şartına bağlıyor → **bitmiş oyun istemciye salt-okunur**, tasarım gereği.
+> Daha önemlisi yeni oyun eşleşmenin açtığı gibi açılmalı: doğrudan oyun açabilen bir istemci
+> kendi rakibini ve rengini seçip kupa/coin çiftçiliği yapabilirdi.
+> - **Teklif bitmiş oyun dokümanındaki `rematch` alanında.** İki istemci de o dokümanı zaten
+>   dinliyor → teklif, cevap ve yeni oyuna geçiş **mevcut akıştan** geliyor, yeni kanal yok.
+> - **Renkler takas ediliyor**, yeniden rastgelelenmiyor: siyah önce oynuyor, bu gerçek bir
+>   avantaj; beyaz oynayan geri alıyor. İki oyunda avantaj sıfırlanır. Yeni oyunda `rematchOf`.
+> - **Aynı anda iki kişi de basarsa** (en olası kullanım) ikinci dokunuş yeni teklif açmıyor,
+>   **duranı kabul ediyor** — yoksa iki teklif durur, hiçbir oyun başlamazdı.
+> - **Karttan çıkmak kendi teklifini geri çekiyor** — duran teklifi bırakmak, rakibin artık
+>   içinde olmadığın bir oyuna girmesine izin verirdi. Reddet ve geri çek aynı sunucu yolu.
+> - **Teklif 60 sn duruyor**, istemci saniye sayacı gösteriyor, süre dolunca butonlar kendiliğinden
+>   geri dönüyor (dokümanın dürtmesini beklemeden — 1 sn'lik ticker).
+> - **Misafir:** profil dokümanı yok → önizleme anlık görüntüsü bir önceki oyundan devrediyor.
+> - **Karar mantığı `rematch_state.ts`'te saf fonksiyonlar** — eşzamanlı dokunuş, geç gelen tekrar
+>   deneme, kart ekrandayken zaman aşımı: canlı DB'ye karşı zor üretilen yarışlar, birim testinde
+>   kolay. **functions 49 test yeşil (13 yeni) · Flutter 142 yeşil (7 yeni)** · analyze temiz.
+> - **APK telefona + tablete kuruldu** (`~/Desktop/Reversi-0.1.0-rematch.apk`). **Cihaz testi
+>   bekliyor:** rövanş kabul (renkler takas olmalı), reddetme, karttan çıkınca teklifin düşmesi,
+>   60 sn zaman aşımı.
+> - **Native dosya değişmedi** → iOS karşılığı yok, `lib/` ortak.
 
 > **📖 2026-08-19 — REV-103 NASIL OYNANIR + İLK AÇILIŞ TURU (In Review, `afedcb0`):**
 >
