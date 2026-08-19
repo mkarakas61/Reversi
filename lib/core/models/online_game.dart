@@ -33,6 +33,73 @@ String encodeBoard(List<List<Disc?>> board) {
 
 enum OnlineStatus { active, finished, cancelled }
 
+enum RematchStatus { pending, accepted, declined }
+
+/// A rematch offer riding on the finished game document (REV-98).
+///
+/// Both players already listen to that document, so the offer, the answer and
+/// the handoff to the new game arrive over the stream they are both on — no
+/// second channel to keep in sync. Only the server writes it: the rules make a
+/// finished game read-only to clients, and the new game has to be created the
+/// same way matchmaking creates one.
+class RematchOffer {
+  const RematchOffer({
+    required this.by,
+    required this.status,
+    this.expiresAt,
+    this.gameId,
+  });
+
+  /// Who offered.
+  final String by;
+  final RematchStatus status;
+
+  /// When an unanswered offer stops standing. Null on offers written before
+  /// the field existed, which then simply never expire.
+  final DateTime? expiresAt;
+
+  /// The rematch game, once the offer is accepted.
+  final String? gameId;
+
+  bool get isExpired {
+    final e = expiresAt;
+    return e != null && e.isBefore(DateTime.now());
+  }
+
+  /// Still awaiting an answer. An expired offer is not live, so the buttons go
+  /// back to offering rather than waiting for something nobody will answer.
+  bool get isLive => status == RematchStatus.pending && !isExpired;
+
+  bool offeredBy(String uid) => by == uid;
+
+  /// Seconds left before the offer lapses, floored at zero.
+  int get secondsLeft {
+    final e = expiresAt;
+    if (e == null) return 0;
+    final s = e.difference(DateTime.now()).inSeconds;
+    return s < 0 ? 0 : s;
+  }
+
+  static RematchOffer? fromMap(Map<String, dynamic>? m) {
+    if (m == null) return null;
+    final by = m['by'] as String?;
+    if (by == null) return null;
+    final status = switch (m['status'] as String?) {
+      'accepted' => RematchStatus.accepted,
+      'declined' => RematchStatus.declined,
+      'pending' => RematchStatus.pending,
+      _ => null,
+    };
+    if (status == null) return null;
+    return RematchOffer(
+      by: by,
+      status: status,
+      expiresAt: (m['expiresAt'] as Timestamp?)?.toDate(),
+      gameId: m['gameId'] as String?,
+    );
+  }
+}
+
 /// A snapshot of an online game from the Firestore `games/{id}` document. The
 /// board is reconstructed into a [ReversiGame] so the shared rules engine drives
 /// move validation and rendering, exactly like the local game.
@@ -49,6 +116,7 @@ class OnlineGame {
     required this.isDraw,
     required this.moveCount,
     this.lastSeen = const {},
+    this.rematch,
   });
 
   final String id;
@@ -61,6 +129,9 @@ class OnlineGame {
   final Disc? winner;
   final bool isDraw;
   final int moveCount;
+
+  /// The rematch offer on this game, or null when nobody has offered (REV-98).
+  final RematchOffer? rematch;
 
   /// Server timestamp of each player's most recent in-game heartbeat, keyed by
   /// uid. Used to detect a disconnected opponent (REV-48).
@@ -125,6 +196,7 @@ class OnlineGame {
       isDraw: winnerStr == 'draw',
       moveCount: (d['moveCount'] as num?)?.toInt() ?? 0,
       lastSeen: lastSeen,
+      rematch: RematchOffer.fromMap(d['rematch'] as Map<String, dynamic>?),
     );
   }
 }

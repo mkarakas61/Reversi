@@ -91,6 +91,16 @@ class AppStrings {
       'drawTitle': "It's a Draw!",
       'aiLuckyMessage': 'Sorry, I just got lucky. Shall we play again?',
       'playAgain': 'Play Again',
+      // Rematch (REV-98).
+      'rematchOffer': 'Rematch',
+      'rematchWaiting': 'Waiting for your opponent…',
+      'rematchWithdraw': 'Never mind',
+      'rematchIncoming': 'Your opponent wants a rematch',
+      'rematchAccept': 'Accept',
+      'rematchDeclineAction': 'No thanks',
+      'rematchDeclined': 'Your opponent declined the rematch.',
+      'rematchExpired': 'The rematch offer timed out.',
+      'newOpponent': 'Find a New Opponent',
       'mainMenu': 'Main Menu',
       'chooseTimeLimit': 'Choose time limit',
       'time30s': '30 sec limit',
@@ -297,6 +307,16 @@ class AppStrings {
       'drawTitle': 'Berabere!',
       'aiLuckyMessage': 'Üzgünüm, sadece şanslıydım. Tekrar oynayalım mı?',
       'playAgain': 'Tekrar Oyna',
+      // Rövanş (REV-98).
+      'rematchOffer': 'Rövanş',
+      'rematchWaiting': 'Rakibin bekleniyor…',
+      'rematchWithdraw': 'Vazgeç',
+      'rematchIncoming': 'Rakibin rövanş istiyor',
+      'rematchAccept': 'Kabul et',
+      'rematchDeclineAction': 'İstemiyorum',
+      'rematchDeclined': 'Rakibin rövanşı kabul etmedi.',
+      'rematchExpired': 'Rövanş teklifi zaman aşımına uğradı.',
+      'newOpponent': 'Yeni Rakip Bul',
       'mainMenu': 'Ana Menü',
       'chooseTimeLimit': 'Süre sınırı seçin',
       'time30s': '30 sn süre sınırı',
@@ -488,6 +508,17 @@ class AppStrings {
   String get drawTitle => _get('drawTitle');
   String get aiLuckyMessage => _get('aiLuckyMessage');
   String get playAgain => _get('playAgain');
+
+  // Rematch (REV-98).
+  String get rematchOffer => _get('rematchOffer');
+  String get rematchWaiting => _get('rematchWaiting');
+  String get rematchWithdraw => _get('rematchWithdraw');
+  String get rematchIncoming => _get('rematchIncoming');
+  String get rematchAccept => _get('rematchAccept');
+  String get rematchDeclineAction => _get('rematchDeclineAction');
+  String get rematchDeclined => _get('rematchDeclined');
+  String get rematchExpired => _get('rematchExpired');
+  String get newOpponent => _get('newOpponent');
   String get mainMenu => _get('mainMenu');
   String get chooseTimeLimit => _get('chooseTimeLimit');
   String get timeUp => _get('timeUp');

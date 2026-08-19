@@ -10,7 +10,9 @@ import {onDocumentWritten} from "firebase-functions/v2/firestore";
 // The Admin app is initialized once in index.ts.
 
 /// Initial per-move window. The full disconnect/forfeit handling is REV-48.
-const TURN_SECONDS = 40;
+/// Shared with the rematch function (REV-98) so a rematch opens on the same
+/// clock as a matched game.
+export const TURN_SECONDS = 40;
 
 /// Pairs waiting players into a game. Triggered on any write to a matchmaking
 /// ticket (`matchmaking/{uid}`) — the initial create or a periodic client
@@ -89,7 +91,7 @@ export const onMatchmakingTicketWritten = onDocumentWritten(
 
 /// The standard Reversi opening position as a 64-char row-major string
 /// ("b"/"w"/"-"), matching the client's board codec.
-function initialBoard(): string {
+export function initialBoard(): string {
   const cells = new Array<string>(64).fill("-");
   cells[3 * 8 + 3] = "w";
   cells[3 * 8 + 4] = "b";

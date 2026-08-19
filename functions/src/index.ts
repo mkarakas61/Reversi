@@ -33,3 +33,7 @@ export {sweepAbandonedGames} from "./sweep";
 
 // Store: buys a catalog item with coins, server-authoritative (REV-66).
 export {purchaseItem} from "./purchase";
+
+// Rematch: offers/answers a rematch on a finished game and opens the new one
+// through the server, so colours and rewards stay honest (REV-98).
+export {requestRematch, respondRematch} from "./rematch";

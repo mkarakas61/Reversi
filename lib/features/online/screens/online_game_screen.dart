@@ -13,6 +13,7 @@ import '../../../core/models/rank.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/player_profile_service.dart';
 import '../../../core/services/progress_history_service.dart';
+import '../../../core/services/rematch_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
@@ -24,6 +25,7 @@ import '../../../shared/widgets/rank_frame_view.dart';
 import '../../board/board_move.dart';
 import '../../board/wood_board.dart';
 import '../widgets/online_board.dart';
+import 'matchmaking_screen.dart';
 import '../../settings/settings_screen.dart';
 
 /// Live online match. Both clients render from the shared game document; the
@@ -61,6 +63,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
   // loads (REV-75). Null for a guest opponent or until the fetch returns.
   PublicProfile? _oppProfile;
   bool _oppFetchStarted = false;
+  // Guards the one-time hop into an accepted rematch (REV-98).
+  bool _followedRematch = false;
 
   @override
   void dispose() {
@@ -175,6 +179,51 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
     }
   }
 
+  /// Both players follow the accepted rematch off the same document, so the
+  /// one who only pressed "Accept" and the one who offered arrive together —
+  /// neither is left staring at a finished game (REV-98).
+  void _maybeFollowRematch(OnlineGame g) {
+    if (_followedRematch) return;
+    final r = g.rematch;
+    if (r == null || r.status != RematchStatus.accepted) return;
+    final next = r.gameId;
+    if (next == null) return;
+    _followedRematch = true;
+    _heartbeat?.cancel();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SoundService.instance.playSfx(Sfx.win);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(builder: (_) => OnlineGameScreen(gameId: next)),
+      );
+    });
+  }
+
+  /// Back into the queue for a different opponent. Replaces this screen rather
+  /// than stacking, so "back" from matchmaking still means the main menu.
+  void _findNewOpponent(OnlineGame g, String myUid) {
+    SoundService.instance.playSfx(Sfx.button);
+    _withdrawOffer(g, myUid);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const MatchmakingScreen()),
+    );
+  }
+
+  void _leaveFinished(OnlineGame g, String myUid) {
+    SoundService.instance.playSfx(Sfx.button);
+    _withdrawOffer(g, myUid);
+    Navigator.of(context).pop();
+  }
+
+  /// Walking away withdraws your own standing offer — leaving it up would let
+  /// the opponent accept into a game you are no longer in.
+  void _withdrawOffer(OnlineGame g, String myUid) {
+    final r = g.rematch;
+    if (r != null && r.isLive && r.offeredBy(myUid)) {
+      unawaited(RematchService.instance.decline(g.id));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
@@ -204,6 +253,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
         if (g != null) {
           _sync(g, myUid, strings);
           _maybeFetchOpponent(g, myUid);
+          _maybeFollowRematch(g);
           if (g.isFinished || g.isCancelled) {
             _heartbeat?.cancel();
           }
@@ -246,6 +296,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         infoMessage: _infoMessage,
                         onInfoDismissed: _dismissInfo,
                         onLeave: () => _confirmLeave(g, myUid),
+                        onLeaveFinished: () => _leaveFinished(g, myUid),
+                        onNewOpponent: () => _findNewOpponent(g, myUid),
                         opponentProfile: _oppProfile,
                       ),
               ),
@@ -267,6 +319,8 @@ class _GameBody extends StatelessWidget {
     required this.infoMessage,
     required this.onInfoDismissed,
     required this.onLeave,
+    required this.onLeaveFinished,
+    required this.onNewOpponent,
     required this.opponentProfile,
   });
 
@@ -278,6 +332,11 @@ class _GameBody extends StatelessWidget {
   final String? infoMessage;
   final VoidCallback onInfoDismissed;
   final VoidCallback onLeave;
+
+  /// Leaving from the result card — withdraws a standing rematch offer on the
+  /// way out, unlike [onLeave], which has to deal with an unfinished game.
+  final VoidCallback onLeaveFinished;
+  final VoidCallback onNewOpponent;
 
   /// Opponent's public profile for the rank label + tap-to-view stats (REV-75);
   /// null for a guest opponent or until the one-shot fetch returns.
@@ -412,10 +471,8 @@ class _GameBody extends StatelessWidget {
             myUid: myUid,
             isGuest: me?.isGuest ?? false,
             currentStreak: me?.online.currentStreak ?? 0,
-            onMenu: () {
-              SoundService.instance.playSfx(Sfx.button);
-              Navigator.of(context).pop();
-            },
+            onMenu: onLeaveFinished,
+            onNewOpponent: onNewOpponent,
           ),
       ],
     );
@@ -677,7 +734,7 @@ class _PlayerStrip extends StatelessWidget {
   }
 }
 
-class _ResultOverlay extends StatelessWidget {
+class _ResultOverlay extends StatefulWidget {
   const _ResultOverlay({
     required this.game,
     required this.myColor,
@@ -686,6 +743,7 @@ class _ResultOverlay extends StatelessWidget {
     required this.isGuest,
     required this.currentStreak,
     required this.onMenu,
+    required this.onNewOpponent,
   });
 
   final OnlineGame game;
@@ -698,17 +756,69 @@ class _ResultOverlay extends StatelessWidget {
   /// row reflects the just-applied reward.
   final int currentStreak;
   final VoidCallback onMenu;
+  final VoidCallback onNewOpponent;
+
+  @override
+  State<_ResultOverlay> createState() => _ResultOverlayState();
+}
+
+class _ResultOverlayState extends State<_ResultOverlay> {
+  /// True while a rematch call is in flight, so a double tap cannot send two.
+  bool _busy = false;
+
+  /// Redraws once a second while an offer stands, for the countdown and so an
+  /// offer that lapses turns the buttons back over without needing a document
+  /// write to nudge the stream.
+  Timer? _ticker;
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  void _syncTicker(bool offerLive) {
+    if (offerLive && _ticker == null) {
+      _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) setState(() {});
+      });
+    } else if (!offerLive && _ticker != null) {
+      _ticker!.cancel();
+      _ticker = null;
+    }
+  }
+
+  Future<void> _call(Future<RematchResult> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    SoundService.instance.playSfx(Sfx.button);
+    await action();
+    // The document drives what happens next — an accepted rematch is followed
+    // by the screen, which is listening. Nothing to navigate to from here.
+    if (mounted) setState(() => _busy = false);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final game = widget.game;
+    final strings = widget.strings;
+
     final String title;
     if (game.isDraw) {
       title = strings.drawTitle;
-    } else if (game.winner == myColor) {
+    } else if (game.winner == widget.myColor) {
       title = strings.youWon;
     } else {
       title = strings.youLost;
     }
+
+    final offer = game.rematch;
+    // Split "there is an offer" from "an offer is standing": the buttons key
+    // off the live one, while the note under them reports what happened to the
+    // last dead one.
+    final live = (offer != null && offer.isLive) ? offer : null;
+    _syncTicker(live != null);
+
     return Positioned.fill(
       child: ColoredBox(
         color: const Color(0x99000000),
@@ -747,42 +857,22 @@ class _ResultOverlay extends StatelessWidget {
                   // Trophy / rank reward — signed-in players only (guests earn
                   // nothing, REV-57). Revealed once the server writes the
                   // history doc for this game (REV-73/74).
-                  if (!isGuest)
+                  if (!widget.isGuest)
                     StreamBuilder<HistoryEntry?>(
                       stream: ProgressHistoryService.instance
-                          .watchReward(myUid, game.id),
+                          .watchReward(widget.myUid, game.id),
                       builder: (context, snap) {
                         final entry = snap.data;
                         if (entry == null) return const SizedBox(height: 4);
                         return _RewardSection(
                           entry: entry,
-                          currentStreak: currentStreak,
+                          currentStreak: widget.currentStreak,
                           strings: strings,
                         );
                       },
                     ),
                   const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: GameColors.accent,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      onPressed: onMenu,
-                      child: Text(
-                        strings.mainMenu,
-                        style: const TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
+                  ..._actions(offer, live),
                 ],
               ),
             ),
@@ -791,6 +881,137 @@ class _ResultOverlay extends StatelessWidget {
       ),
     );
   }
+
+  /// The three ways out of a finished game (REV-98), with the rematch slot
+  /// changing shape depending on whether an offer is standing and whose it is.
+  List<Widget> _actions(RematchOffer? offer, RematchOffer? live) {
+    final strings = widget.strings;
+    final gameId = widget.game.id;
+
+    return [
+      if (live != null && !live.offeredBy(widget.myUid)) ...[
+        _note('${strings.rematchIncoming} · ${live.secondsLeft}'),
+        const SizedBox(height: 10),
+        _primary(
+          strings.rematchAccept,
+          () => _call(() => RematchService.instance.accept(gameId)),
+        ),
+        const SizedBox(height: 8),
+        _secondary(
+          strings.rematchDeclineAction,
+          () => _call(() => RematchService.instance.decline(gameId)),
+        ),
+      ] else if (live != null) ...[
+        _waiting('${strings.rematchWaiting} · ${live.secondsLeft}'),
+        const SizedBox(height: 8),
+        _secondary(
+          strings.rematchWithdraw,
+          () => _call(() => RematchService.instance.decline(gameId)),
+        ),
+      ] else ...[
+        // No live offer. If the last one was refused or ran out, say so —
+        // otherwise the button looks like it did nothing the first time.
+        if (offer?.status == RematchStatus.declined) ...[
+          _note(strings.rematchDeclined),
+          const SizedBox(height: 10),
+        ] else if (offer?.status == RematchStatus.pending) ...[
+          _note(strings.rematchExpired),
+          const SizedBox(height: 10),
+        ],
+        _primary(
+          strings.playAgain,
+          () => _call(() => RematchService.instance.request(gameId)),
+        ),
+      ],
+      const SizedBox(height: 8),
+      _secondary(strings.newOpponent, widget.onNewOpponent),
+      const SizedBox(height: 4),
+      TextButton(
+        onPressed: _busy ? null : widget.onMenu,
+        child: Text(
+          strings.mainMenu,
+          style: const TextStyle(
+            fontFamily: 'Baloo2',
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+            color: GameColors.inkSoft,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _note(String text) => Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
+          color: GameColors.inkSoft,
+        ),
+      );
+
+  Widget _waiting(String text) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: GameColors.accent,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(child: _note(text)),
+        ],
+      );
+
+  Widget _primary(String label, VoidCallback onPressed) => SizedBox(
+        width: double.infinity,
+        child: FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: GameColors.accent,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          onPressed: _busy ? null : onPressed,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Baloo2',
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+
+  Widget _secondary(String label, VoidCallback onPressed) => SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: GameColors.ink,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            side: const BorderSide(color: Color(0x3320302E), width: 1.4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          onPressed: _busy ? null : onPressed,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Baloo2',
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      );
 }
 
 /// The trophy change + rank progress + match stats, shown under the result
