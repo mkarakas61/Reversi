@@ -5,7 +5,32 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-19** · Son commit: `d6c5e1e` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-19** · Son commit: `3d95062` · Sürüm: `0.1.0+1`
+
+> **🧹 2026-08-19 — SAHTE "ONLINE OYNA" EKRANI SİLİNDİ (`3d95062`, REV-98 takibi):**
+>
+> `OnlineMatchScreen` — rakibi yerel AI olan ("Aylin"e karşı "Mert Karakaş") eski sahte online
+> ekranı — gerçek akış geldiğinden beri hiçbir yerden açılmıyordu. **Ölü kalması zararsız
+> değildi:** 2026-08-18 denetimi "maç sonu tek buton" bulgusunu `online_result_overlay.dart`
+> üzerinden raporladı; o dosyayı **yalnızca bu ölü ekran** kullanıyordu. Yani ölü kod bir denetimi
+> yanlış dosyaya yönlendirdi.
+> - **Silindi** (her biri silmeden önce grep ile doğrulandı): `online_match_screen.dart` (549),
+>   `online_player_card.dart` (112), `online_result_overlay.dart` (163).
+> - **`online_tokens.dart` budandı:** 50 üyeden yalnız **20'si** hayattaydı. Ölü yarısı (tüm renk
+>   paleti + disk asset yolları + `discFor`) **`WoodTheme`'in kopyasıydı** ve canlı ekranlar
+>   `WoodTheme`'i kullanıyor — hangisinin geçerli olduğu belirsizliği, denetimi yanıltan
+>   belirsizliğin aynısıydı. Kalanlar board asset'lerinin **grid oranları** (`OnlineBoard`'un tek
+>   okuduğu şey). **Toplam 893 satır silindi, 16 eklendi.**
+> - **DOKUNULMADI:** `online_board.dart` (game_screen + online_game_screen kullanıyor),
+>   `online_tokens`'ın grid yarısı, `confetti` bağımlılığı, `game/` + `board/` paylaşılan widget'lar.
+> - **✅ CİHAZDA DOĞRULANDI (SM-G780G):** grid oranlarını tutan dosyaya dokunulduğu için — değerler
+>   bit bit aynı kalsa da — **Mermer ve Çiçek** tahtaları gözle kontrol edildi (`OnlineTokens`'ı
+>   kullanan iki yol bunlar). Taşlar ve ipuçları kare merkezinde, grid örtüşüyor, uzak sıralarda ek
+>   kayma yok. Test için değiştirilen tema "Kahve rengi"ne geri alındı.
+> - **142 test yeşil**, analyze temiz.
+> - **⚠️ Kalan daha derin ölü dal:** `rendersWithOnlineBoard` yalnız `mermer`/`cicek` için true, yani
+>   `OnlineBoard`'un **ahşap dalı** (`OnlineTokens.boardImage` + `boardAspect` + `grid*`) pratikte
+>   erişilemez. Kurtulmak **canlı tahta çizim koduna** dokunmayı gerektiriyor — ayrı, dikkatli iş.
 
 > **🔁 2026-08-19 — REV-98 RÖVANŞ (In Review, `d6c5e1e`) — ⚠️ SUNUCU PROD'A DEPLOY EDİLDİ:**
 >
