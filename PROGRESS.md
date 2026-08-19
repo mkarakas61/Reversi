@@ -5,7 +5,55 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-19** · Son commit: `3d95062` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-19** · Son commit: `ea066f5` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🔚 2026-08-19 OTURUM KAPANIŞI — her şey push edildi, sunucu canlıda:**
+>
+> **Canlı durum:** Yerel `main` = `origin/main` (`ea066f5`), çalışma ağacı temiz, bekleyen commit yok.
+> **142 Flutter testi + 49 functions testi yeşil**, analyze temiz (bilinen 2 info lint).
+> APK **hem telefona (SM-G780G) hem tablete (SM-X620)** kuruldu · `~/Desktop/Reversi-0.1.0-rematch.apk`
+>
+> **⚠️ Bu oturumda SUNUCU DEĞİŞTİ (haftalardır ilk kez):** `requestRematch` + `respondRematch`
+> europe-west1'e **create** edildi. Mevcut fonksiyonlara dokunulmadı, **kural/index değişikliği yok**.
+> Deploy komutu: `npx firebase deploy --only functions:requestRematch,functions:respondRematch
+> --project reversi-3a506 --account mustafakarakas1071@gmail.com` (varsayılan hesap **yanlış**,
+> `--account` şart).
+>
+> **Bu oturumda biten 3 iş:**
+> | # | İş | Durum |
+> |---|---|---|
+> | REV-106 | Lider tablosu çerçeveleri eski boyuta döndürüldü | In Review |
+> | REV-103 | Nasıl Oynanır ekranı + ilk açılış turu | In Review · ✅ cihazda görüldü |
+> | REV-98 | Rövanş (teklif/kabul + sunucudan yeni oyun) | In Review · ❌ **cihaz testi bekliyor** |
+>
+> Ayrıca: sahte "Online Oyna" ekranı ve kalıntıları silindi (893 satır), 4 karar kapandı,
+> **REV-107 (aylık abonelik) açıldı**.
+>
+> **Linear In Review (8) — hepsi Mustafa'nın cihaz onayını bekliyor:**
+> REV-96 ✅tel · REV-97 ❌ · REV-100 ✅tel · REV-101 ✅tablet · REV-103 ✅tel · REV-106 ❌ ·
+> REV-61 kısmen · **REV-98 ❌ (iki cihazlı test gerekiyor)**
+>
+> **⚠️ SIRADAKİ OTURUMUN İLK İŞİ — REV-98 rövanş testi (iki cihaz):**
+> 1. Maç bitir → bir tarafta **Tekrar Oyna** → diğerinde "Rakibin rövanş istiyor" + sayaç →
+>    **Kabul et** → ikisi de yeni oyuna geçmeli, **renkler takas olmuş** olmalı
+> 2. **Reddet** → teklif edende "Rakibin rövanşı kabul etmedi" görünmeli
+> 3. Teklif edip **Ana Menü**'ye çık → diğer cihazda teklif düşmeli
+> 4. **60 sn bekle** → teklif kendiliğinden düşmeli
+>
+> Ayrıca Mustafa'nın online oturumu **artık telefonda açık** → lider tablosu + eşleşme önizlemesi +
+> maç ekranı çerçeveleri (REV-97/106/61) nihayet görülebilir.
+>
+> **⚠️ TELEFONDAKİ VERİ SİLİNDİ (benim hatam, bir daha yapılmayacak):** debug APK'yı release imzalı
+> kurulumun üstüne kurmayı denedim, `INSTALL_FAILED_UPDATE_INCOMPATIBLE` alınca gereksiz yere
+> `pm clear` çalıştırdım → kayıtlı oyun, tema seçimleri ve Google oturumu gitti. **Doğrusu:** cihaz
+> doğrulaması için **her zaman `flutter build apk --release` + `adb install -r`** (imza tutar, veri
+> korunur). Hafızaya da yazıldı.
+>
+> **Engelsiz, hemen başlanabilir:** REV-99 (eşleşmede otomatik başlangıç — iki cihaz hazır),
+> REV-104 (terminoloji cilası — "Güzelsi" kalıyor, diğer maddeler serbest).
+>
+> **Kalan açık riskler:** REV-95'in **AAB + Play App Signing SHA** kısmı (keystore yedeği tamam) ·
+> REV-90 hesap silme (yayın engeli) · REV-94 Crashlytics · REV-92 AD_ID/Data Safety.
 
 > **🧹 2026-08-19 — SAHTE "ONLINE OYNA" EKRANI SİLİNDİ (`3d95062`, REV-98 takibi):**
 >
