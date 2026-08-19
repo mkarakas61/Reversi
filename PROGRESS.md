@@ -5,7 +5,45 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-19** · Son commit: `ea066f5` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-20** · Son commit: `ea066f5` sonrası REV-102 · Sürüm: `0.1.0+1`
+
+> **🪙 2026-08-20 — REV-102 COIN BAKİYESİ GÖRÜNÜR OLDU (In Review) — ⚠️ SUNUCU DEPLOY'U BEKLİYOR:**
+>
+> **Oturum kararı:** tablet müsait değil → iki cihazlı online testler (REV-98 rövanş dahil) bekliyor.
+> Tek telefonla doğrulanabilen Urgent iş seçildi.
+>
+> **Sorun:** REV-66'dan beri (2026-07-15) sunucu her online maçta coin yazıyordu
+> (`finish_game.ts`, galibiyet 10 · beraberlik 5 · mağlubiyet 2), **istemcide gösteren tek satır
+> yoktu.** Mustafa'nın hesabında **116 coin** birikmiş — kimse görmüyordu.
+>
+> **Karar (Mustafa, 2026-08-20): birikmiş bakiyeler KALIYOR** (A şıkkı). Sıfırlama yok, telafi yok.
+> Mağaza (REV-69) açılırken herkes birikmiş bakiyesiyle giriyor.
+>
+> - **Bakiye yalnız okunuyor:** `Profile.coins` ← `users/{uid}.coins` (mevcut profil stream'i,
+>   yeni kanal yok). İstemci hiçbir yerde coin **hesaplamıyor** — güvenlik kuralları zaten
+>   yazdırmıyor, tasarım da buna uyduruldu.
+> - **Menü:** profil çipinin altında coin pill'i (`WalletChip`). Yan yana değil **alt alta**, çünkü
+>   sağ üstte Ayarlar+Yardım pill'leri var; üçüncü pill 360dp'de satırı taşırıyordu. Giriş
+>   yapmamışa ve **misafire hiç gösterilmiyor** (misafir kazanamıyor, REV-57) — sıfır bakiye ise
+>   gösteriliyor, saklamak ilk coini hata gibi gösterirdi.
+> - **Profil:** rütbe kartının altına **Cüzdan kartı** — bakiye + kazanç oranları + "mağaza
+>   açıldığında harcayabileceksin". Oranlar `CoinRewards` (lib/core/models/wallet.dart) — sunucu
+>   sabitlerinin **kopyası, yalnız gösterim için**; hesap için asla kullanılmıyor.
+> - **Maç sonu kartı:** `+N Coin` + altında cüzdan bakiyesi **900 ms sayarak artıyor**. Değer
+>   history dokümanından geliyor, sonuçtan **türetilmiyor** — coin tablosu değişirse oyuncuya
+>   sunucunun yazmadığı bir sayı gösterilirdi.
+> - **⚠️ SUNUCU DEĞİŞTİ, HENÜZ DEPLOY EDİLMEDİ:** `finish_game.ts` history dokümanına
+>   `coinDelta` + `coins` ekliyor (trophyDelta/trophies ile aynı desen, additive). **Deploy
+>   edilene kadar maç sonu coin satırı görünmez** (istemci `coinDelta > 0` şartına bakıyor, eski
+>   satırlar 0 döner → çökme yok). Deploy komutu:
+>   `npx firebase deploy --only functions:finish_game --project reversi-3a506 --account mustafakarakas1071@gmail.com`
+> - **Kural/index değişikliği YOK.** Native dosya değişmedi → iOS karşılığı yok, `lib/` ortak.
+> - **149 Flutter testi (7 yeni: `test/wallet_test.dart`) + 49 functions testi yeşil**, analyze temiz.
+> - **✅ CİHAZDA DOĞRULANDI (SM-G780G, release APK):** menüde `116` coin pill'i, profilde Cüzdan
+>   kartı doğru bakiye + oranlarla görünüyor. **❌ Doğrulanamayan:** maç sonu `+N Coin` satırı —
+>   hem sunucu deploy'u hem gerçek bir online maç (iki istemci) gerekiyor.
+> - Sanity: 16 galibiyet + 10 mağlubiyet 180 coin ederdi, bakiye 116 — fark beklenen, coinler
+>   REV-66'da açıldı, geriye dönük dolum yapılmadı.
 
 > **🔚 2026-08-19 OTURUM KAPANIŞI — her şey push edildi, sunucu canlıda:**
 >

@@ -4,12 +4,14 @@ import '../../core/profile/profile_scope.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/models/online_stats.dart';
 import '../../core/models/rank.dart';
+import '../../core/models/wallet.dart';
 import '../online/screens/online_stats_screen.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/guest_upsell_card.dart';
+import '../../shared/widgets/coin_amount.dart';
 import '../../shared/widgets/rank_frame_view.dart';
 import 'rank_road_screen.dart';
 
@@ -100,6 +102,11 @@ class ProfileScreen extends StatelessWidget {
                               const SizedBox(height: 14),
                               _RankCard(
                                 stats: profile.online,
+                                strings: strings,
+                              ),
+                              const SizedBox(height: 14),
+                              _WalletCard(
+                                coins: profile.coins,
                                 strings: strings,
                               ),
                               const SizedBox(height: 14),
@@ -282,6 +289,82 @@ const TextStyle _bandLabelStyle = TextStyle(
   fontSize: 12,
   color: GameColors.inkSoft,
 );
+
+/// Coin balance plus where coins come from (REV-102). Until this card shipped
+/// the balance grew on the server with nothing in the app showing it, so the
+/// card states the rates too — a reward the player cannot see or predict is not
+/// a reward. Read-only: [coins] comes straight from the profile stream.
+class _WalletCard extends StatelessWidget {
+  const _WalletCard({required this.coins, required this.strings});
+
+  final int coins;
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: coinGold.withValues(alpha: 0.16),
+              border: Border.all(color: coinGold, width: 2),
+            ),
+            child: const Icon(Icons.monetization_on_rounded,
+                size: 24, color: coinGold),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  strings.wallet,
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: GameColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  strings.walletRates(
+                    CoinRewards.win,
+                    CoinRewards.draw,
+                    CoinRewards.loss,
+                  ),
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: GameColors.inkSoft,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  strings.walletSpendSoon,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11.5,
+                    color: GameColors.inkSoft,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          CoinAmount(text: '$coins', fontSize: 22),
+        ],
+      ),
+    );
+  }
+}
 
 class _OnlineRecordCard extends StatelessWidget {
   const _OnlineRecordCard({required this.stats, required this.strings});

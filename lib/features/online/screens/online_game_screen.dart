@@ -18,6 +18,7 @@ import '../../../core/services/sound_service.dart';
 import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
+import '../../../shared/widgets/coin_amount.dart';
 import '../../../shared/widgets/info_popup.dart';
 import '../../../shared/widgets/rank_badge.dart';
 import '../../../core/theme/board_palette.dart';
@@ -1016,6 +1017,53 @@ class _ResultOverlayState extends State<_ResultOverlay> {
 
 /// The trophy change + rank progress + match stats, shown under the result
 /// once the server reward lands (REV-74). Animates the trophy delta in.
+/// The coins won this game, over the wallet balance counting up to what the
+/// game left it at (REV-102). The count-up is the point: the balance had been
+/// growing invisibly on the server for weeks, so the screen shows the player
+/// their coins moving rather than a number that was simply always there.
+class _CoinReward extends StatelessWidget {
+  const _CoinReward({
+    required this.delta,
+    required this.balance,
+    required this.strings,
+  });
+
+  final int delta;
+  final int balance;
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    // Never count up from a negative number: a history row written before the
+    // balance field existed carries a reward with a 0 balance.
+    final start = balance - delta < 0 ? 0 : balance - delta;
+
+    return Column(
+      children: [
+        CoinAmount(text: '+$delta ${strings.coins}', fontSize: 16),
+        const SizedBox(height: 2),
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeOutCubic,
+          builder: (context, t, child) {
+            final shown = start + ((balance - start) * t).round();
+            return Text(
+              '${strings.wallet} $shown',
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w700,
+                fontSize: 12.5,
+                color: GameColors.inkSoft,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
 class _RewardSection extends StatelessWidget {
   const _RewardSection({
     required this.entry,
@@ -1076,6 +1124,17 @@ class _RewardSection extends StatelessWidget {
             ],
           ),
         ),
+        // Coin reward (REV-102). Comes from the same history doc as the
+        // trophies — never re-derived from the outcome — and is absent on games
+        // played before the server started recording it, hence the guard.
+        if (entry.coinDelta > 0) ...[
+          const SizedBox(height: 6),
+          _CoinReward(
+            delta: entry.coinDelta,
+            balance: entry.coins,
+            strings: strings,
+          ),
+        ],
         if (rankedUp) ...[
           const SizedBox(height: 8),
           Text(

@@ -21,6 +21,7 @@ import 'widgets/menu_button.dart';
 import 'widgets/menu_logo.dart';
 import 'widgets/pill_button.dart';
 import 'widgets/profile_chip.dart';
+import 'widgets/wallet_chip.dart';
 
 enum _OnlineSignInChoice { google, guest }
 
@@ -205,7 +206,17 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 alignment: Alignment.topLeft,
                 child: Padding(
                   padding: EdgeInsets.all(12),
-                  child: ProfileChip(),
+                  // Stacked, not side by side: the settings and help pills own
+                  // the top-right corner, and a third pill on this row overran
+                  // the narrowest phone we support.
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ProfileChip(),
+                      WalletChip(),
+                    ],
+                  ),
                 ),
               ),
               Align(

@@ -14,6 +14,8 @@ class HistoryEntry {
     required this.oppLevel,
     this.trophyDelta = 0,
     this.trophies = 0,
+    this.coinDelta = 0,
+    this.coins = 0,
   });
 
   final DateTime ts;
@@ -30,6 +32,13 @@ class HistoryEntry {
   final int trophyDelta;
   final int trophies;
 
+  /// Coins earned in this game and the resulting balance (REV-102). Both are 0
+  /// on games recorded before the fields shipped, so the result screen shows
+  /// the coin line only when [coinDelta] is greater than 0 — every real online
+  /// game pays out at least 2.
+  final int coinDelta;
+  final int coins;
+
   bool get isWin => result == 'win';
 
   factory HistoryEntry.fromMap(Map<String, dynamic> data) {
@@ -42,6 +51,8 @@ class HistoryEntry {
       oppLevel: (data['oppLevel'] as num?)?.toInt() ?? 1,
       trophyDelta: (data['trophyDelta'] as num?)?.toInt() ?? 0,
       trophies: (data['trophies'] as num?)?.toInt() ?? 0,
+      coinDelta: (data['coinDelta'] as num?)?.toInt() ?? 0,
+      coins: (data['coins'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -192,6 +192,13 @@ class AppStrings {
       'matchFlipped': 'Flipped',
       'matchMargin': 'Margin',
       'matchStreak': 'Streak',
+      // Coin wallet (REV-102). The balance is server-written; these strings
+      // only name it and say where it comes from.
+      'coins': 'Coins',
+      'wallet': 'Wallet',
+      'walletRates': 'Win {win} · Draw {draw} · Loss {loss}',
+      'walletSpendSoon': 'You will be able to spend these in the store.',
+      'walletGuest': 'Sign in to earn coins.',
       // How to Play + first-launch tour (REV-103).
       'help': 'Help',
       'howToPlay': 'How to Play',
@@ -406,6 +413,13 @@ class AppStrings {
       'matchFlipped': 'Çevrilen',
       'matchMargin': 'Fark',
       'matchStreak': 'Seri',
+      // Coin cüzdanı (REV-102). Bakiyeyi sunucu yazar; bu metinler yalnız adını
+      // ve nereden geldiğini söyler.
+      'coins': 'Coin',
+      'wallet': 'Cüzdan',
+      'walletRates': 'Galibiyet {win} · Beraberlik {draw} · Mağlubiyet {loss}',
+      'walletSpendSoon': 'Mağaza açıldığında burada harcayabileceksin.',
+      'walletGuest': 'Coin kazanmak için giriş yap.',
       // Nasıl Oynanır + ilk açılış turu (REV-103).
       'help': 'Yardım',
       'howToPlay': 'Nasıl Oynanır',
@@ -567,6 +581,16 @@ class AppStrings {
   String get matchFlipped => _get('matchFlipped');
   String get matchMargin => _get('matchMargin');
   String get matchStreak => _get('matchStreak');
+
+  // Coin wallet (REV-102).
+  String get coins => _get('coins');
+  String get wallet => _get('wallet');
+  String walletRates(int win, int draw, int loss) => _get('walletRates')
+      .replaceAll('{win}', '$win')
+      .replaceAll('{draw}', '$draw')
+      .replaceAll('{loss}', '$loss');
+  String get walletSpendSoon => _get('walletSpendSoon');
+  String get walletGuest => _get('walletGuest');
 
   // How to Play + first-launch tour (REV-103).
   String get help => _get('help');

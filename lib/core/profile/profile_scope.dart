@@ -20,6 +20,7 @@ class Profile {
     this.displayName,
     this.photoUrl,
     this.online = OnlineStats.empty,
+    this.coins = 0,
     this.isGuest = false,
   });
 
@@ -27,6 +28,13 @@ class Profile {
   final String? displayName;
   final String? photoUrl;
   final OnlineStats online;
+
+  /// Coin balance, from the top-level `coins` field of the user document.
+  /// Server-authoritative like [online]: only Cloud Functions ever write it
+  /// (REV-66/102), the client reads it. Guests have no document, so their
+  /// balance is always 0 — they earn nothing (REV-57).
+  final int coins;
+
   final bool isGuest;
 }
 
@@ -104,6 +112,7 @@ class ProfileController extends ChangeNotifier {
           displayName: data['displayName'] as String? ?? user.displayName,
           photoUrl: data['photoUrl'] as String? ?? user.photoURL,
           online: OnlineStats.fromMap(data['online'] as Map<String, dynamic>?),
+          coins: (data['coins'] as num?)?.toInt() ?? 0,
         );
         notifyListeners();
       },

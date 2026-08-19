@@ -178,8 +178,12 @@ function applyReward(
   const newRank = rankFor(newTrophies).id;
 
   const newStreak = outcome === "win" ? currentStreak + 1 : 0;
-  // Coins opened up REV-66 (2026-07-15). No back-fill.
-  const newCoins = coins + earnedCoins(outcome);
+  // Coins opened up REV-66 (2026-07-15). No back-fill. The gain is kept as its
+  // own value so the history doc can carry it (REV-102) — the result screen
+  // must not re-derive the reward from the outcome, or a change to the coin
+  // table would show players a number the server never credited.
+  const gainedCoins = earnedCoins(outcome);
+  const newCoins = coins + gainedCoins;
 
   tx.set(
     ref,
@@ -219,6 +223,10 @@ function applyReward(
       trophyDelta: gainedTrophies,
       trophies: newTrophies,
       rank: newRank,
+      // Coins earned this game + the resulting balance (REV-102), same reason
+      // as the trophy pair above: the result screen reads, never computes.
+      coinDelta: gainedCoins,
+      coins: newCoins,
     },
     {merge: true}
   );
