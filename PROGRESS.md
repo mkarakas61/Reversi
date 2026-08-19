@@ -5,7 +5,44 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-19** · Son commit: `41789df` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-19** · Son commit: `afedcb0` · Sürüm: `0.1.0+1`
+
+> **📖 2026-08-19 — REV-103 NASIL OYNANIR + İLK AÇILIŞ TURU (In Review, `afedcb0`):**
+>
+> Mustafa kararsızdı: *"nasıl oynanır mı yapsak, sadece ilk açılışta çalışan genel bir öğretici mi?"*
+> **Cevap: ikisi de — tek içerik, iki kapı.** Farklı sorulara cevap veriyorlar (kurallar =
+> kalıcı referans, tur = bir kerelik keşif). Yalnız ilk-açılış yapmak, kullanıcının en sabırsız
+> anında hem kural hem özellik anlatmak ve atlayana bir daha ulaştırmamak demekti.
+> **Mustafa'nın seçimi:** tur biçimi **kart turu**, giriş noktası **hem menü hem ayarlar**.
+> - **`HowToPlayScreen`** — 7 bölüm: Amaç · Hamle (önce/sonra diyagramı) · İşaretli kareler ·
+>   Pas · Oyun sonu · **Kendine göre ayarla** (+ "Ayarları aç") · Online. Kuralla birlikte
+>   **özellikleri de** anlatıyor: Ayarlar'a hiç girmeyen oyuncu tahtanın/taşların kendisine ait
+>   olduğunu başka türlü öğrenmiyor. Giriş: menü sağ üstte **"?" hapı** + **Ayarlar → Yardım**.
+> - **`WelcomeTour`** — ilk kurulumda bir kez, 4 kart, her an atlanabilir. Son kartta buton
+>   "Hadi oynayalım" oluyor. **Spot ışığı (coach marks) elendi:** gerçek buton konumlarını bilmesi
+>   gerekir → her düzen değişikliğinde kayar, telefon+tablet ayrı iş; ikisi de hedef cihaz.
+>   **Atlamak da "gördü" sayılıyor** — kapatılan turu tekrar açmak hiç açmamaktan kötü olurdu,
+>   kalıcı ekran zaten iki yerden erişilebilir. Bayrak `AppSettings`'te değil, ayrı
+>   `OnboardingStorage`'da (tercih değil, olmuş bir olayın kaydı).
+> - **`CaptureDiagram` bilerek şematik:** düz kareler + düz daireler, **tek `CustomPainter`** →
+>   grid ve taşlar aynı canvas, tek koordinat sistemi (board mimari kuralı kendiliğinden sağlanıyor).
+>   Gerçek tahtanın eğimini bu boyutta taklit etmek **kare hücreye elips koymak** olurdu.
+>   Taş renkleri oyuncunun kendi seçiminden geliyor.
+> - **Paylaşıma açıldı:** Ayarlar'ın `_Section` → `InfoCard`, `_HeaderClipper` → `HeaderClipper`.
+>   Kopyalanmadılar; iki sayfa artık ayrı düşemez.
+> - **✅ CİHAZDA DOĞRULANDI (SM-G780G):** 4 tur kartı, menü "?" hapı, Ayarlar → Yardım satırı,
+>   **diyagram hizası** (her taş kare merkezinde, grid çizgileri kare kenarlarıyla örtüşüyor).
+>   Görülüp düzeltilen 2 kusur: kart içeriği dikeyde yukarı yapışıyordu → ortalandı;
+>   taş vitrini 5+1 bölünüyordu → 3+3.
+> - **135 test yeşil** (124'ten), analyze temiz. Yeni `how_to_play_test.dart` (9) +
+>   `widget_test.dart`'a 2 test (ilk açılışta tur çıkıyor/atlanıyor, dönen oyuncuda çıkmıyor).
+> - **Native dosya değişmedi** → iOS karşılığı yok, `lib/` ortak.
+>
+> **⚠️ TELEFONDAKİ VERİ SİLİNDİ (benim hatam):** hata ayıklama APK'sını kurmayı denerken imza
+> uyuşmazlığı çıktı ve gereksiz yere `pm clear` çalıştırdım → telefondaki **kayıtlı oyun, tema/tahta/
+> taş seçimleri ve Google oturumu silindi**. Telefondaki APK artık `723fe70` değil, **bu commit'ten
+> üretilmiş yeni release derlemesi** (aynı keystore, imza uyumlu, temiz güncellendi).
+> **Tablette hiçbir şey yapılmadı** — orada hâlâ eski APK var ve verisi duruyor.
 
 > **✅ 2026-08-19 — DÖRT KARAR KAPANDI + ÇERÇEVE BÜYÜTMESİ GERİ ALINDI:**
 >
