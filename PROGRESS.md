@@ -5,7 +5,47 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-18** · Son commit: `723fe70` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-19** · Son commit: `41789df` · Sürüm: `0.1.0+1`
+
+> **✅ 2026-08-19 — DÖRT KARAR KAPANDI + ÇERÇEVE BÜYÜTMESİ GERİ ALINDI:**
+>
+> Mustafa'nın kararları (hepsi Linear'a işlendi):
+> 1. **REV-104 — "Güzelsi" KALIYOR.** Bu zaten verilmiş bir karardı, tekrar sorulması hataydı.
+>    Gerekçe: Güzelsi **mağazada ücretli olacak**, jenerik bir tema adı değil satılacak ürün adı.
+>    **Monetizasyon modeli netleşti (3 ayak):** (a) bazı tahta+taşlar tek seferlik ücretli,
+>    (b) Güzelsi teması ücretli, (c) **aylık abonelik → tüm kilitler açık + reklamsız**.
+>    Üçüncü ayak Linear'da hiç yoktu → **REV-107 açıldı** (proje 12, sunucu-otoriter entitlement,
+>    Play RTDN doğrulaması; tek seferlik satın alımlar abonelik bitince kaybolmamalı).
+> 2. **REV-98 — rövanş TAM SÜRÜM yapılacak.** "Teklif edilsin, karşı taraf kabul ederse tekrar
+>    oynansın." Ucuz alternatif (yalnız "Yeni rakip bul") elendi. `rematchRequest` + iki taraflı
+>    kabul + **Cloud Function ile yeni oyun açma** (renk/kupa eşleşme mantığından geçmeli, yoksa
+>    kupa/coin suistimali). ⚠️ Bu iş **`functions/` deploy gerektirecek** — sunucu haftalardır hiç
+>    değişmemişti, bu ilk olacak.
+> 3. **REV-102 — coinler SIFIRLANMAYACAK.** Prod'da yalnız test ekibi kayıtlı; birikmiş bakiye
+>    mağaza sonrası satın alma testi için kullanılacak. **Firestore ölçümü/migration kapsamdan düştü.**
+>    Geriye kalan tek iş: bakiyeyi istemcide göstermek (mağaza işleriyle birlikte).
+> 4. **REV-95 — keystore yedeği TAMAM.** `.jks` dosyası da yedeklendi. **Projenin en riskli açık
+>    maddesi kapandı.** İş Todo'da kalıyor çünkü AAB + Play App Signing SHA'ları hâlâ eksik.
+>
+> **🔧 REV-106 GERİ ALMA — 2× büyütme yanlış knob'a basmış:** Mustafa lider tablosunda gördü:
+> *"çerçeveler genişlememiş, komple kişi kartı büyümüş."* **Haklı, ve sebebi kesin:** halka
+> kalınlığı PNG'nin içine çizili sabit bir oran (`RankFrame.openingFraction`, düz rütbelerde ~0.73).
+> `RankFrameView.around` çerçeveyi `açıklık / openingFraction` ile ölçekliyor → açıklığı büyütmek
+> **halkayı da avatarı da aynı katsayıyla** büyütüyor, **oran hiç değişmiyor**; büyüyen tek şey
+> satır yüksekliği. Yani 2026-08-18'de yazılan *"opening, çerçeveyi çerçeve gibi gösteren knob"*
+> yorumu **yanlıştı**.
+> - Lider tablosu `_opening` 60→**30**, `_slot` 92→**46** (ilk haline döndü, satırlar ~112→~66pt).
+>   Yanlış yorum, aynı tuzağa bir daha düşülmesin diye sebebi anlatan doğru yorumla değiştirildi.
+> - **Diğer üç yer geri ALINMADI** (eşleşme önizlemesi 104, maç şeridi 72, rakip istatistik 96) —
+>   Mustafa "lider tablosu için konuşuyorum" dedi, o ekranları henüz görmedi; liste olmadıkları
+>   için satır yüksekliği sorunu da yok. Görüldükten sonra karar verilecek.
+> - **Gerçekten kalın halka = asset işi, kod işi değil.** Çerçeveler daha küçük `openingFraction`
+>   ile yeniden çizilmeli (aynı dış çap, geniş süs bandı, küçük delik) ve yeni ölçüler
+>   `rank.dart`'taki sabitlere işlenmeli. **REV-61'e yazıldı.**
+> - **124 test yeşil, analyze temiz.**
+>
+> **⚠️ Hâlâ görülmemiş:** lider tablosu (küçültülmüş haliyle) + eşleşme önizlemesi + maç ekranı
+> çerçeveleri + REV-97 emoji'li satırlar. Hepsi **online oturum** istiyor — Mustafa girip bakmalı.
 
 > **🔚 2026-08-18 OTURUM KAPANIŞI — her şey canlıda, tahta temiz:**
 >

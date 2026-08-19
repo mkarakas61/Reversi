@@ -436,15 +436,20 @@ class _RankedAvatar extends StatelessWidget {
   final String? photoUrl;
   final int? trophies;
 
-  /// Avatar diameter inside the frame. Doubled from the first pass: at 30 the
-  /// ornament ring came out only a few pixels thick and read as a hairline
-  /// rather than a frame. The ring's thickness scales with the opening, so
-  /// this is the knob that makes a frame look like one.
-  static const double _opening = 60.0;
+  /// Avatar diameter inside the frame.
+  ///
+  /// This was briefly doubled to 60 to make the ornament ring look less like a
+  /// hairline. It did not work, and it cannot: the ring is baked into the frame
+  /// art at a fixed proportion (the opening is ~73% of the canvas on the plain
+  /// ranks), so growing the opening grows the ring and the avatar by the same
+  /// factor. The ring/avatar ratio never changes — only the row gets taller.
+  /// A genuinely thicker ring needs redrawn art with a smaller
+  /// `openingFraction`, not a bigger number here.
+  static const double _opening = 30.0;
 
   /// Row height the frames are allowed to claim. Every rank reserves the same
   /// box so rows keep a common baseline whatever mix of ranks they hold.
-  static const double _slot = 92.0;
+  static const double _slot = 46.0;
 
   @override
   Widget build(BuildContext context) {
