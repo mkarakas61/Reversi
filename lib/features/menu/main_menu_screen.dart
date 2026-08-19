@@ -13,6 +13,8 @@ import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart' show GameColors, bannerGradient;
 import '../../core/theme/wood_theme.dart';
 import '../online/screens/leaderboard_screen.dart';
+import '../help/how_to_play_screen.dart';
+import '../help/welcome_tour.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
 import 'widgets/menu_button.dart';
@@ -52,6 +54,11 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_refreshSavedGame());
+    // First launch only, and after the menu has laid out so the tour opens on
+    // top of the app rather than in place of it (REV-103).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(WelcomeTour.showIfFirstLaunch(context));
+    });
   }
 
   @override
@@ -205,20 +212,42 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 alignment: Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: PillButton(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SettingsScreen(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Rules live on the menu, not only in Settings: a player
+                      // who does not know Reversi has no reason to open
+                      // Settings, and the first-launch tour is skippable
+                      // (REV-103). Icon-only so the menu keeps its shape.
+                      PillButton(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const HowToPlayScreen(),
+                          ),
+                        ),
+                        child: Semantics(
+                          label: strings.howToPlay,
+                          button: true,
+                          child: const Icon(Icons.help_outline, size: 20),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.settings, size: 18),
-                        const SizedBox(width: 6),
-                        Text(strings.settings),
-                      ],
-                    ),
+                      const SizedBox(width: 8),
+                      PillButton(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SettingsScreen(),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.settings, size: 18),
+                            const SizedBox(width: 6),
+                            Text(strings.settings),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

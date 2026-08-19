@@ -5,14 +5,19 @@ import 'package:reversi/core/auth/auth_scope.dart';
 import 'package:reversi/core/game/reversi_game.dart';
 import 'package:reversi/core/profile/profile_scope.dart';
 import 'package:reversi/core/services/analytics_service.dart';
+import 'package:reversi/core/services/onboarding_storage.dart';
 import 'package:reversi/core/services/settings_storage.dart';
 import 'package:reversi/core/settings/app_settings.dart';
 import 'package:reversi/features/board/wood_board.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    // These tests are about the menu and the board, so they start as a
+    // returning player. On a genuinely fresh install the welcome tour opens
+    // over the menu (REV-103) — that case has its own test below.
+    await const OnboardingStorage().markTourSeen();
   });
 
   Future<void> pumpApp(WidgetTester tester) async {
@@ -35,6 +40,29 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('a fresh install is met by the welcome tour', (tester) async {
+    // Undo the setUp: this is the one test that is a first launch.
+    SharedPreferences.setMockInitialValues({});
+    await pumpApp(tester);
+
+    // The tour covers the menu, and can be dismissed straight away.
+    expect(find.text('Welcome to Reversi'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
+
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Welcome to Reversi'), findsNothing);
+    expect(find.text('REVERSI'), findsOneWidget);
+  });
+
+  testWidgets('a returning player goes straight to the menu', (tester) async {
+    await pumpApp(tester);
+
+    expect(find.text('Welcome to Reversi'), findsNothing);
+    expect(find.text('REVERSI'), findsOneWidget);
+  });
 
   testWidgets('renders the main menu', (tester) async {
     await pumpApp(tester);

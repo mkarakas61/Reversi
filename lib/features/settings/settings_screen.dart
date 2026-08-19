@@ -5,6 +5,9 @@ import '../../core/settings/app_settings.dart';
 import '../../core/theme/game_colors.dart'
     show GameColors, bannerGradient, creamShellGradient;
 import '../../core/theme/wood_theme.dart';
+import '../../shared/widgets/info_card.dart';
+import '../help/how_to_play_screen.dart';
+import '../menu/widgets/menu_button.dart';
 import 'widgets/app_theme_row.dart';
 import 'widgets/board_theme_grid.dart';
 import 'widgets/coin_row.dart';
@@ -37,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
               right: 0,
               height: 150,
               child: ClipPath(
-                clipper: _HeaderClipper(),
+                clipper: const HeaderClipper(),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: wood ? WoodTheme.buttonGradient : bannerGradient,
@@ -56,14 +59,14 @@ class SettingsScreen extends StatelessWidget {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
                       children: [
-                        _Section(
+                        InfoCard(
                           title: 'Tema',
                           child: AppThemeRow(
                             selected: settings.appTheme,
                             onSelect: controller.setAppTheme,
                           ),
                         ),
-                        _Section(
+                        InfoCard(
                           title: strings.language,
                           child: LanguageRow(
                             current: lang,
@@ -75,14 +78,14 @@ class SettingsScreen extends StatelessWidget {
                         // board and coin is selectable regardless of the app
                         // theme. (Paid boards get a locked look once the store
                         // ships — REV-69/71.)
-                        _Section(
+                        InfoCard(
                           title: strings.boardColor,
                           child: BoardThemeGrid(
                             selected: settings.board,
                             onSelect: controller.setBoard,
                           ),
                         ),
-                        _Section(
+                        InfoCard(
                           title: strings.coinColor,
                           child: Column(
                             children: [
@@ -102,7 +105,19 @@ class SettingsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        _Section(
+                        InfoCard(
+                          title: strings.help,
+                          child: MenuButton(
+                            label: strings.howToPlay,
+                            icon: Icons.help_outline_rounded,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const HowToPlayScreen(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        InfoCard(
                           title: strings.sound,
                           child: Column(
                             children: [
@@ -128,67 +143,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height * 0.62)
-      ..lineTo(0, size.height * 0.82)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(_HeaderClipper old) => false;
-}
-
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
-
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final wood = isWoodTheme(context);
-    return Container(
-      margin: const EdgeInsets.only(top: 9),
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      decoration: BoxDecoration(
-        color: wood ? WoodTheme.cardTop : Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(18),
-        border:
-            wood ? Border.all(color: WoodTheme.cardIdleBorder, width: 1) : null,
-        boxShadow: const [
-          BoxShadow(color: Color(0x0D000000), offset: Offset(0, 6)),
-          BoxShadow(
-            color: Color(0x14000000),
-            offset: Offset(0, 10),
-            blurRadius: 22,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
-              fontWeight: wood ? FontWeight.w400 : FontWeight.w800,
-              fontSize: wood ? 16 : 15,
-              color: wood ? WoodTheme.inkScore : GameColors.ink,
-            ),
-          ),
-          const SizedBox(height: 8),
-          child,
-        ],
       ),
     );
   }

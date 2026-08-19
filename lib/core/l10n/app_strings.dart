@@ -182,6 +182,48 @@ class AppStrings {
       'matchFlipped': 'Flipped',
       'matchMargin': 'Margin',
       'matchStreak': 'Streak',
+      // How to Play + first-launch tour (REV-103).
+      'help': 'Help',
+      'howToPlay': 'How to Play',
+      'htpGoalTitle': 'The goal',
+      'htpGoalBody':
+          'When the board can take no more moves, whoever has more discs on it wins.',
+      'htpMoveTitle': 'Making a move',
+      'htpMoveBody':
+          'Place a disc so that one or more of your opponent\'s discs are trapped in a straight line between the disc you just placed and another disc of yours. Every trapped disc turns over and becomes yours.',
+      'htpBefore': 'Before',
+      'htpAfter': 'After',
+      'htpHintsTitle': 'The marked squares',
+      'htpHintsBody':
+          'Rings on the board mark every square you may play right now. A square with no ring would capture nothing, so it is not a legal move.',
+      'htpPassTitle': 'Passing',
+      'htpPassBody':
+          'If no square would capture anything, your turn passes to your opponent automatically. You do not lose anything by passing.',
+      'htpEndTitle': 'How a game ends',
+      'htpEndBody':
+          'The game ends when neither player has a legal move — usually when the board is full. Discs are counted, and the larger pile wins.',
+      'htpCustomizeTitle': 'Make it yours',
+      'htpCustomizeBody':
+          'The board and both sets of discs are yours to choose — wood, marble, floral and plain colours, in any combination. Sound, music and language live in Settings too.',
+      'htpOpenSettings': 'Open Settings',
+      'htpOnlineTitle': 'Playing online',
+      'htpOnlineBody':
+          'Sign in and you can be matched with a real opponent, earn trophies, climb the ranks and appear on the leaderboard. You can also play as a guest.',
+      'tourWelcomeTitle': 'Welcome to Reversi',
+      'tourWelcomeBody':
+          'A game of turning discs over. When no more moves are left, whoever has more discs on the board wins.',
+      'tourCaptureTitle': 'Trap discs to turn them',
+      'tourCaptureBody':
+          'Close off a line of your opponent\'s discs at both ends and every disc in between becomes yours. The marked squares show where you may play.',
+      'tourCustomizeTitle': 'Make it look how you like',
+      'tourCustomizeBody':
+          'Pick your board and your discs in Settings — wood, marble, floral or plain. You can change them any time, mid-game too.',
+      'tourOnlineTitle': 'Play the world',
+      'tourOnlineBody':
+          'Play offline against the computer or a friend on one device, or go online for real opponents, trophies and the leaderboard.',
+      'tourSkip': 'Skip',
+      'tourNext': 'Next',
+      'tourStart': 'Let\'s play',
     },
     'tr': {
       'appTitle': 'Reversi',
@@ -344,6 +386,48 @@ class AppStrings {
       'matchFlipped': 'Çevrilen',
       'matchMargin': 'Fark',
       'matchStreak': 'Seri',
+      // Nasıl Oynanır + ilk açılış turu (REV-103).
+      'help': 'Yardım',
+      'howToPlay': 'Nasıl Oynanır',
+      'htpGoalTitle': 'Amaç',
+      'htpGoalBody':
+          'Tahtada oynanacak hamle kalmadığında, tahtada daha çok taşı olan kazanır.',
+      'htpMoveTitle': 'Hamle nasıl yapılır',
+      'htpMoveBody':
+          'Taşını öyle bir kareye koy ki, yeni koyduğun taşla senin başka bir taşın arasında rakibin taşları düz bir hat üzerinde kapana kısılsın. Arada kalan taşların hepsi dönüp senin olur.',
+      'htpBefore': 'Önce',
+      'htpAfter': 'Sonra',
+      'htpHintsTitle': 'İşaretli kareler',
+      'htpHintsBody':
+          'Tahtadaki halkalar, şu anda oynayabileceğin bütün kareleri gösterir. Halkası olmayan bir kare hiçbir taşı çeviremeyeceği için geçerli hamle değildir.',
+      'htpPassTitle': 'Pas geçmek',
+      'htpPassBody':
+          'Hiçbir kare taş çeviremiyorsa sıra kendiliğinden rakibine geçer. Pas geçmek sana bir şey kaybettirmez.',
+      'htpEndTitle': 'Oyun nasıl biter',
+      'htpEndBody':
+          'İki oyuncunun da geçerli hamlesi kalmadığında oyun biter — çoğu zaman tahta dolduğunda. Taşlar sayılır, çok olan kazanır.',
+      'htpCustomizeTitle': 'Kendine göre ayarla',
+      'htpCustomizeBody':
+          'Tahta da, iki tarafın taşları da senin seçimin — ahşap, mermer, çiçekli ve düz renkler, istediğin bileşimde. Ses, müzik ve dil de Ayarlar\'da.',
+      'htpOpenSettings': 'Ayarları aç',
+      'htpOnlineTitle': 'Online oynamak',
+      'htpOnlineBody':
+          'Giriş yaptığında gerçek bir rakiple eşleşir, kupa kazanır, rütbe atlar ve lider tablosunda yer alırsın. İstersen misafir olarak da oynayabilirsin.',
+      'tourWelcomeTitle': 'Reversi\'ye hoş geldin',
+      'tourWelcomeBody':
+          'Taş çevirme oyunu. Oynanacak hamle kalmadığında tahtada daha çok taşı olan kazanır.',
+      'tourCaptureTitle': 'Taşları kıstır, dönsünler',
+      'tourCaptureBody':
+          'Rakibinin taş dizisini iki ucundan kapat, aradaki bütün taşlar senin olsun. İşaretli kareler nereye oynayabileceğini gösterir.',
+      'tourCustomizeTitle': 'Görünüşü sana kalmış',
+      'tourCustomizeBody':
+          'Tahtanı ve taşlarını Ayarlar\'dan seç — ahşap, mermer, çiçekli ya da düz. İstediğin zaman, oyunun ortasında bile değiştirebilirsin.',
+      'tourOnlineTitle': 'Herkesle oyna',
+      'tourOnlineBody':
+          'Bilgisayara karşı ya da tek cihazda arkadaşınla oynayabilir, online\'a geçip gerçek rakiplerle kupa ve lider tablosu için yarışabilirsin.',
+      'tourSkip': 'Atla',
+      'tourNext': 'Devam',
+      'tourStart': 'Hadi oynayalım',
     },
   };
 
@@ -452,6 +536,38 @@ class AppStrings {
   String get matchFlipped => _get('matchFlipped');
   String get matchMargin => _get('matchMargin');
   String get matchStreak => _get('matchStreak');
+
+  // How to Play + first-launch tour (REV-103).
+  String get help => _get('help');
+  String get howToPlay => _get('howToPlay');
+  String get htpGoalTitle => _get('htpGoalTitle');
+  String get htpGoalBody => _get('htpGoalBody');
+  String get htpMoveTitle => _get('htpMoveTitle');
+  String get htpMoveBody => _get('htpMoveBody');
+  String get htpBefore => _get('htpBefore');
+  String get htpAfter => _get('htpAfter');
+  String get htpHintsTitle => _get('htpHintsTitle');
+  String get htpHintsBody => _get('htpHintsBody');
+  String get htpPassTitle => _get('htpPassTitle');
+  String get htpPassBody => _get('htpPassBody');
+  String get htpEndTitle => _get('htpEndTitle');
+  String get htpEndBody => _get('htpEndBody');
+  String get htpCustomizeTitle => _get('htpCustomizeTitle');
+  String get htpCustomizeBody => _get('htpCustomizeBody');
+  String get htpOpenSettings => _get('htpOpenSettings');
+  String get htpOnlineTitle => _get('htpOnlineTitle');
+  String get htpOnlineBody => _get('htpOnlineBody');
+  String get tourWelcomeTitle => _get('tourWelcomeTitle');
+  String get tourWelcomeBody => _get('tourWelcomeBody');
+  String get tourCaptureTitle => _get('tourCaptureTitle');
+  String get tourCaptureBody => _get('tourCaptureBody');
+  String get tourCustomizeTitle => _get('tourCustomizeTitle');
+  String get tourCustomizeBody => _get('tourCustomizeBody');
+  String get tourOnlineTitle => _get('tourOnlineTitle');
+  String get tourOnlineBody => _get('tourOnlineBody');
+  String get tourSkip => _get('tourSkip');
+  String get tourNext => _get('tourNext');
+  String get tourStart => _get('tourStart');
 
   String coinColorLabel(CoinColor color) {
     switch (color) {

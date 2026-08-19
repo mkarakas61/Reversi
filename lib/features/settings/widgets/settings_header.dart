@@ -82,3 +82,22 @@ class RoundButton extends StatelessWidget {
     );
   }
 }
+
+/// The angled banner behind a settings-style page header. Shared by Settings
+/// and How to Play so the two pages have the same silhouette (REV-103).
+class HeaderClipper extends CustomClipper<Path> {
+  const HeaderClipper();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height * 0.62)
+      ..lineTo(0, size.height * 0.82)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(HeaderClipper old) => false;
+}
