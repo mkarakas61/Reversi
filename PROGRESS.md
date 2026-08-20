@@ -5,7 +5,40 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-20** · Son commit: REV-91 (yasal sayfalar + ekran) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-20** · Son commit: `a42a6dc` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🔚 2026-08-20 OTURUM KAPANIŞI — üç iş bitti, ikisi yayın engeliydi:**
+>
+> **Canlı durum:** yerel `main` = `origin/main` (`a42a6dc`), çalışma ağacı temiz.
+> **157 Flutter + 49 functions testi yeşil**, analyze temiz (bilinen 2 info lint).
+> Release APK telefona kuruldu (SM-G780G). **Tablet müsait değildi → iki cihazlı online testler
+> (REV-98 rövanş dahil) bu oturumda da yapılamadı, hâlâ bekliyor.**
+>
+> **⚠️ Bu oturumda SUNUCU DEĞİŞTİ:** `onGameFinished` prod'a deploy edildi (REV-102, history
+> dokümanına `coinDelta` + `coins`). Kural/index değişikliği yok.
+>
+> | # | İş | Durum |
+> |---|---|---|
+> | REV-102 | Coin bakiyesi görünür oldu (menü + profil + maç sonu) | In Review · ✅ telefonda görüldü · ❌ maç sonu satırı iki cihaz bekliyor |
+> | REV-91 | Yasal sayfalar (web) + Uygulama & Hesap ekranı | In Review · ✅ uçtan uca doğrulandı |
+> | REV-92 | AD_ID kararı + Data Safety cevap kağıdı | In Review · form Play Console'da doldurulacak |
+>
+> **Yeni canlı adres:** `https://mkarakas61.github.io/Reversi/` (GitHub Pages, `main` → `/docs`).
+> **Yeni gerçek adres:** `reversi.destek@gmail.com` (Mustafa açtı).
+>
+> **⚠️ SIRADAKİ OTURUMUN İLK İŞİ — REV-90 hesap silme (son yayın engeli).** Bu oturumda
+> **başlanmadı**, yalnız ticket + sunucu yapısı okundu, kod değişikliği yok. Planlanan yapı:
+> callable `deleteAccount` (Admin SDK ile silme → `requires-recent-login` sorunu hiç doğmuyor) ·
+> profil dokümanı + `history` alt koleksiyonu + tüm haftaların leaderboard satırları + eşleşme
+> kaydı silinir · aktif maç `cancelled` (sweep'in yolu) · biten maçlarda ad/foto temizlenir ·
+> son adım `admin.auth().deleteUser`. **Politikada verilen söz bağlayıcı:** maç kayıtları
+> ad/foto çıkarılmış hâlde **en fazla 12 ay** → 12 aylık temizlik için zamanlanmış iş gerekiyor.
+> Ekrandaki buton (Ayarlar → Uygulama & Hesap → Hesabımı sil) şu an **e-posta talebi** açıyor;
+> REV-90 onu gerçek akışla değiştirecek. **Testi atılabilir bir hesapla yapılacak, Mustafa'nın
+> hesabıyla değil.**
+>
+> **Mustafa'da bekleyenler:** Play Console'da Data Safety formu (kağıt hazır) · REV-95 AAB +
+> Play App Signing · yasal sayfa adresindeki kullanıcı adı kararı (yayın öncesi).
 
 > **🛡️ 2026-08-20 — REV-92 AD_ID KARARI + DATA SAFETY CEVAP KAĞIDI (In Review):**
 >
