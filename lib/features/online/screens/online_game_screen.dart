@@ -251,6 +251,8 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
       stream: OnlineGameService.instance.watch(widget.gameId),
       builder: (context, snapshot) {
         final g = snapshot.data;
+        // Set below from the opponent's heartbeat; drives the status line.
+        var oppReconnecting = false;
         if (g != null) {
           _sync(g, myUid, strings);
           _maybeFetchOpponent(g, myUid);
@@ -265,10 +267,15 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
               if (mounted) Navigator.of(context).maybePop();
             });
           } else if (!g.isFinished && !g.isCancelled && !_claiming) {
-            // Opponent's heartbeat is stale (>10 s ago) — they disconnected.
+            // Opponent's heartbeat has gone stale — they dropped. Below the
+            // claim threshold the match only says "reconnecting", so a brief
+            // network stall costs a message rather than the game (REV-108).
             final opp = g.lastSeenFor(g.opponentUid(myUid));
-            if (opp != null &&
-                DateTime.now().difference(opp) > const Duration(seconds: 10)) {
+            final silence =
+                opp == null ? Duration.zero : DateTime.now().difference(opp);
+            oppReconnecting = opp != null &&
+                silence > OnlineGameService.reconnectingAfter;
+            if (opp != null && silence > OnlineGameService.disconnectAfter) {
               _claiming = true;
               OnlineGameService.instance.claimDisconnectWin(g, myUid);
             }
@@ -300,6 +307,7 @@ class _OnlineGameScreenState extends State<OnlineGameScreen> {
                         onLeaveFinished: () => _leaveFinished(g, myUid),
                         onNewOpponent: () => _findNewOpponent(g, myUid),
                         opponentProfile: _oppProfile,
+                        opponentReconnecting: oppReconnecting,
                       ),
               ),
             ),
@@ -323,6 +331,7 @@ class _GameBody extends StatelessWidget {
     required this.onLeaveFinished,
     required this.onNewOpponent,
     required this.opponentProfile,
+    required this.opponentReconnecting,
   });
 
   final OnlineGame game;
@@ -342,6 +351,10 @@ class _GameBody extends StatelessWidget {
   /// Opponent's public profile for the rank label + tap-to-view stats (REV-75);
   /// null for a guest opponent or until the one-shot fetch returns.
   final PublicProfile? opponentProfile;
+
+  /// The opponent's heartbeat has gone quiet but the match is still standing
+  /// (REV-108) — the status line says so instead of showing whose turn it is.
+  final bool opponentReconnecting;
 
   @override
   Widget build(BuildContext context) {
@@ -447,7 +460,9 @@ class _GameBody extends StatelessWidget {
               child: Text(
                 game.isFinished
                     ? ''
-                    : (isMyTurn ? strings.yourMove : strings.opponentTurn),
+                    : opponentReconnecting
+                        ? strings.opponentReconnecting
+                        : (isMyTurn ? strings.yourMove : strings.opponentTurn),
                 style: const TextStyle(
                   fontFamily: 'Baloo2',
                   fontWeight: FontWeight.w800,

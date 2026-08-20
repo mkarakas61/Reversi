@@ -5,7 +5,37 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-20** · Son commit: `5abbbb1` · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-20** · Sürüm: `0.1.0+1`
+
+> **⏱️ 2026-08-20 — REV-108 KOPMA VE RÖVANŞ SÜRELERİ DÜZELTİLDİ (⚠️ SUNUCU DEPLOY EDİLDİ):**
+>
+> **Neden (Mustafa'nın saha gözlemi):** geçen haftalarda ekiple online test edilirken, interneti
+> zayıf çeken bir oyuncu **maçın ortasında atıldı ve karşı taraf kazandı**. Sebep 10 saniyelik
+> kopma eşiği: heartbeat 3 saniyede bir gittiği için 10 sn yalnız **3 kaçan yazma** demek, mobil
+> gecikme bunu rahat aşıyor. Karar (Mustafa): kopma **10 → 30 sn**, rövanş teklifi **60 → 30 sn**.
+>
+> - **`OnlineGameService.disconnectAfter = 30 sn`** — eşik artık **tek sabit**; eskiden 10 sn
+>   `online_game_service.dart` ve `online_game_screen.dart` içinde **iki ayrı yerde** yazılıydı,
+>   biri değişip diğeri kalabilirdi.
+> - **`OnlineGameService.reconnectingAfter = 10 sn` + yeni durum satırı:** rakip 10 saniye sessiz
+>   kalınca maç ekranında **"Rakip bağlanmaya çalışıyor…"** (EN: "Opponent is reconnecting…")
+>   yazıyor, 30'da maç bitiyor. Bu olmadan 30 sn donuk tahta "oyun kilitlendi" gibi okunurdu —
+>   uzayan süre kayıp değil, bilgi oldu. Durum satırı sıra metninin yerine geçiyor.
+> - **Rövanş: `OFFER_SECONDS 60 → 30`** (`functions/src/rematch.ts`). Teklifin düşmesinin maliyeti
+>   yok, teklif eden anında tekrar basabiliyor. `rematch_state.test.ts`'teki 60 sn sınır testleri
+>   30'a çekildi.
+> - **`sweep.ts` yorumları güncellendi** (10 s → 30 s). `ABANDON_MS` 2 dakika **değişmedi** —
+>   30 sn'ye göre hâlâ 4 kat pay var, sweep'in "iki taraf da yok" garantisi bozulmadı.
+> - **⚠️ SUNUCU:** `npx firebase deploy --only functions:requestRematch --project reversi-3a506
+>   --account mustafakarakas1071@gmail.com` → `requestRematch(europe-west1)` **update** edildi.
+>   Başka fonksiyona dokunulmadı, **kural/index değişikliği yok**. Deploy'dan önce açılmış teklifler
+>   60 saniyelik `expiresAt` taşımaya devam eder (alan dokümanda, sabitte değil).
+> - **160 Flutter testi (3 yeni: `test/disconnect_thresholds_test.dart`) + 49 functions testi
+>   yeşil**, analyze temiz, `tsc --noEmit` temiz. Release APK **iki cihaza da kuruldu**.
+> - **Native dosya değişmedi** → iOS karşılığı yok, `lib/` ortak.
+> - **Cihaz testini Mustafa yapacak.** Bakılacaklar: (1) rakip uygulamadan çıkınca ~10 sn'de
+>   "bağlanmaya çalışıyor" çıkıyor mu, (2) geri dönerse maç kaldığı yerden sürüyor mu, (3) dönmezse
+>   ~30 sn'de maç bitiyor mu, (4) rövanş sayacı 30'dan başlıyor mu.
 
 > **📱 2026-08-20 (2. oturum) — İKİ CİHAZLI TESTLER YAPILDI: REV-98 + REV-102 DOĞRULANDI:**
 >

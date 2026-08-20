@@ -21,8 +21,9 @@ import {
 /// How long an unanswered rematch offer stands. Short on purpose: the offer is
 /// made while both players are still looking at the result card, and an offer
 /// that outlives that moment would drag someone back into a game they have
-/// mentally left.
-const OFFER_SECONDS = 60;
+/// mentally left. A minute proved to be well past that moment (REV-108); the
+/// offerer can simply tap again, so lapsing early costs nothing.
+const OFFER_SECONDS = 30;
 
 /**
  * Rematch (REV-98). Callables rather than client writes, for two reasons.

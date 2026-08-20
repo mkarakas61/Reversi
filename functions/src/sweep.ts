@@ -10,7 +10,7 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 type Stamp = {toMillis(): number};
 
 /// How long a still-`active` game may go without a heartbeat from EITHER player
-/// before it is considered abandoned. Far larger than the client's 10 s
+/// before it is considered abandoned. Far larger than the client's 30 s
 /// disconnect-claim window, so a game with any present player is never swept.
 const ABANDON_MS = 2 * 60 * 1000; // 2 minutes
 
@@ -52,7 +52,7 @@ export function shouldSweep(
 
 /// Periodically cancels online games stuck in `active` after BOTH players
 /// disconnected (REV-48 edge case). A present player ends a game himself via
-/// `claimDisconnectWin` within ~10 s, so this only catches matches where both
+/// `claimDisconnectWin` within ~30 s, so this only catches matches where both
 /// sides vanished and no fair winner exists — they are marked `cancelled`
 /// (no rewards, no stat changes, like an un-started match), which also frees
 /// both players' `findActiveGame` lookup to matchmake again.

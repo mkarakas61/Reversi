@@ -18,6 +18,16 @@ class OnlineGameService {
 
   static const _turnSeconds = 40;
 
+  /// How long the opponent's heartbeat may go stale before the match is claimed
+  /// as a disconnect win (REV-48). Heartbeats go out every 3 s, so this is ten
+  /// missed writes: a weak mobile connection stalling for a few seconds must
+  /// not read as a quit — that cost a real player a match during team testing.
+  static const Duration disconnectAfter = Duration(seconds: 30);
+
+  /// When the opponent has been quiet this long, the match says so. Without it
+  /// the board just sits there until [disconnectAfter], which reads as a freeze.
+  static const Duration reconnectingAfter = Duration(seconds: 10);
+
   Stream<OnlineGame> watch(String gameId) => _doc(gameId)
       .snapshots()
       .where((s) => s.exists)
@@ -93,11 +103,11 @@ class OnlineGameService {
 
   /// Claims the win when the opponent has stopped sending heartbeats — i.e.
   /// has disconnected (REV-48). Uses the opponent's server-written `lastSeen`
-  /// stamp compared to device clock (NTP skew is negligible vs. the 10 s
-  /// threshold). There is no per-turn time limit; a connected player may think
-  /// as long as they like.
+  /// stamp compared to device clock (NTP skew is negligible vs. the
+  /// [disconnectAfter] threshold). There is no per-turn time limit; a connected
+  /// player may think as long as they like.
   Future<void> claimDisconnectWin(OnlineGame g, String myUid) async {
-    const staleThreshold = Duration(seconds: 10);
+    const staleThreshold = disconnectAfter;
     final ref = _doc(g.id);
     final myColor = g.colorFor(myUid);
     final oppUid = g.opponentUid(myUid);

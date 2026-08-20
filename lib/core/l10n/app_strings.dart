@@ -133,6 +133,7 @@ class AppStrings {
       'onlineStatistics': 'Online Statistics',
       'opponentFound': 'Opponent found!',
       'opponentTurn': "Opponent's turn",
+      'opponentReconnecting': 'Opponent is reconnecting…',
       'passSkippedOpponent':
           "Your opponent has no legal move — it's your turn again!",
       'passSkippedTwoPlayer':
@@ -378,6 +379,7 @@ class AppStrings {
       'onlineStatistics': 'Online İstatistikler',
       'opponentFound': 'Rakip bulundu!',
       'opponentTurn': 'Rakibin sırası',
+      'opponentReconnecting': 'Rakip bağlanmaya çalışıyor…',
       'passSkippedOpponent': 'Rakibinin hamle hakkı yok, sıra sende!',
       'passSkippedTwoPlayer':
           '{coin} için geçerli hamle yok, sıra diğer oyuncuya geçti.',
@@ -749,6 +751,7 @@ class AppStrings {
   String get onlineStatistics => _get('onlineStatistics');
   String get opponentFound => _get('opponentFound');
   String get opponentTurn => _get('opponentTurn');
+  String get opponentReconnecting => _get('opponentReconnecting');
   String get passSkippedOpponent => _get('passSkippedOpponent');
   String get passSkippedYou => _get('passSkippedYou');
   String get profile => _get('profile');

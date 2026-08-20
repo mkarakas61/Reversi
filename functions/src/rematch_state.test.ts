@@ -13,7 +13,7 @@ const NOW = 1_700_000_000_000;
 const ALICE = "uid-alice";
 const BOB = "uid-bob";
 
-function pending(by: string, expiresInMs = 60_000): RematchState {
+function pending(by: string, expiresInMs = 30_000): RematchState {
   return {
     by,
     status: "pending",
@@ -111,7 +111,7 @@ test("an offer with no expiry never goes stale", () => {
 });
 
 test("expiry is judged against the passed clock, not the wall clock", () => {
-  const offer = pending(BOB, 60_000);
-  assert.equal(isExpired(offer, NOW + 59_999), false);
-  assert.equal(isExpired(offer, NOW + 60_001), true);
+  const offer = pending(BOB, 30_000);
+  assert.equal(isExpired(offer, NOW + 29_999), false);
+  assert.equal(isExpired(offer, NOW + 30_001), true);
 });
