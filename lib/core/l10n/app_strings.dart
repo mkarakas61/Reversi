@@ -194,7 +194,7 @@ class AppStrings {
       'matchStreak': 'Streak',
       // App & Account: legal, support, licences, version (REV-91).
       'appAndAccount': 'App & Account',
-      'appAccountHint': 'Privacy, terms, licences, version',
+      'appAccountHint': 'Privacy, terms, version',
       'legalSection': 'Legal',
       'supportSection': 'Support',
       'accountSection': 'Account',
@@ -202,7 +202,7 @@ class AppStrings {
       'termsOfUse': 'Terms of Use',
       'openSourceLicenses': 'Open-source licences',
       'supportContact': 'Support & feedback',
-      'supportContactHint': 'Writes to {email}',
+      'supportContactHint': '{email}',
       'deleteAccount': 'Delete my account',
       'deleteAccountTitle': 'Delete your account?',
       'deleteAccountBody':
@@ -437,7 +437,7 @@ class AppStrings {
       'matchStreak': 'Seri',
       // Uygulama & Hesap: yasal, destek, lisanslar, sürüm (REV-91).
       'appAndAccount': 'Uygulama & Hesap',
-      'appAccountHint': 'Gizlilik, koşullar, lisanslar, sürüm',
+      'appAccountHint': 'Gizlilik, koşullar, sürüm',
       'legalSection': 'Yasal',
       'supportSection': 'Destek',
       'accountSection': 'Hesap',
@@ -445,7 +445,7 @@ class AppStrings {
       'termsOfUse': 'Kullanım Koşulları',
       'openSourceLicenses': 'Açık kaynak lisansları',
       'supportContact': 'Destek & geri bildirim',
-      'supportContactHint': '{email} adresine yazar',
+      'supportContactHint': '{email}',
       'deleteAccount': 'Hesabımı sil',
       'deleteAccountTitle': 'Hesabın silinsin mi?',
       'deleteAccountBody':

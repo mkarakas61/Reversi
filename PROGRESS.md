@@ -39,10 +39,15 @@ Son güncelleme: **2026-08-20** · Son commit: REV-91 (yasal sayfalar + ekran) �
 >   `LSApplicationQueriesSchemes` (https, mailto). plutil ile doğrulandı.
 > - **157 Flutter testi (8 yeni: `test/legal_links_test.dart`)**, analyze temiz. Release APK derlendi
 >   ve telefona kuruldu (68.6 MB, +1.3 MB — iki yeni eklenti).
-> - **❌ CİHAZ TESTİ YARIM:** APK kuruldu ama telefon PIN'li kilit ekranındaydı, doğrulama
->   yapılamadı. Bakılacaklar: ekran iki temada da düzgün mü, üç bağlantı tarayıcıyı açıyor mu
->   (Pages açılmadan 404 verir, "açılıyor mu" testi yine de geçerli), lisans sayfası, sürüm satırı,
->   e-posta uygulaması açılıyor mu.
+> - **✅ CİHAZDA DOĞRULANDI (SM-G780G, release APK):** ekran **iki temada da** (Orijinal + Güzelsi)
+>   doğru çiziliyor · **Gizlilik Politikası bağlantısı tarayıcıyı açtı** (Opera) → `<queries>` ve
+>   url_launcher çalışıyor, sayfa Pages açılana kadar 404 verecek · lisans sayfası uygulama adı,
+>   `0.1.0 (1)` ve telif satırıyla Türkçe açılıyor · sürüm satırı doğru · hesap silme onay
+>   diyaloğu üç yolla çıkıyor (Vazgeç · Neler siliniyor · E-posta ile talep et).
+>   Test için Güzelsi'ye geçildi, **tema Orijinal'e geri alındı**.
+> - **İki metin taşıyordu, kısaltıldı:** ayarlardaki giriş "Gizlilik, koşullar, lisanslar, sürüm"
+>   → "Gizlilik, koşullar, sürüm"; destek alt satırı "… adresine yazar" cümlesi adresi kesiyordu →
+>   yalnız adres yazıyor.
 
 > **🪙 2026-08-20 — REV-102 COIN BAKİYESİ GÖRÜNÜR OLDU (In Review) — ⚠️ SUNUCU DEPLOY'U BEKLİYOR:**
 >
