@@ -5,7 +5,41 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-20** · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+
+> **🔚 2026-08-21 OTURUM KAPANIŞI — bekleyen iki cihaz testi yapıldı, bir saha hatası düzeltildi:**
+>
+> **Canlı durum:** yerel `main` = `origin/main` (`0cd7467`), çalışma ağacı temiz.
+> **160 Flutter + 49 functions testi yeşil**, analyze temiz (bilinen 2 info lint), `tsc --noEmit` temiz.
+> Release APK **iki cihaza da kuruldu** (telefon + tablet, 17:52). Oturum sonunda cihazların
+> kablosu çıkarıldı — `adb devices` boş.
+>
+> **⚠️ Bu oturumda SUNUCU DEĞİŞTİ:** `requestRematch(europe-west1)` **update** edildi (REV-108,
+> teklif süresi 60 → 30 sn). Başka fonksiyona dokunulmadı, **kural/index değişikliği yok**.
+>
+> | # | İş | Durum |
+> |---|---|---|
+> | REV-98 | Rövanş — beş senaryo iki cihazda doğrulandı | ✅ cihaz onayı tamam |
+> | REV-102 | Coin — maç sonu satırı + menü bakiyesi doğrulandı | ✅ cihaz onayı tamam |
+> | REV-108 | Kopma 30 sn + "bağlanmaya çalışıyor" + rövanş 30 sn | In Review · ❌ cihaz testi Mustafa'da |
+>
+> **Aylardır bekleyen iki cihaz testi bu oturumda kapandı** (REV-98 + REV-102) — Linear'da
+> In Review → Done'a alınabilir.
+>
+> **⚠️ SIRADAKİ OTURUMUN İLK İŞİ — hâlâ REV-90 hesap silme (son yayın engeli).** Bu oturumda da
+> başlanmadı; planlanan yapı 2026-08-20 notunda duruyor (callable `deleteAccount`, Admin SDK ile
+> silme, 12 aylık anonim maç kaydı sözü, atılabilir hesapla test).
+>
+> **Küçük açık iş (kod hazır değil, yalnız tespit):** rövanş teklifi eden **Ana Menü'ye çıkınca**
+> karşı tarafta "Rakibin rövanşı kabul etmedi." yazıyor — reddetme ile vazgeçme aynı metni
+> paylaşıyor. "Rakip rövanştan vazgeçti" gibi ayrı bir metin gerekiyor. Tek string + tek koşul.
+>
+> **Mustafa'da bekleyenler:** REV-108 cihaz testi (4 madde, yukarıdaki REV-108 notunda) ·
+> Play Console'da Data Safety formu (kağıt hazır) · REV-95 AAB + Play App Signing ·
+> yasal sayfa adresindeki kullanıcı adı kararı (yayın öncesi).
+>
+> **Kalan açık riskler (değişmedi):** REV-90 hesap silme (yayın engeli) · REV-94 Crashlytics ·
+> REV-95 AAB/Play App Signing SHA.
 
 > **⏱️ 2026-08-20 — REV-108 KOPMA VE RÖVANŞ SÜRELERİ DÜZELTİLDİ (⚠️ SUNUCU DEPLOY EDİLDİ):**
 >
