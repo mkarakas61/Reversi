@@ -5,7 +5,58 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-20** · Son commit: `a42a6dc` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-20** · Son commit: `5abbbb1` · Sürüm: `0.1.0+1`
+
+> **📱 2026-08-20 (2. oturum) — İKİ CİHAZLI TESTLER YAPILDI: REV-98 + REV-102 DOĞRULANDI:**
+>
+> **Cihazlar:** telefon SM-G780G (`RF8RA19VBBV`, hesap **Mustafa**) + tablet SM-X620
+> (`R5GL73NASJN`, hesap **Sena**) — ikisi de kabloyla bağlı, ikisi de girişli, farklı hesaplar.
+>
+> **Sürüm teyidi (önemli tuzak):** telefondaki kurulum 03:53'teydi ama `1ee4353` (etiket kısaltma,
+> `app_strings.dart`) **03:55'te** commit edilmişti → **iki cihaz da güncel değildi.** HEAD'den
+> yeniden `flutter build apk --release` + `adb install -r` ile ikisine de kuruldu (veri korundu,
+> `pm clear` YOK). **157 Flutter + 49 functions testi yeşil**, analyze temiz (bilinen 2 info lint).
+>
+> **Test yöntemi (tekrar kullanılabilir):** maçı elle oynamak yerine, ipucu noktalarının **nabız
+> animasyonu** kullanıldı — aynı cihazdan 0,6 sn arayla iki ekran görüntüsü alınıp farkı alınıyor,
+> değişen daireler = geçerli hamleler; sırası olmayan cihazda hiç fark çıkmıyor. Böylece iki
+> istemcili maç uçtan uca otomatik oynatıldı (script'ler oturum scratchpad'inde).
+>
+> | Test | Sonuç |
+> |---|---|
+> | REV-102 maç sonu coin satırı | ✅ kazanan `+10 Coin · Cüzdan 24`, kaybeden `+2 Coin · Cüzdan 118` (116+2) |
+> | REV-102 menü bakiyesi canlı | ✅ maç sonrası ana menü pill'i `128` |
+> | REV-98 teklif + sayaç | ✅ "Rakibin rövanş istiyor · 56" / "Rakibin bekleniyor… · 59" |
+> | REV-98 reddet | ✅ teklif edende "Rakibin rövanşı kabul etmedi." |
+> | REV-98 kabul + renk takası | ✅ yeni oyun açıldı, **siyah Sena'dan Mustafa'ya geçti** |
+> | REV-98 60 sn zaman aşımı | ✅ iki tarafta da "Rövanş teklifi zaman aşımına uğradı." |
+> | REV-98 teklif edip Ana Menü'ye çıkma | ✅ karşı cihazda teklif düştü |
+>
+> **⚠️ Bulunan UX kusuru (yeni iş adayı):** teklif eden **Ana Menü'ye çıkınca** karşı tarafta
+> "**Rakibin rövanşı kabul etmedi.**" yazıyor — oysa reddeden taraf o kişinin kendisi değil, teklif
+> eden vazgeçti. Reddetme ile vazgeçme aynı metni paylaşıyor; "Rakip rövanştan vazgeçti" gibi ayrı
+> bir metin gerekiyor. (Kod değişikliği yapılmadı, yalnız tespit.)
+>
+> **Rövanş maçının hamlesiz bitmesi — ürün hatası DEĞİL:** rövanş maçı 2-2, çevrilen 0 ile bitti
+> (disconnect-win imzası). **Sebep (Mustafa'nın teyidi):** testler sürerken Mustafa tabletten başka
+> bir işe bakmış, yani Reversi arka plana düşmüş → heartbeat durmuş → karşı taraf 10 sn sonra
+> `claimDisconnectWin` ile galibiyeti almış (REV-48 tasarımı böyle çalışıyor). Sunucu sweep'i
+> (2 dk, `cancelled`) devrede değil — maç ödüllü bitti.
+>
+> **Buradan çıkan gerçek kural:** iki cihazlı online test sürerken **cihazlar başka iş için
+> kullanılmamalı**; uygulamadan çıkan taraf 10 saniye içinde maçı kaybediyor. Bu davranışın kendisi
+> doğru (bağlantısı kopan kaybeder), test sonucu değil ortam sorunudur.
+>
+> **Kontrollü deney (bulguyu doğrulayan):** temiz bir üçüncü maç kurulup **3 dakika hiç
+> dokunulmadan** izlendi → maç canlı kaldı, kimse zaman aşımıyla kaybetmedi. Yani sıra bekleyen
+> oyuncuya süre baskısı yok (`claimDisconnectWin` yorumundaki "no per-turn time limit" davranışı
+> cihazda da doğrulandı); maçı bitiren şey yalnız uygulamanın arka plana düşmesi. Deney sonunda iki
+> cihaz da **aynı anda** ana ekrana alındı (biri önce düşseydi diğeri disconnect-win alırdı);
+> maç `active` kaldı, 5 dakikalık sweep onu `cancelled` yapacak — ödül/istatistik etkisi yok.
+>
+> **Cihazlarda kalan durum:** Mustafa cüzdan **128** coin / 17G-11M, Sena cüzdan **26** coin.
+>
+> **Linear'da güncellenecek:** REV-98 ve REV-102 cihaz onayı **tamam** (In Review → Done'a alınabilir).
 
 > **🔚 2026-08-20 OTURUM KAPANIŞI — üç iş bitti, ikisi yayın engeliydi:**
 >
