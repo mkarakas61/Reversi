@@ -756,6 +756,14 @@ Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Mu
 **Kilitli kararlar:** Lider tablosu Seviye+Galibiyet (Elo YOK ama genişletilebilir). Haftalık + TümZamanlar ayrı. Misafir maçı imzalı rakibe SAYILIR (yalnız misafir kazanmaz; farm riski kabul edildi, gerekirse sonra önlem). İstatistik+leaderboard Google girişine kapalı, misafire upsell. 3. istatistik sayfası AÇILMAZ — grafikler mevcut online istatistik ekranına girer. REV-54/55/57 aynı `finish_game` dosyasını değiştirir — birlikte ele al.
 
 ### Küçük takip işleri (ticket'sız, engel değil)
+- [ ] **Yasal sayfaların adresinden `mkarakas61` kalksın — YAYIN ÖNCESİ karar (2026-08-20 ertelendi).**
+      Mustafa kişisel kullanıcı adının görünmesini istemiyor; şimdilik kalmasına karar verdi.
+      Seçenekler: ücretsiz GitHub organizasyonu (`<org>.github.io/Reversi/`) · kendi alan adı
+      (~10-15 $/yıl) · Cloudflare Pages (`<proje>.pages.dev`). **Uygulama Play'e çıkmadan
+      değiştirmek ucuz** — sonrası yayınlanmış sürümde ölü bağlantı demek. Değişirse güncellenecek
+      yerler: `lib/core/legal/legal_links.dart`, `docs/` içindeki sayfalar arası bağlantılar,
+      Play Console'daki iki URL. Ayrıca not: Play'de **geliştirici adı** şahıs hesabında herkese
+      görünür — onu gizlemek ancak tüzel kişi hesabıyla olur (dağıtımcı anlaşmasına bağlı).
 - [x] 2 hesaplı online smoke testi tamamlandı (2026-07-24, telefon+emülatör; misafir + imzalı, istatistikler işliyor)
 - [ ] `turnDeadline` ölü kodu temizliği (yazılıyor, okunmuyor)
 - [ ] REV-51 emülatör kural testleri (`functions/scripts/test_{rules,finish_game}.js`) — Java kurulunca; canlı test geçtiği için düşük öncelik
