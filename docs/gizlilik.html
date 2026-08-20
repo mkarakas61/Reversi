@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reversi — Gizlilik Politikası</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <p class="nav"><a href="index.html">Ana sayfa</a><a href="privacy.html">English</a></p>
+  <h1>Gizlilik Politikası</h1>
+  <p class="meta">Reversi (Android) · Son güncelleme: 20 Ağustos 2026</p>
+</header>
+<main>
+
+<p>Bu politika, <strong>Reversi</strong> mobil oyununun hangi verileri topladığını, neden topladığını
+ve bu verilerle ne yaptığını anlatır. Metin, uygulamanın kaynak kodundaki gerçek davranışa göre
+yazılmıştır.</p>
+
+<h2>1. Veri sorumlusu</h2>
+<p>Mustafa Karakaş (şahıs geliştirici)<br>
+İletişim: <a href="mailto:reversi.destek@gmail.com">reversi.destek@gmail.com</a></p>
+
+<h2>2. Kısa özet</h2>
+<ul>
+  <li>Oyunu <strong>giriş yapmadan</strong> oynayabilirsin. Tek oyunculu ve iki oyunculu (aynı cihaz)
+      modlar tamamen cihazında çalışır; bu modlarda hiçbir oyun verisi sunucuya gönderilmez.</li>
+  <li><strong>Online oynamak</strong> için Google hesabıyla giriş ya da misafir (anonim) girişi gerekir.</li>
+  <li>Verilerini <strong>satmıyoruz</strong>, reklam ağlarıyla paylaşmıyoruz. Uygulamada reklam yok.</li>
+  <li>Hesabını silmeni sağlayan bir yol var: <a href="hesap-silme.html">Hesap silme</a>.</li>
+</ul>
+
+<h2>3. Topladığımız veriler</h2>
+
+<h3>3.1 Hesap bilgileri (yalnız giriş yaparsan)</h3>
+<p>Google ile giriş yaptığında Firebase Authentication üzerinden şunlar işlenir:</p>
+<table>
+  <tr><th>Veri</th><th>Nereden</th><th>Nerede tutulur</th></tr>
+  <tr><td>Kullanıcı kimliği (uid)</td><td>Firebase tarafından üretilir</td><td>Firebase Auth + oyun veritabanı</td></tr>
+  <tr><td>Görünen ad</td><td>Google hesabın</td><td>Firebase Auth + oyun veritabanı</td></tr>
+  <tr><td>Profil fotoğrafı bağlantısı</td><td>Google hesabın</td><td>Firebase Auth + oyun veritabanı</td></tr>
+  <tr><td>E-posta adresi</td><td>Google hesabın</td><td>Yalnız Firebase Auth (oyun veritabanına yazılmaz)</td></tr>
+</table>
+<p><strong>Misafir girişinde</strong> ad, e-posta veya fotoğraf alınmaz: rastgele bir anonim kimlik ve
+cihazında ürettiğimiz bir takma ad kullanılır. Misafir oyuncular için kalıcı bir profil kaydı
+oluşturulmaz.</p>
+
+<h3>3.2 Oyun verileri (yalnız online oynarsan)</h3>
+<ul>
+  <li><strong>Profilin:</strong> galibiyet, mağlubiyet, beraberlik sayıları, galibiyet serileri,
+      çevrilen toplam taş, en iyi skor farkı, kupa sayısı, rütbe ve coin bakiyesi.</li>
+  <li><strong>Maç geçmişin:</strong> her online maç için sonuç, skor farkı, çevrilen taş sayısı,
+      kazanılan/kaybedilen kupa, kazanılan coin ve tarih.</li>
+  <li><strong>Maç kayıtları:</strong> oynanan maçın tahta durumu, hamleleri, iki oyuncunun kimliği ve
+      maç anındaki ad/fotoğraf bilgisi.</li>
+  <li><strong>Eşleşme kaydı:</strong> rakip ararken kimliğin, adın, fotoğrafın ve istatistik özetin
+      geçici bir eşleşme kaydında tutulur; eşleşme tamamlanınca bu kayıt kapanır.</li>
+  <li><strong>Lider tablosu:</strong> haftalık ve tüm zamanlar tablolarında adın, fotoğrafın,
+      galibiyet ve kupa sayıların yer alır.</li>
+</ul>
+<p>Puan, kupa ve coin hesaplarını yalnız sunucu yapar — hile ve puan şişirmeyi engellemek için
+uygulamanın bu değerleri kendi başına yazma yetkisi yoktur.</p>
+
+<h3>3.3 Diğer oyuncuların gördükleri</h3>
+<p>Online oynarken <strong>adın, profil fotoğrafın, rütben, kupan ve temel istatistiklerin</strong>
+rakibine gösterilir; lider tablosuna girdiğinde bu bilgiler tabloyu gören herkese açıktır. Bunu
+istemiyorsan misafir olarak oynayabilirsin — misafir oyuncular lider tablosuna yazılmaz.</p>
+
+<h3>3.4 Analitik</h3>
+<p>Uygulama, nasıl oynandığını anlamak ve hataları bulmak için Google Analytics for Firebase kullanır.
+Uygulamanın gönderdiği olaylar şunlardır: oyun başlatma (dil, mod, zorluk), hamle (tahta konumu ve
+çevrilen taş sayısı), pas geçme, oyun bitişi (skorlar ve kazanan) ve dil değişikliği.</p>
+<p>Bunlara ek olarak Google Analytics kendiliğinden şu tür bilgileri toplar: cihaz modeli, işletim
+sistemi sürümü, yaklaşık konum (ülke/bölge düzeyinde), uygulama sürümü, uygulama örneği kimliği ve
+Android reklam kimliği (AAID). Uygulamada reklam gösterilmez; reklam kimliği yalnızca ölçümleme
+kütüphanesinin standart parçası olarak bulunur.</p>
+<p>Reklam kimliğini Android ayarlarından sıfırlayabilir veya silebilirsin:
+<em>Ayarlar → Google → Reklamlar</em>.</p>
+
+<h3>3.5 Yalnız cihazında kalanlar</h3>
+<p>Şu veriler telefonunun kendi depolamasında tutulur, sunucuya gönderilmez: dil seçimi, tema, tahta ve
+taş seçimleri, ses ve müzik ayarları, oyun hızı, kaydedilmiş offline oyunun, offline istatistiklerin,
+misafir takma adın ve tanıtım turunu görüp görmediğin. Uygulamayı sildiğinde bunlar cihazdan gider.</p>
+
+<h2>4. Verileri neden işliyoruz</h2>
+<ul>
+  <li>Oyunu çalıştırmak ve seni rakiplerle eşleştirmek.</li>
+  <li>Sonuçları, kupaları, rütbeleri ve lider tablosunu doğru ve adil tutmak; hileyi engellemek.</li>
+  <li>Hataları bulmak ve oyunu geliştirmek.</li>
+  <li>Sana destek verebilmek (bize yazdığında).</li>
+</ul>
+
+<h2>5. Kimlerle paylaşılıyor</h2>
+<p>Verileri satmıyoruz ve pazarlama amacıyla üçüncü taraflarla paylaşmıyoruz. Oyunun çalışması için
+şu Google hizmetleri kullanılır ve veriler bu hizmetlerde işlenir:</p>
+<table>
+  <tr><th>Hizmet</th><th>Ne için</th></tr>
+  <tr><td>Firebase Authentication</td><td>Google ve misafir girişi</td></tr>
+  <tr><td>Cloud Firestore</td><td>Profil, maç, lider tablosu verilerinin saklanması</td></tr>
+  <tr><td>Cloud Functions</td><td>Sunucu tarafı puan, kupa ve coin hesapları</td></tr>
+  <tr><td>Google Analytics for Firebase</td><td>Kullanım ölçümü ve hata tespiti</td></tr>
+  <tr><td>Google Sign-In</td><td>Google hesabıyla giriş</td></tr>
+</table>
+<p>Oyun veritabanı ve sunucu fonksiyonları Avrupa Birliği'nde (Belçika, <code>europe-west1</code>)
+barındırılır. Google'ın altyapısı gereği bazı veriler (özellikle analitik) başka ülkelerdeki
+sunucularda da işlenebilir. Bir mahkeme kararı veya yasal zorunluluk olması hâlinde verileri yetkili
+mercilerle paylaşmak zorunda kalabiliriz.</p>
+
+<h2>6. Saklama süresi</h2>
+<p>Hesap ve oyun verilerin, sen silmeyi talep edene kadar saklanır. Hesabını sildiğinde profilin, maç
+geçmişin ve lider tablosu kayıtların silinir; ayrıntılar için
+<a href="hesap-silme.html">Hesap silme</a> sayfasına bak. Terk edilmiş maç kayıtları otomatik olarak
+iptal edilir. Analitik verileri Google'ın saklama ayarlarına tabidir (en fazla 14 ay).</p>
+
+<h2>7. Hakların</h2>
+<p>Bulunduğun ülkenin mevzuatına göre (Türkiye'de KVKK, Avrupa'da GDPR) şu haklara sahipsin:
+verilerine erişme, düzeltilmesini isteme, silinmesini isteme, işlenmesine itiraz etme ve verilerinin
+bir kopyasını alma. Bu haklardan herhangi birini kullanmak için
+<a href="mailto:reversi.destek@gmail.com">reversi.destek@gmail.com</a> adresine yazman yeterli;
+talebine en geç 30 gün içinde dönüş yapılır.</p>
+
+<h2>8. Çocuklar</h2>
+<p>Reversi çocuklara yönelik olarak tasarlanmamıştır ve 13 yaşın altındaki kullanıcılardan bilerek
+veri toplamayız. 13 yaşın altındaki bir çocuğun verisini topladığımızı fark edersek sileriz;
+böyle bir durumdan haberdarsan bize yaz.</p>
+
+<h2>9. Güvenlik</h2>
+<p>Veriler Google'ın altyapısında, aktarım sırasında şifrelenerek işlenir. Veritabanı güvenlik
+kuralları, bir oyuncunun yalnız kendi kimlik bilgilerini yazabilmesine izin verir; puan, kupa ve coin
+alanlarını yalnız sunucu değiştirebilir.</p>
+
+<h2>10. Bu politikadaki değişiklikler</h2>
+<p>Politika değişirse bu sayfadaki "son güncelleme" tarihi yenilenir. Önemli değişiklikleri uygulama
+içinde de duyururuz.</p>
+
+<h2>11. İletişim</h2>
+<p>Soruların için: <a href="mailto:reversi.destek@gmail.com">reversi.destek@gmail.com</a></p>
+
+</main>
+<footer>Reversi · Mustafa Karakaş</footer>
+</body>
+</html>

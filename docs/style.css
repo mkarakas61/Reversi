@@ -1,0 +1,53 @@
+/* Reversi yasal sayfaları — tek stil dosyası, harici kaynak yok. */
+:root {
+  --ink: #14343A;
+  --ink-soft: #5A7378;
+  --accent: #12A594;
+  --bg: #F4FBF9;
+  --card: #FFFFFF;
+  --line: #DCEBE7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #E8F3F1;
+    --ink-soft: #A3BDB8;
+    --accent: #3ED0BC;
+    --bg: #0F1D20;
+    --card: #16292D;
+    --line: #24413F;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 0 20px 64px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+header {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 0 8px;
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px 24px;
+}
+h1 { font-size: 28px; line-height: 1.25; margin: 0 0 4px; }
+h2 { font-size: 19px; margin: 32px 0 8px; }
+h3 { font-size: 16px; margin: 20px 0 6px; }
+p, li { color: var(--ink); }
+a { color: var(--accent); }
+.meta { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+.nav { font-size: 14px; margin: 0 0 16px; }
+.nav a { margin-right: 14px; text-decoration: none; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 15px; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: var(--bg); font-weight: 700; }
+code { background: var(--bg); padding: 1px 5px; border-radius: 5px; font-size: 14px; }
+footer { max-width: 720px; margin: 24px auto 0; color: var(--ink-soft); font-size: 14px; }
