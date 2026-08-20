@@ -47,6 +47,13 @@
 			</array>
 		</dict>
 	</dict>
+	<!-- Android tarafındaki <queries> bloğunun iOS karşılığı: canLaunchUrl
+	     bu şemaları ancak burada listelenirse sorgulayabilir (REV-91). -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>mailto</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

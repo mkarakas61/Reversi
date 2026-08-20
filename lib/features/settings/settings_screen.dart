@@ -8,6 +8,7 @@ import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/info_card.dart';
 import '../help/how_to_play_screen.dart';
 import '../menu/widgets/menu_button.dart';
+import 'app_account_screen.dart';
 import 'widgets/app_theme_row.dart';
 import 'widgets/board_theme_grid.dart';
 import 'widgets/coin_row.dart';
@@ -113,6 +114,21 @@ class SettingsScreen extends StatelessWidget {
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => const HowToPlayScreen(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Legal, support, licences, version and account
+                        // deletion — Play requires all of them to be reachable
+                        // from inside the app (REV-91).
+                        InfoCard(
+                          title: strings.appAndAccount,
+                          child: MenuButton(
+                            label: strings.appAccountHint,
+                            icon: Icons.shield_outlined,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const AppAccountScreen(),
                               ),
                             ),
                           ),

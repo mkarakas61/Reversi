@@ -5,7 +5,44 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-20** · Son commit: `ea066f5` sonrası REV-102 · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-20** · Son commit: REV-91 (yasal sayfalar + ekran) · Sürüm: `0.1.0+1`
+
+> **⚖️ 2026-08-20 — REV-91 YASAL & DESTEK (In Progress — Pages açılması + cihaz testi bekliyor):**
+>
+> Mustafa'nın URL'i, politika metni ve avukatı yoktu; iş "koddan envanter çıkar, ona sadık metin yaz"
+> şeklinde kuruldu. 5 adımlı plan: (1) veri envanteri ✅ (2) yayın yeri kararı ✅ (3) metinler ✅
+> (4) uygulama içi ekran ✅ kod / ❌ cihaz testi (5) Play Console + Data Safety (REV-92) — sırada.
+>
+> **Kararlar (Mustafa, 2026-08-20):** yayın yeri **GitHub Pages** (repo zaten public) ·
+> iletişim **reversi.destek@gmail.com** (adresi Mustafa açacak) · veri sorumlusu **Mustafa Karakaş
+> (şahıs)** · uygulanacak hukuk Türkiye.
+>
+> - **`docs/` altında 7 statik sayfa** (TR+EN): gizlilik, koşullar, hesap silme, giriş + ortak CSS.
+>   Metinler tahmine değil koda dayanıyor: Firestore koleksiyonları (users/history/leaderboards/
+>   matchmaking/games), Firebase Auth alanları (e-posta yalnız Auth'ta, Firestore'a yazılmıyor),
+>   5 analytics olayı, **birleştirilmiş manifestteki AD_ID izni** ve yalnız cihazda kalan
+>   SharedPreferences verileri tek tek çıkarıldı.
+> - **⚠️ Pages HENÜZ AÇILMADI** (Mustafa "sonra" dedi): Settings → Pages → main / `/docs`.
+>   Açılınca `https://mkarakas61.github.io/Reversi/` canlı olacak; URL'ler kodda sabit
+>   (`lib/core/legal/legal_links.dart`), dil başına TR/EN sayfası seçiliyor.
+> - **Metindeki iki SÖZ, koda bağlayıcı:** (a) hesap silinince maç kayıtları **ad/foto çıkarılıp en
+>   fazla 12 ay** saklanır → REV-90 bunu böyle uygulamak zorunda; (b) uygulama içi silme yolu
+>   **Ayarlar → Uygulama & Hesap → Hesabımı sil** → ekran bu yola göre kuruldu.
+> - **Yeni ekran** `features/settings/app_account_screen.dart`: gizlilik · koşullar ·
+>   `showLicensePage()` (elle liste tutmak `pub add`'de bayatlar) · destek e-postası (konu satırına
+>   uygulama adı) · **sürüm+build `package_info_plus` ile paketten okunuyor** (sabitle yazılsa
+>   mağazadakiyle çelişebilir) · hesap silme (yalnız girişliyken; misafirin sunucuda kaydı yok).
+>   Silme şu an **e-posta talebi** açıyor — gerçek akış REV-90.
+> - **⚠️ NATIVE DEĞİŞTİ, iOS'a da uygulandı:** `url_launcher` + `package_info_plus` eklendi.
+>   Android manifest'e `<queries>` (https VIEW + mailto SENDTO) — Android 11+ paket görünürlüğü
+>   olmadan bağlantılar sessizce açılmıyor. **iOS karşılığı:** `Info.plist` →
+>   `LSApplicationQueriesSchemes` (https, mailto). plutil ile doğrulandı.
+> - **157 Flutter testi (8 yeni: `test/legal_links_test.dart`)**, analyze temiz. Release APK derlendi
+>   ve telefona kuruldu (68.6 MB, +1.3 MB — iki yeni eklenti).
+> - **❌ CİHAZ TESTİ YARIM:** APK kuruldu ama telefon PIN'li kilit ekranındaydı, doğrulama
+>   yapılamadı. Bakılacaklar: ekran iki temada da düzgün mü, üç bağlantı tarayıcıyı açıyor mu
+>   (Pages açılmadan 404 verir, "açılıyor mu" testi yine de geçerli), lisans sayfası, sürüm satırı,
+>   e-posta uygulaması açılıyor mu.
 
 > **🪙 2026-08-20 — REV-102 COIN BAKİYESİ GÖRÜNÜR OLDU (In Review) — ⚠️ SUNUCU DEPLOY'U BEKLİYOR:**
 >

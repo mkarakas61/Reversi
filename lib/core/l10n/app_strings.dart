@@ -192,6 +192,28 @@ class AppStrings {
       'matchFlipped': 'Flipped',
       'matchMargin': 'Margin',
       'matchStreak': 'Streak',
+      // App & Account: legal, support, licences, version (REV-91).
+      'appAndAccount': 'App & Account',
+      'appAccountHint': 'Privacy, terms, licences, version',
+      'legalSection': 'Legal',
+      'supportSection': 'Support',
+      'accountSection': 'Account',
+      'privacyPolicy': 'Privacy Policy',
+      'termsOfUse': 'Terms of Use',
+      'openSourceLicenses': 'Open-source licences',
+      'supportContact': 'Support & feedback',
+      'supportContactHint': 'Writes to {email}',
+      'deleteAccount': 'Delete my account',
+      'deleteAccountTitle': 'Delete your account?',
+      'deleteAccountBody':
+          'Your account, profile, trophies, coins and match history are '
+              'permanently deleted. This cannot be undone.\n\nSend the request '
+              'from the e-mail address you sign in with; it is completed within '
+              '30 days at the latest.',
+      'deleteAccountSend': 'Request by e-mail',
+      'deleteAccountDetails': 'What gets deleted',
+      'version': 'Version',
+      'linkFailed': 'Could not open the link.',
       // Coin wallet (REV-102). The balance is server-written; these strings
       // only name it and say where it comes from.
       'coins': 'Coins',
@@ -413,6 +435,28 @@ class AppStrings {
       'matchFlipped': 'Çevrilen',
       'matchMargin': 'Fark',
       'matchStreak': 'Seri',
+      // Uygulama & Hesap: yasal, destek, lisanslar, sürüm (REV-91).
+      'appAndAccount': 'Uygulama & Hesap',
+      'appAccountHint': 'Gizlilik, koşullar, lisanslar, sürüm',
+      'legalSection': 'Yasal',
+      'supportSection': 'Destek',
+      'accountSection': 'Hesap',
+      'privacyPolicy': 'Gizlilik Politikası',
+      'termsOfUse': 'Kullanım Koşulları',
+      'openSourceLicenses': 'Açık kaynak lisansları',
+      'supportContact': 'Destek & geri bildirim',
+      'supportContactHint': '{email} adresine yazar',
+      'deleteAccount': 'Hesabımı sil',
+      'deleteAccountTitle': 'Hesabın silinsin mi?',
+      'deleteAccountBody':
+          'Hesabın, profilin, kupaların, coinlerin ve maç geçmişin kalıcı '
+              'olarak silinir. Bu işlem geri alınamaz.\n\nTalebini giriş '
+              'yaptığın e-posta adresinden gönder; en geç 30 gün içinde '
+              'tamamlanır.',
+      'deleteAccountSend': 'E-posta ile talep et',
+      'deleteAccountDetails': 'Neler siliniyor',
+      'version': 'Sürüm',
+      'linkFailed': 'Bağlantı açılamadı.',
       // Coin cüzdanı (REV-102). Bakiyeyi sunucu yazar; bu metinler yalnız adını
       // ve nereden geldiğini söyler.
       'coins': 'Coin',
@@ -581,6 +625,26 @@ class AppStrings {
   String get matchFlipped => _get('matchFlipped');
   String get matchMargin => _get('matchMargin');
   String get matchStreak => _get('matchStreak');
+
+  // Uygulama & Hesap (REV-91).
+  String get appAndAccount => _get('appAndAccount');
+  String get appAccountHint => _get('appAccountHint');
+  String get legalSection => _get('legalSection');
+  String get supportSection => _get('supportSection');
+  String get accountSection => _get('accountSection');
+  String get privacyPolicy => _get('privacyPolicy');
+  String get termsOfUse => _get('termsOfUse');
+  String get openSourceLicenses => _get('openSourceLicenses');
+  String get supportContact => _get('supportContact');
+  String supportContactHint(String email) =>
+      _get('supportContactHint').replaceAll('{email}', email);
+  String get deleteAccount => _get('deleteAccount');
+  String get deleteAccountTitle => _get('deleteAccountTitle');
+  String get deleteAccountBody => _get('deleteAccountBody');
+  String get deleteAccountSend => _get('deleteAccountSend');
+  String get deleteAccountDetails => _get('deleteAccountDetails');
+  String get version => _get('version');
+  String get linkFailed => _get('linkFailed');
 
   // Coin wallet (REV-102).
   String get coins => _get('coins');

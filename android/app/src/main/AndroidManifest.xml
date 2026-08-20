@@ -1,6 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Android 11+ paket görünürlüğü: url_launcher, bu intent'leri
+         çözebilmek için burada beyan edilmelerini şart koşuyor. Gizlilik
+         politikası / koşullar bağlantıları (https) ve destek + hesap silme
+         talebi (mailto) bunlar olmadan sessizce açılmaz (REV-91). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
     <application
         android:label="Reversi"
         android:name="${applicationName}"
