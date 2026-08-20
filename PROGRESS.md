@@ -22,9 +22,14 @@ Son güncelleme: **2026-08-20** · Son commit: REV-91 (yasal sayfalar + ekran) �
 >   matchmaking/games), Firebase Auth alanları (e-posta yalnız Auth'ta, Firestore'a yazılmıyor),
 >   5 analytics olayı, **birleştirilmiş manifestteki AD_ID izni** ve yalnız cihazda kalan
 >   SharedPreferences verileri tek tek çıkarıldı.
-> - **⚠️ Pages HENÜZ AÇILMADI** (Mustafa "sonra" dedi): Settings → Pages → main / `/docs`.
->   Açılınca `https://mkarakas61.github.io/Reversi/` canlı olacak; URL'ler kodda sabit
->   (`lib/core/legal/legal_links.dart`), dil başına TR/EN sayfası seçiliyor.
+> - **✅ PAGES AÇILDI ve CANLI (2026-08-20):** `https://mkarakas61.github.io/Reversi/` — 8 adresin
+>   hepsi 200 döndü (6 sayfa + index + css). Kurulumda tuzak: Pages ekranı varsayılan olarak
+>   **Source = GitHub Actions** geliyor, bizim istediğimiz **Deploy from a branch → main → /docs**.
+>   URL'ler kodda sabit (`lib/core/legal/legal_links.dart`), dil başına TR/EN sayfası seçiliyor.
+> - **✅ reversi.destek@gmail.com açıldı** (Mustafa, 2026-08-20) — politikada, koşullarda, hesap
+>   silme sayfasında ve uygulamadaki iki mailto bağlantısında yazan adres artık gerçek.
+> - **✅ UÇTAN UCA DOĞRULANDI (telefon):** uygulamadan Gizlilik Politikası'na basınca tarayıcı
+>   canlı sayfayı açıyor (HTTPS, doğru adres, TR metin).
 > - **Metindeki iki SÖZ, koda bağlayıcı:** (a) hesap silinince maç kayıtları **ad/foto çıkarılıp en
 >   fazla 12 ay** saklanır → REV-90 bunu böyle uygulamak zorunda; (b) uygulama içi silme yolu
 >   **Ayarlar → Uygulama & Hesap → Hesabımı sil** → ekran bu yola göre kuruldu.
