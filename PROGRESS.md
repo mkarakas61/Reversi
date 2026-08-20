@@ -7,6 +7,27 @@
 
 Son güncelleme: **2026-08-20** · Son commit: REV-91 (yasal sayfalar + ekran) · Sürüm: `0.1.0+1`
 
+> **🛡️ 2026-08-20 — REV-92 AD_ID KARARI + DATA SAFETY CEVAP KAĞIDI (In Review):**
+>
+> **Karar (Mustafa): AD_ID izni KALIYOR** (B şıkkı). Yani manifest değişmiyor, `tools:node="remove"`
+> girdisi eklenmedi; gizlilik politikasındaki "reklam yok ama ölçüm kütüphanesi bu izni taşıyor"
+> paragrafı olduğu gibi geçerli. Reklam (REV-78) açılırsa altyapı hazır.
+>
+> - **Cevap kağıdı:** `play/data-safety.html` — `docs/` DIŞINDA bilerek, çünkü `docs/` artık herkese
+>   açık web sitesi; bu belge iç kullanım. Formun kendi sırasıyla: iki URL → giriş soruları →
+>   8 veri türü (toplanıyor/paylaşılıyor/zorunlu/amaç + koddaki karşılığı) → işaretlenmeyecekler →
+>   politika ↔ form eşleme tablosu → beyanı sonra değiştirecek 4 iş.
+> - **Beyan özeti:** Ad · E-posta · Kullanıcı kimlikleri · Diğer bilgiler (profil foto bağlantısı) ·
+>   Uygulama etkileşimleri · Diğer işlemler (maç/kupa/coin) · Cihaz kimlikleri (AAID dahil) ·
+>   Yaklaşık konum. **Hiçbiri "paylaşılıyor" değil** — Google hizmet sağlayıcı, üçüncü taraf alıcı
+>   değil. Giriş verileri **isteğe bağlı** (oyun girişsiz oynanıyor), analitik **zorunlu** (kapatma
+>   anahtarı yok).
+> - **Bilerek işaretlenmeyecekler:** Finansal bilgiler (IAP yok — REV-72'de eklenecek) ·
+>   Kilitlenme günlükleri (REV-94 Crashlytics yok) · Fotoğraflar (galeriye erişim yok, saklanan şey
+>   foto **bağlantısı**) · Kişiler/Mesajlar/Takvim/Sağlık/Kesin konum (manifestte tek izin INTERNET).
+> - **Formu Mustafa dolduracak** (Play Console erişimi onda). Kağıt aynı zamanda Artifact olarak
+>   yayınlandı, forma bakarken yan ekranda açılabilir.
+
 > **⚖️ 2026-08-20 — REV-91 YASAL & DESTEK (In Progress — Pages açılması + cihaz testi bekliyor):**
 >
 > Mustafa'nın URL'i, politika metni ve avukatı yoktu; iş "koddan envanter çıkar, ona sadık metin yaz"

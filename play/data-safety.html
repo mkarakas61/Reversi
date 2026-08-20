@@ -1,0 +1,503 @@
+<title>Reversi Veri Güvenliği Beyanı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap">
+
+<style>
+  :root {
+    --ground: #FBF7EF;
+    --surface: #FFFFFF;
+    --surface-sunk: #F3F0E7;
+    --ink: #16333A;
+    --ink-soft: #5C7981;
+    --ink-faint: #8AA1A6;
+    --accent: #0E8F84;
+    --accent-ink: #0A6B63;
+    --line: #E4DFD2;
+    --line-strong: #D2CBB9;
+    --yes: #1C8A55;
+    --no: #94795F;
+    --warn: #C0552B;
+    --warn-bg: #FBEDE5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1A1C;
+      --surface: #16292D;
+      --surface-sunk: #122226;
+      --ink: #E9F3F1;
+      --ink-soft: #A2BBB7;
+      --ink-faint: #728C89;
+      --accent: #45CFBC;
+      --accent-ink: #7FE0D2;
+      --line: #23403F;
+      --line-strong: #2F5250;
+      --yes: #4FCB8B;
+      --no: #C0A98F;
+      --warn: #F09268;
+      --warn-bg: #2C1D16;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E1A1C;
+    --surface: #16292D;
+    --surface-sunk: #122226;
+    --ink: #E9F3F1;
+    --ink-soft: #A2BBB7;
+    --ink-faint: #728C89;
+    --accent: #45CFBC;
+    --accent-ink: #7FE0D2;
+    --line: #23403F;
+    --line-strong: #2F5250;
+    --yes: #4FCB8B;
+    --no: #C0A98F;
+    --warn: #F09268;
+    --warn-bg: #2C1D16;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0 20px 96px;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  /* ---- masthead ---- */
+  header.top {
+    padding: 56px 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+  }
+  h1 {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-weight: 800;
+    font-size: clamp(30px, 6vw, 42px);
+    line-height: 1.1;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst {
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .rule {
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 42%, var(--line) 42%);
+    border-radius: 2px;
+    margin: 22px 0 8px;
+  }
+
+  /* ---- sections ---- */
+  section { margin-top: 44px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .step {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--surface);
+    background: var(--accent);
+    border-radius: 8px;
+    min-width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  h2 {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    margin: 0;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  .sec-note {
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin: 0 0 18px 40px;
+    max-width: 62ch;
+  }
+  @media (max-width: 560px) { .sec-note { margin-left: 0; } }
+
+  /* ---- question rows ---- */
+  .qa {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .q {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 16px;
+    align-items: start;
+  }
+  .q .label { font-weight: 700; }
+  .q .why {
+    grid-column: 1 / -1;
+    color: var(--ink-soft);
+    font-size: 14.5px;
+  }
+  .q code, .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13.5px;
+    background: var(--surface-sunk);
+    border-radius: 6px;
+    padding: 2px 6px;
+    word-break: break-all;
+  }
+
+  .chip {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    padding: 3px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1.5px solid currentColor;
+  }
+  .chip.yes { color: var(--yes); }
+  .chip.no  { color: var(--no); }
+
+  /* ---- data type cards ---- */
+  .types { display: flex; flex-direction: column; gap: 12px; }
+  .type {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 18px 14px;
+  }
+  .type h3 {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    margin: 0 0 2px;
+    line-height: 1.25;
+  }
+  .type h3 .parent {
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 10px;
+    margin: 12px 0 10px;
+    padding: 12px;
+    background: var(--surface-sunk);
+    border-radius: 12px;
+  }
+  .cell .k {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+  .cell .v { font-weight: 700; font-size: 15px; }
+  .cell .v.pos { color: var(--yes); }
+  .cell .v.neg { color: var(--no); }
+  .src {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .src b { color: var(--ink); font-weight: 700; }
+
+  /* ---- excluded list ---- */
+  .excl {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .excl li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .excl .mark { color: var(--no); font-weight: 800; line-height: 1.45; }
+  .excl b { font-weight: 800; }
+  .excl .later { color: var(--warn); font-weight: 700; }
+
+  /* ---- callout ---- */
+  .callout {
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .callout h3 {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-size: 17px;
+    margin: 0;
+    color: var(--warn);
+  }
+  .callout p { margin: 0; font-size: 15px; }
+
+  /* ---- table ---- */
+  .tablewrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; background: var(--surface); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: "Baloo 2", Nunito, sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    background: var(--surface-sunk);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  footer {
+    margin-top: 52px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-faint);
+    font-size: 14px;
+  }
+  a { color: var(--accent-ink); }
+  a:focus-visible, .q:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Play Console · App content → Data safety</span>
+  <h1>Reversi Veri Güvenliği Beyanı</h1>
+  <p class="standfirst">Formun her sorusuna verilecek cevap ve o cevabın koddaki karşılığı.
+  Beyan ile gizlilik politikası birbirini tutmak zorunda — çelişki, Play'de ret sebebi.</p>
+  <div class="rule"></div>
+</header>
+
+<section>
+  <div class="sec-head"><span class="step">1</span><h2>Önce iki adres</h2></div>
+  <p class="sec-note">Data safety formundan önce <b>App content</b> bölümünde girilir. İkisi de canlı, giriş gerektirmiyor.</p>
+  <div class="qa">
+    <div class="q">
+      <span class="label">Privacy policy URL</span>
+      <span></span>
+      <span class="why"><code>https://mkarakas61.github.io/Reversi/gizlilik.html</code></span>
+    </div>
+    <div class="q">
+      <span class="label">Data deletion URL <span class="mono">(Data safety içinde sorulur)</span></span>
+      <span></span>
+      <span class="why"><code>https://mkarakas61.github.io/Reversi/hesap-silme.html</code></span>
+    </div>
+    <div class="q">
+      <span class="label">Uygulama reklam içeriyor mu?</span>
+      <span class="chip no">Hayır</span>
+      <span class="why">Hiçbir reklam ağı bağlı değil. Reklam kimliği izni duruyor ama reklam gösterilmiyor — aşağıda ayrı beyan ediliyor.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="step">2</span><h2>Giriş soruları</h2></div>
+  <p class="sec-note">Data safety formunun ilk ekranı.</p>
+  <div class="qa">
+    <div class="q">
+      <span class="label">Uygulaman kullanıcı verisi topluyor veya paylaşıyor mu?</span>
+      <span class="chip yes">Evet</span>
+      <span class="why">Online oynayan oyuncunun profili ve maç kayıtları sunucuda tutuluyor; analitik her kullanıcıdan toplanıyor.</span>
+    </div>
+    <div class="q">
+      <span class="label">Toplanan tüm veri aktarım sırasında şifreleniyor mu?</span>
+      <span class="chip yes">Evet</span>
+      <span class="why">Firestore, Auth, Functions ve Analytics'e giden her çağrı HTTPS/TLS. Uygulama başka hiçbir uç noktaya bağlanmıyor.</span>
+    </div>
+    <div class="q">
+      <span class="label">Kullanıcı verisinin silinmesini talep edebiliyor mu?</span>
+      <span class="chip yes">Evet</span>
+      <span class="why">Uygulama içinde <b>Ayarlar → Uygulama &amp; Hesap → Hesabımı sil</b>, ayrıca yukarıdaki silme sayfası.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="step">3</span><h2>Beyan edilecek veri türleri</h2></div>
+  <p class="sec-note">Yedi tür. Hiçbiri Play'in tanımıyla <b>paylaşılmıyor</b>: Google, veriyi bizim adımıza işleyen hizmet sağlayıcı, üçüncü taraf alıcı değil.</p>
+
+  <div class="types">
+
+    <div class="type">
+      <h3><span class="parent">Kişisel bilgiler ·</span> Ad</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">İsteğe bağlı</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Uygulama işlevi · Hesap yönetimi</span></div>
+      </div>
+      <p class="src">Google hesabının görünen adı, <b>users/{uid}.displayName</b>. Rakibe ve lider tablosunda herkese görünür. İsteğe bağlı, çünkü oyun girişsiz de oynanıyor.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Kişisel bilgiler ·</span> E-posta adresi</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">İsteğe bağlı</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Uygulama işlevi · Hesap yönetimi</span></div>
+      </div>
+      <p class="src">Yalnız <b>Firebase Auth</b> kaydında; oyun veritabanına hiç yazılmıyor. Google girişi seçilmezse hiç alınmıyor.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Kişisel bilgiler ·</span> Kullanıcı kimlikleri</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">İsteğe bağlı</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Uygulama işlevi · Hesap yönetimi</span></div>
+      </div>
+      <p class="src">Firebase <b>uid</b>. Misafir oyuncuda da üretiliyor (anonim), maç ve eşleşme kayıtlarında geçiyor.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Kişisel bilgiler ·</span> Diğer bilgiler</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">İsteğe bağlı</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Uygulama işlevi</span></div>
+      </div>
+      <p class="src">Açıklama alanına: <b>“Google profil fotoğrafının bağlantısı”</b>. <b>“Fotoğraflar”</b> türünü işaretleme — cihazın galerisine hiç erişilmiyor, orayı işaretlemek yanlış beyan olur.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Uygulama etkinliği ·</span> Uygulama etkileşimleri</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">Zorunlu</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Analiz · Uygulama işlevi</span></div>
+      </div>
+      <p class="src">Analytics'in beş olayı: oyun başlatma, hamle, pas, oyun bitişi, dil değişimi. Kapatma anahtarı yok, o yüzden <b>zorunlu</b>.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Uygulama etkinliği ·</span> Diğer işlemler</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">İsteğe bağlı</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Uygulama işlevi</span></div>
+      </div>
+      <p class="src">Online maç kayıtları ve oyuncu ilerlemesi: hamleler, skorlar, kupa, rütbe, coin bakiyesi, maç geçmişi, lider tablosu satırları. Yalnız online oynanırsa oluşuyor.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Cihaz veya diğer kimlikler ·</span> Cihaz veya diğer kimlikler</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">Zorunlu</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Analiz</span></div>
+      </div>
+      <p class="src">Analytics'in uygulama örneği kimliği ve <b>Android reklam kimliği (AAID)</b>. İzin bizim manifestimizde yok, <b>firebase_analytics</b> ekliyor; 2026-08-20 kararıyla <b>bırakıldı</b>. Reklam gösterilmiyor.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Konum ·</span> Yaklaşık konum</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">Zorunlu</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Analiz</span></div>
+      </div>
+      <p class="src">Konum izni istemiyoruz; Analytics IP'den ülke/bölge çıkarıyor. Politikanın 3.4 maddesi de bunu böyle yazıyor — beyanı atlarsan iki belge çelişir.</p>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="step">4</span><h2>İşaretlenmeyecekler</h2></div>
+  <p class="sec-note">Fazla beyan da yanlış beyandır: olmayan bir toplama işaretlenirse politika ile form yine çelişir.</p>
+  <ul class="excl">
+    <li><span class="mark">✕</span><span><b>Finansal bilgiler / Satın alma geçmişi</b> — uygulama içi satın alma yok. Coin sunucuda tutulan sanal birim, para değil. <span class="later">REV-72 (Play Billing) yayınlanınca eklenecek.</span></span></li>
+    <li><span class="mark">✕</span><span><b>Uygulama bilgileri ve performansı / Kilitlenme günlükleri</b> — çökme takibi henüz kurulmadı. <span class="later">REV-94 (Crashlytics) eklenince beyan edilecek.</span></span></li>
+    <li><span class="mark">✕</span><span><b>Fotoğraflar ve videolar</b> — galeriye, kameraya erişim yok. Saklanan şey Google profil fotoğrafının bağlantısı, o da “Diğer bilgiler” altında.</span></li>
+    <li><span class="mark">✕</span><span><b>Kişiler, Mesajlar, Takvim, Sağlık, SMS, Arama kayıtları, Kesin konum, Dosyalar</b> — hiçbirine erişilmiyor; manifestte tek izin <span class="mono">INTERNET</span>.</span></li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><span class="step">5</span><h2>Politika ile karşılıklı kontrol</h2></div>
+  <p class="sec-note">Formu göndermeden önce son bakış: her beyanın politikada yazılı bir karşılığı var mı?</p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Formdaki beyan</th><th>Politikadaki yeri</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ad · E-posta · Kullanıcı kimlikleri · Profil fotoğrafı</td><td>3.1 Hesap bilgileri</td></tr>
+        <tr><td>Diğer işlemler (maç, kupa, coin, lider tablosu)</td><td>3.2 Oyun verileri · 3.3 Diğer oyuncuların gördükleri</td></tr>
+        <tr><td>Uygulama etkileşimleri · Cihaz kimlikleri · Yaklaşık konum</td><td>3.4 Analitik</td></tr>
+        <tr><td>Paylaşım yok, işleyen Google</td><td>5. Kimlerle paylaşılıyor</td></tr>
+        <tr><td>Silme talebi var + URL</td><td>6. Saklama süresi · Hesap silme sayfası</td></tr>
+        <tr><td>Aktarımda şifreleme</td><td>9. Güvenlik</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="step">6</span><h2>Bu beyanı sonra değiştirecek işler</h2></div>
+  <p class="sec-note">Play, veri davranışı değişince formun güncellenmesini şart koşuyor. Bunlar yayınlanırsa forma geri dönülecek.</p>
+  <div class="callout">
+    <h3>Dört bağımlılık</h3>
+    <p><b>REV-72 · Play Billing:</b> “Finansal bilgiler → Satın alma geçmişi” eklenir, koşullar metnindeki iade paragrafı gerçeğe döner.</p>
+    <p><b>REV-94 · Crashlytics:</b> “Kilitlenme günlükleri” ve “Teşhis” eklenir; politikaya da bir cümle girer.</p>
+    <p><b>REV-78 · Reklamla coin:</b> “Uygulama reklam içeriyor mu?” <b>Evet</b> olur, reklam kimliğinin amacına “Reklamcılık” eklenir.</p>
+    <p><b>REV-90 · Hesap silme akışı:</b> Uygulama içi silme yolu ve maç kayıtlarının 12 ay saklanması, politikada verilen sözle birebir aynı olmalı.</p>
+  </div>
+</section>
+
+<footer>
+  Kaynak: Reversi kaynak kodu — <span class="mono">functions/src/finish_game.ts</span>,
+  <span class="mono">lib/core/services/</span>, birleştirilmiş Android manifesti.
+  Hazırlandı 20 Ağustos 2026 · REV-92.
+</footer>
+
+</div>
