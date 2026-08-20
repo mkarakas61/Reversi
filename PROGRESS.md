@@ -32,16 +32,19 @@ Son güncelleme: **2026-08-20** · Son commit: `ea066f5` sonrası REV-102 · Sü
 > - **Maç sonu kartı:** `+N Coin` + altında cüzdan bakiyesi **900 ms sayarak artıyor**. Değer
 >   history dokümanından geliyor, sonuçtan **türetilmiyor** — coin tablosu değişirse oyuncuya
 >   sunucunun yazmadığı bir sayı gösterilirdi.
-> - **⚠️ SUNUCU DEĞİŞTİ, HENÜZ DEPLOY EDİLMEDİ:** `finish_game.ts` history dokümanına
->   `coinDelta` + `coins` ekliyor (trophyDelta/trophies ile aynı desen, additive). **Deploy
->   edilene kadar maç sonu coin satırı görünmez** (istemci `coinDelta > 0` şartına bakıyor, eski
->   satırlar 0 döner → çökme yok). Deploy komutu:
->   `npx firebase deploy --only functions:finish_game --project reversi-3a506 --account mustafakarakas1071@gmail.com`
+> - **⚠️ SUNUCU DEĞİŞTİ ve PROD'A DEPLOY EDİLDİ (2026-08-20):** `finish_game.ts` history
+>   dokümanına `coinDelta` + `coins` yazıyor (trophyDelta/trophies ile aynı desen, additive).
+>   `onGameFinished(europe-west1)` **update** edildi, başka fonksiyona dokunulmadı.
+>   **Deploy komutunda tuzak:** filtre dosya adını değil **export adını** ister —
+>   `functions:finish_game` "No function matches the filter" verir, doğrusu:
+>   `npx firebase deploy --only functions:onGameFinished --project reversi-3a506 --account mustafakarakas1071@gmail.com`
+>   Deploy öncesi oynanmış maçların history satırlarında alanlar yok → istemci `coinDelta > 0`
+>   şartına bakıyor, eski satırlar 0 döner → çökme yok, sadece coin satırı çizilmez.
 > - **Kural/index değişikliği YOK.** Native dosya değişmedi → iOS karşılığı yok, `lib/` ortak.
 > - **149 Flutter testi (7 yeni: `test/wallet_test.dart`) + 49 functions testi yeşil**, analyze temiz.
 > - **✅ CİHAZDA DOĞRULANDI (SM-G780G, release APK):** menüde `116` coin pill'i, profilde Cüzdan
 >   kartı doğru bakiye + oranlarla görünüyor. **❌ Doğrulanamayan:** maç sonu `+N Coin` satırı —
->   hem sunucu deploy'u hem gerçek bir online maç (iki istemci) gerekiyor.
+>   deploy yapıldı ama gerçek bir online maç (iki istemci) gerekiyor — tablet gelince test edilecek.
 > - Sanity: 16 galibiyet + 10 mağlubiyet 180 coin ederdi, bakiye 116 — fark beklenen, coinler
 >   REV-66'da açıldı, geriye dönük dolum yapılmadı.
 
