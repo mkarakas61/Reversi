@@ -5,7 +5,53 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-117 e-posta rızası CİHAZDA DOĞRULANDI + Done** · 8 iş Done'a çekildi
+Son güncelleme: **2026-08-21** · Son commit: `8c2a3c9` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-94 Crashlytics**
+
+> **🔚 2026-08-21 (2. OTURUM) KAPANIŞI — 8 iş Done, 4 sunucu deploy'u, telefon güncel:**
+>
+> **Canlı durum:** yerel `main` = `origin/main` (`8c2a3c9`), çalışma ağacı **temiz**.
+> **174 Flutter + 59 functions testi yeşil**, analyze temiz (bilinen 2 info lint), `tsc --noEmit` temiz.
+> **Telefonda (SM-G780G) 16:30 kurulumu HEAD koduyla aynı** — APK 16:06'da derlendi ve o commit'ten
+> (`508a18f`) sonra `lib/ functions/ android/ ios/ pubspec.yaml` hiç değişmedi, yalnız PROGRESS
+> güncellendi. **Tablet (Sena) bu oturumda hiç bağlanmadı → onda ESKİ sürüm var**, bir sonraki
+> oturumda kurulmalı (buluşma saati / bekleme ikramiyesi / rıza istemi orada yok).
+> Uygulama kapalı, açık eşleşme kaydı bırakılmadı.
+>
+> **⚠️ BU OTURUMDA SUNUCU 4 KEZ DEĞİŞTİ:**
+> 1. `onGameFinished` + `onMatchmakingTicketWritten` **update** (REV-109/110 coin bonusları)
+> 2. `deleteAccount` **create** (REV-90 hesap silme)
+> 3. `purgeExpiredMatchRecords` **create** (12 aylık saklama işi, günlük 04:30)
+> 4. `firestore.rules` **deploy** (REV-117 rıza koleksiyonu — append-only log)
+>
+> | # | İş | Durum |
+> |---|---|---|
+> | REV-90 | Hesap silme (callable + saklama işi) | ✅ Done · **cihazda hiç denenmedi** |
+> | REV-91 | Yasal & destek ekranı | ✅ Done |
+> | REV-98 | Rövanş | ✅ Done |
+> | REV-108 | Kopma 30 sn + rövanş 30 sn | ✅ Done · **4 maddelik cihaz testi yapılmadı** |
+> | REV-109 | Buluşma saati (20:00–22:00, ×2) | ✅ Done · ekran metni görüldü, **ödül görülmedi** |
+> | REV-110 | Bekleme ikramiyesi (1/dk, tavan 5) | ✅ Done · ekran metni görüldü, **ödül görülmedi** |
+> | REV-117 | E-posta rızası | ✅ Done · **uçtan uca cihazda doğrulandı** |
+> | REV-118 | Tek seferlik tanıtım turu sıfırlama | ✅ Done · **cihazda doğrulandı** |
+> | REV-92 | AD_ID + Data Safety | In Review · form Play Console'da Mustafa'da |
+>
+> **⚠️ SIRADAKİ OTURUMUN İLK İŞİ: REV-94 Crashlytics.** Mustafa'ya nasıl yapılacağı anlatıldı,
+> **onay alınmadan durduruldu** (limit). Plan: `firebase_crashlytics` paketi · Android Gradle
+> eklentisi (google-services zaten kurulu) · **iOS'ta dSYM yükleme adımı — `project.pbxproj`
+> düzenlemesi, dikkatli iş** · `main.dart`'ta `FlutterError.onError` + `PlatformDispatcher.onError`
+> (güncel kalıp; `runZonedGuarded` gerekmiyor) · rapora **yalnız uid** (isim/e-posta asla) ·
+> gizlilik politikasına bir cümle. Mustafa'da: Console'da Crashlytics'i başlatmak + Data Safety'de
+> "Kilitlenme günlükleri/Teşhis". Test: geçici yapıyla bir kez kasten çöktürüp konsolda görmek.
+> **Not:** AAB'ye geçerken (REV-95) obfuscation açılırsa sembol dosyaları Crashlytics'e yüklenmeli,
+> yoksa raporlar okunmaz olur.
+>
+> **Mustafa'da bekleyenler:** Data Safety formu (REV-92) · REV-95 AAB + Play App Signing ·
+> yasal sayfa adresindeki kullanıcı adı kararı · **yayıncı kimliği + alan adı kararı** (çıkış öncesi;
+> REV-115 e-posta altyapısı ve İYS buna bağlı).
+>
+> **Yayın öncesi mutlaka koşturulacak (REV-105 QA turu):** hesap silme akışı **atılabilir bir Google
+> hesabıyla** bir kez uçtan uca (Play'in şart koştuğu yol) · REV-108'in 4 maddesi · 20:00–22:00
+> arasında gerçek maçla ×2 ve bekleme ikramiyesi satırı.
 
 > **✅📧 2026-08-21 (5. tur) — LINEAR TEMİZLİĞİ + REV-117 RIZA KODLANDI (⚠️ KURAL DEPLOY EDİLDİ):**
 >
