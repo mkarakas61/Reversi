@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-90 hesap silme kodlandı** (⚠️ deploy edilmedi, atılabilir hesapla test bekliyor)
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-90 hesap silme CANLIDA** (⚠️ deploy edildi; atılabilir Google hesabıyla cihaz testi bekliyor)
 
 > **🗑️ 2026-08-21 (4. tur) — REV-90 HESAP SİLME KODLANDI (son yayın engeli) — ⚠️ HENÜZ DEPLOY EDİLMEDİ:**
 >
@@ -45,13 +45,32 @@ Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` �
 > **59 functions + 169 Flutter testi yeşil**, analyze temiz (bilinen 2 info lint), `tsc` temiz.
 > Native dosya değişmedi → iOS karşılığı yok. Commit `2cda65a`.
 >
-> **⚠️ DEPLOY EDİLMEDİ — bilerek.** Silme uç noktası canlıya alınmadan önce Mustafa'nın onayı
-> bekleniyor. **Test atılabilir bir Google hesabıyla yapılacak, Mustafa'nın hesabıyla ASLA.**
-> Claude hesap açamaz (kural) → atılabilir hesabı Mustafa cihazda açacak.
+> **✅ DEPLOY EDİLDİ (Mustafa onayı, 2026-08-21):** `deleteAccount` + `purgeExpiredMatchRecords`
+> (europe-west1) **create** edildi — ikisi de yeni fonksiyon. Kural/index değişikliği yok.
+> **Tasarım kararı onaylandı:** aktif maçta silme → maç **iptal** (rakibe galibiyet yazılmıyor).
 >
-> **Deploy komutu (hazır):**
-> `npx firebase deploy --only functions:deleteAccount,functions:purgeExpiredMatchRecords
-> --project reversi-3a506 --account mustafakarakas1071@gmail.com`
+> **🧪 TEST HESABI / VERİ TOHUMLAMA — Mustafa'nın sorusuna kalıcı cevap (bir daha aranmasın):**
+>
+> **1. "Firestore'da elle hesap oluşturalım" — çalışmaz.** Firestore dokümanı hesap değildir; giriş
+> **Firebase Auth** kullanıcısı ister ve uygulamada açık tek gerçek sağlayıcı **Google**. Yani
+> giriş yapılabilen bir hesap ancak gerçek bir Google hesabıdır.
+>
+> **2. Ama tek atılabilir Google hesabı ÖMÜRLÜK yeter.** Silme, Google hesabını değil **Firebase
+> kullanıcı kaydını** yok ediyor. Aynı Google hesabıyla tekrar giriş yapılınca **yeni uid ile
+> sıfırdan** bir kayıt açılıyor → silme akışı istenildiği kadar tekrar test edilebilir.
+>
+> **3. Coin / kupa / istatistik tohumlama için KOD GEREKMİYOR — Firebase Console yeter:**
+> Console → Firestore Database → `users/{uid}` → alanı düzenle.
+> - `coins` → cüzdan **anında** değişir (menü pill'i profil stream'inden okuyor).
+> - `online.trophies` → **rütbe anında değişir**, çünkü istemci rütbeyi kupadan türetiyor
+>   (`OnlineStats.rank => rankFor(trophies)`), sunucudan okumuyor. **Efsane testi = `trophies: 1000`.**
+> - `online.wins/losses/draws/bestStreak/totalFlipped/bestScoreDiff` → istatistik ekranları.
+> - **Tohumlanan değerler bozulmaz:** `finish_game.ts` maç sonunda dokümandaki **mevcut** değerleri
+>   okuyup üstüne ekliyor (additive), sıfırdan hesaplamıyor.
+>
+> **4. Script istenirse:** `firebase-admin` ile `tool/seed_account.js` yazılabilir, ama bu makinede
+> ne ADC ne `gcloud` var → Mustafa'nın Console'dan **servis hesabı anahtarı (JSON)** indirmesi
+> gerekir (gitignore'lanır). Console elle düzenleme yettiği sürece **gereksiz.**
 
 > **🪙 2026-08-21 (3. tur) — REV-109 BULUŞMA SAATİ + REV-110 BEKLEME İKRAMİYESİ CANLIDA
 > (⚠️ SUNUCU DEPLOY EDİLDİ, commit `e4b42bf`):**
