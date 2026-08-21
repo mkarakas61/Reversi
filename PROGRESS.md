@@ -5,7 +5,7 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-117 e-posta rızası kodlandı** (⚠️ kural deploy edildi) · 7 iş Done'a çekildi
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-117 e-posta rızası CİHAZDA DOĞRULANDI + Done** · 8 iş Done'a çekildi
 
 > **✅📧 2026-08-21 (5. tur) — LINEAR TEMİZLİĞİ + REV-117 RIZA KODLANDI (⚠️ KURAL DEPLOY EDİLDİ):**
 >
@@ -41,10 +41,17 @@ Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` �
 >   bu işin yayına yetişme sebebi bu.
 > - **174 Flutter testi yeşil** (5 yeni: `test/consent_test.dart`), analyze temiz.
 >
-> **Cihaza kurulamadı:** APK derlendi ama telefon kablodan çıkarılmıştı (`adb devices` boş).
-> **Sıradaki bağlantıda kurulup istem gözle görülecek** — Mustafa'nın hesabında henüz rıza kaydı
-> yok, yani istem ona da çıkacak. **Cevabı ben vermeyeceğim** (kendi kişisel tercihi);
-> doğrulamak için dışarı dokunup kapatmak yeterli, o da kayıt yazmıyor.
+> **✅ CİHAZDA UÇTAN UCA DOĞRULANDI (SM-G780G, 16:30 kurulum):** istem menü üstünde açıldı ve
+> **tanıtım turu tekrar çıkmadı** (sıra doğru) · dışarı dokunup kapatmak **kayıt yazmadı** ·
+> Ayarlar → Uygulama & Hesap'ta anahtar "Hesabımı sil"in üstünde, kapalı görünüyor ·
+> **Mustafa "Evet" dedi → anahtar açık geldi, kapatıp açabiliyor** → yazma yolu, append-only
+> kurallar ve geri alma **çalışıyor**. REV-117 **Done**.
+>
+> **Not (araç doğrulaması):** telefon kilitliyken ekran görüntüsü alınamadı — kilidi Claude açmadı
+> (PIN kullanıcının). Kilit açıldıktan sonra doğrulama saniyeler sürdü. İleride cihaz testi
+> isteneceği zaman **telefonun kilidinin açık olması** gerekiyor.
+>
+> **Gözlem:** cüzdan sabah 128 iken **560** görünüyor — Console'dan elle düzenleme tarifi çalışıyor.
 
 > **🗑️ 2026-08-21 (4. tur) — REV-90 HESAP SİLME KODLANDI (son yayın engeli) — ⚠️ HENÜZ DEPLOY EDİLMEDİ:**
 >
