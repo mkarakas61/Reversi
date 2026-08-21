@@ -16,6 +16,7 @@ import '../online/screens/leaderboard_screen.dart';
 import '../help/how_to_play_screen.dart';
 import '../../core/models/wallet.dart';
 import '../help/welcome_tour.dart';
+import '../settings/marketing_consent_prompt.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
 import 'widgets/menu_button.dart';
@@ -59,8 +60,17 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     // First launch only, and after the menu has laid out so the tour opens on
     // top of the app rather than in place of it (REV-103).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(WelcomeTour.showIfFirstLaunch(context));
+      if (mounted) unawaited(_openFirstLaunchFlows());
     });
+  }
+
+  /// The two things that may open over the menu on a launch, in order: the
+  /// welcome tour (once per install) and the marketing consent ask (once per
+  /// account, REV-117). Awaited one after the other so they never stack.
+  Future<void> _openFirstLaunchFlows() async {
+    await WelcomeTour.showIfFirstLaunch(context);
+    if (!mounted) return;
+    await MarketingConsentPrompt.showIfNeeded(context);
   }
 
   @override

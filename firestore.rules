@@ -34,6 +34,31 @@ service cloud.firestore {
 
       allow delete: if false;
 
+      // Marketing consent (REV-117). The current answer is the owner's to
+      // write — it is their own permission, not a balance — but the log under
+      // it is append-only: proof of consent is worthless if it can be
+      // rewritten afterwards. `at` must be the server's clock so a device
+      // with a wrong date cannot backdate an answer.
+      match /consents/{type} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(
+               ['type', 'granted', 'at', 'policyVersion', 'source'])
+          && request.resource.data.granted is bool
+          && request.resource.data.at == request.time;
+        allow delete: if false;
+
+        match /log/{recordId} {
+          allow read: if isOwner(uid);
+          allow create: if isOwner(uid)
+            && request.resource.data.keys().hasOnly(
+                 ['type', 'granted', 'at', 'policyVersion', 'source'])
+            && request.resource.data.granted is bool
+            && request.resource.data.at == request.time;
+          allow update, delete: if false;
+        }
+      }
+
       // Per-game progress history (REV-54), used for the online stats
       // trend charts (REV-58). Written exclusively by Cloud Functions.
       match /history/{gameId} {

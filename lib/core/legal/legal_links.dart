@@ -16,6 +16,12 @@ class LegalLinks {
   /// correction, deletion) named in the privacy policy.
   static const String supportEmail = 'reversi.destek@gmail.com';
 
+  /// The published date of the privacy policy the player is agreeing to.
+  /// Stamped onto every consent record (REV-117) so consent given under this
+  /// text can be told apart from consent given under a later one. Bump it in
+  /// the same commit that changes the policy pages, never on its own.
+  static const String policyVersion = '2026-08-20';
+
   static String privacy(String languageCode) =>
       languageCode == 'tr' ? '$_base/gizlilik.html' : '$_base/privacy.html';
 

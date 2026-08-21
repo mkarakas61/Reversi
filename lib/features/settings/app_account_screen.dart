@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +8,7 @@ import '../../core/l10n/app_strings.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/profile/profile_scope.dart';
 import '../../core/services/account_service.dart';
+import '../../core/services/consent_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/game_colors.dart'
@@ -116,11 +119,20 @@ class AppAccountScreen extends StatelessWidget {
                         if (signedIn)
                           InfoCard(
                             title: strings.accountSection,
-                            child: MenuButton(
-                              label: strings.deleteAccount,
-                              icon: Icons.person_remove_outlined,
-                              onTap: () =>
-                                  _confirmDelete(context, strings, lang),
+                            child: Column(
+                              children: [
+                                // Consent is withdrawable at any time, so it
+                                // sits with the account controls rather than
+                                // being buried in a one-time prompt (REV-117).
+                                const _MarketingConsentTile(),
+                                const SizedBox(height: 12),
+                                MenuButton(
+                                  label: strings.deleteAccount,
+                                  icon: Icons.person_remove_outlined,
+                                  onTap: () =>
+                                      _confirmDelete(context, strings, lang),
+                                ),
+                              ],
                             ),
                           ),
                         const SizedBox(height: 16),
@@ -232,6 +244,87 @@ class AppAccountScreen extends StatelessWidget {
     // Signed out now, so this screen's account section is gone: step back to
     // the menu rather than leave the player looking at a half-empty page.
     if (ok) navigator.maybePop();
+  }
+}
+
+/// The e-mail consent switch (REV-117): the same answer the one-time prompt
+/// records, reachable forever after. Loads the current value rather than
+/// assuming one — a switch that shows "off" while the server says "on" would
+/// be worse than no switch at all.
+class _MarketingConsentTile extends StatefulWidget {
+  const _MarketingConsentTile();
+
+  @override
+  State<_MarketingConsentTile> createState() => _MarketingConsentTileState();
+}
+
+class _MarketingConsentTileState extends State<_MarketingConsentTile> {
+  bool? _granted;
+  bool _busy = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_granted == null && !_busy) unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final profile = ProfileScope.of(context).profile;
+    if (profile == null) return;
+    final value = await ConsentService.instance
+        .current(profile.uid, ConsentService.marketingEmail);
+    if (mounted) setState(() => _granted = value ?? false);
+  }
+
+  Future<void> _set(bool value) async {
+    final profile = ProfileScope.of(context).profile;
+    if (profile == null) return;
+    final previous = _granted;
+    setState(() {
+      _granted = value;
+      _busy = true;
+    });
+    final ok = await ConsentService.instance.record(
+      uid: profile.uid,
+      type: ConsentService.marketingEmail,
+      granted: value,
+      source: 'settings',
+    );
+    if (!mounted) return;
+    // A failed write must not leave the switch claiming something the record
+    // does not say.
+    setState(() {
+      _busy = false;
+      if (!ok) _granted = previous;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    return SwitchListTile.adaptive(
+      contentPadding: EdgeInsets.zero,
+      value: _granted ?? false,
+      onChanged: _granted == null || _busy ? null : _set,
+      title: Text(
+        strings.marketingConsentToggle,
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w800,
+          fontSize: 15,
+          color: GameColors.ink,
+        ),
+      ),
+      subtitle: Text(
+        strings.marketingConsentToggleHint,
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w600,
+          fontSize: 12.5,
+          color: GameColors.inkSoft,
+        ),
+      ),
+    );
   }
 }
 

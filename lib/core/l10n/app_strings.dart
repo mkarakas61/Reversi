@@ -205,6 +205,15 @@ class AppStrings {
       'supportContact': 'Support & feedback',
       'supportContactHint': '{email}',
       'deleteAccount': 'Delete my account',
+      'marketingConsentTitle': 'Hear about our new games?',
+      'marketingConsentBody':
+          'We would send an e-mail when we release a new game or a big '
+              'update — rarely, and never for anything else. You can turn it '
+              'off any time from App & Account.',
+      'marketingConsentAccept': 'Yes, e-mail me',
+      'marketingConsentDecline': 'No thanks',
+      'marketingConsentToggle': 'News about new games',
+      'marketingConsentToggleHint': 'E-mail, rarely. Off by default.',
       'deleteAccountTitle': 'Delete your account?',
       'deleteAccountBody':
           'Your account, profile, trophies, coins and match history are '
@@ -461,6 +470,15 @@ class AppStrings {
       'supportContact': 'Destek & geri bildirim',
       'supportContactHint': '{email}',
       'deleteAccount': 'Hesabımı sil',
+      'marketingConsentTitle': 'Yeni oyunlarımızdan haberdar ol',
+      'marketingConsentBody':
+          'Yeni bir oyun ya da büyük bir güncelleme çıkardığımızda sana '
+              'e-posta göndeririz — çok seyrek, başka hiçbir şey için değil. '
+              'İstediğin an Uygulama & Hesap\'tan kapatabilirsin.',
+      'marketingConsentAccept': 'Evet, haber ver',
+      'marketingConsentDecline': 'Hayır, teşekkürler',
+      'marketingConsentToggle': 'Yeni oyun haberleri',
+      'marketingConsentToggleHint': 'E-posta, çok seyrek. Varsayılan kapalı.',
       'deleteAccountTitle': 'Hesabın silinsin mi?',
       'deleteAccountBody':
           'Hesabın, profilin, kupaların, coinlerin ve maç geçmişin kalıcı '
@@ -671,6 +689,14 @@ class AppStrings {
   String get deleteAccountWorking => _get('deleteAccountWorking');
   String get deleteAccountDone => _get('deleteAccountDone');
   String get deleteAccountFailed => _get('deleteAccountFailed');
+
+  // Marketing consent (REV-117).
+  String get marketingConsentTitle => _get('marketingConsentTitle');
+  String get marketingConsentBody => _get('marketingConsentBody');
+  String get marketingConsentAccept => _get('marketingConsentAccept');
+  String get marketingConsentDecline => _get('marketingConsentDecline');
+  String get marketingConsentToggle => _get('marketingConsentToggle');
+  String get marketingConsentToggleHint => _get('marketingConsentToggleHint');
   String get version => _get('version');
   String get linkFailed => _get('linkFailed');
 
