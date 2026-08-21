@@ -5,7 +5,47 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **az oyuncu problemi + bildirim/e-posta planlandı** (REV-109/110, proje 16, REV-117 rıza **yayın öncesi**)
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-109 buluşma saati + REV-110 bekleme ikramiyesi CANLIDA** (⚠️ sunucu deploy edildi)
+
+> **🪙 2026-08-21 (3. tur) — REV-109 BULUŞMA SAATİ + REV-110 BEKLEME İKRAMİYESİ CANLIDA
+> (⚠️ SUNUCU DEPLOY EDİLDİ, commit `e4b42bf`):**
+>
+> **Mustafa'nın onayı:** buluşma saati **20:00–22:00 (TSİ)**, çarpan **×2**; bekleme **dakikada 1 coin,
+> maç başına tavan 5**, günlük tavan yok.
+>
+> **Yeni saf modül `functions/src/coin_bonus.ts`** — iki ödül de burada, `finish_game.ts` yalnız
+> çağırıyor:
+> - `isHappyHour`/`coinMultiplier`: Türkiye 2016'dan beri **sabit UTC+3** olduğu için pencere timezone
+>   veritabanı yerine düz offset ile hesaplanıyor (tek satırda değişir). Pencere **maç bitiminde**
+>   değerlendiriliyor — oyuncu çarpanı sonuç ekranında görüyor.
+> - `waitBonusCoins`: `min(5, floor(dk)×1)`. **Sayı olmayan / negatif / NaN her değer 0** → rövanş,
+>   eski maçlar ve bozuk alan çökme değil, sıfır ikramiye demek.
+>
+> **Kapının çalışma yeri (fikrin özü):** `matchmaking.ts` eşleştirme transaction'ında iki ticket da
+> elde olduğu için her oyuncunun sunucu `createdAt`'inden `waitMs`'i hesaplayıp **oyun dokümanına**
+> yazıyor; **ödeme yalnız maç bitince** `finish_game.ts`'te yapılıyor. Kuyrukta AFK bekleyen hiçbir
+> zaman ödeme almıyor — istemciye tek satır güven yok.
+>
+> **Kupa/rütbe hiç etkilenmedi** (yalnız coin çarpılıyor) — kupa merdiveni öz-dengeli, bozulmadı.
+> History dokümanına `coinMultiplier` + `waitBonus` kırılımı yazılıyor; **eski satırlar 1 ve 0 okunuyor**,
+> maç sonu kartı onlarda kırılım çizmiyor.
+>
+> **İstemci yalnız gösterim:** maç sonu kartında "×2 buluşma saati · Bekleme ikramiyesi +N" satırı ·
+> "Rakip aranıyor" ekranında ikramiye açıklaması + pencere satırı · ana menüde **yalnız pencere
+> açıkken** satır (kapalıyken sürekli duran bir satır duvar kağıdına dönerdi — bilinçli karar).
+>
+> **⚠️ SUNUCU:** `functions:onGameFinished` **ve** `onMatchmakingTicketWritten` (europe-west1) update
+> edildi. **Kural/index değişikliği yok.** Deploy'dan önce başlamış maçlarda `waitMs` alanı yok → 0.
+>
+> **55 functions + 169 Flutter testi yeşil** (6+6 yeni: `coin_bonus.test.ts`, `test/coin_bonus_test.dart`),
+> analyze temiz, `tsc --noEmit` temiz. **Native dosya değişmedi → iOS karşılığı yok.**
+>
+> **Cihazda görüldü (SM-G780G, release APK 15:22):** eşleşme ekranında "Beklediğin süre maç sonunda
+> ikramiye olarak eklenecek (en fazla +5)." + "Buluşma saati 20:00–22:00 · coin ×2"; menüde satır yok
+> (pencere kapalıyken doğru davranış). Kuyruktan çıkıldı, açık ticket bırakılmadı.
+>
+> **Kalan doğrulama (Mustafa):** (1) 20:00–22:00 arasında gerçek maç → maç sonu kartında "×2 buluşma
+> saati" ve menüde satır; (2) iki cihazla maç → "Bekleme ikramiyesi +N" satırı (tablet bağlı değildi).
 
 > **✉️ 2026-08-21 (2. tur) — BİLDİRİM/E-POSTA NETLEŞTİ: RIZA YAYIN ÖNCESİNE ALINDI:**
 >
