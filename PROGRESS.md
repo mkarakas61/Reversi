@@ -5,7 +5,53 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-109 buluşma saati + REV-110 bekleme ikramiyesi CANLIDA** (⚠️ sunucu deploy edildi)
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-90 hesap silme kodlandı** (⚠️ deploy edilmedi, atılabilir hesapla test bekliyor)
+
+> **🗑️ 2026-08-21 (4. tur) — REV-90 HESAP SİLME KODLANDI (son yayın engeli) — ⚠️ HENÜZ DEPLOY EDİLMEDİ:**
+>
+> Aylardır bekleyen iş yazıldı. Ekrandaki buton artık **e-posta talebi açmıyor**, gerçekten siliyor.
+>
+> **Sunucu — yeni `functions/src/delete_account.ts`:**
+> - **callable `deleteAccount`** (sıra bilinçli): eşleşme kaydı → aktif maç `cancelled` (sweep'in
+>   terminal durumu, rakip serbest kalır, kimse ödül almaz) → biten maçlarda **ad/foto temizlenir**
+>   + `anonymizedAt` damgası → `history` alt koleksiyonu → **tüm haftaların** leaderboard satırları →
+>   profil dokümanı → **en son** `admin.auth().deleteUser`.
+> - **Neden callable, neden bu sıra:** istemci kendi auth kullanıcısını silebilir ama Firestore
+>   kayıtlarını silemez (kurallar sunucu-sahipli) → yarım silinmiş hesap hiç silmemekten kötü.
+>   Sunucuda çalışmak ayrıca `requires-recent-login` sorununu hiç doğurmuyor (geri alınamaz işlemin
+>   ortasında tekrar giriş istemek). Auth **en sonda**: arada hata olursa hesap ayakta kalır ve
+>   tekrar denenebilir; auth önce silinseydi kalanı temizleyecek çağıran kalmazdı.
+> - **`purgeExpiredMatchRecords` (günlük 04:30):** gizlilik politikasındaki *"ad/foto çıkarılmış
+>   hâlde en fazla 12 ay"* sözünü uygulayan zamanlanmış iş. Bu sabit bir ayar değil, **kullanıcıya
+>   verilmiş söz** — değiştirmek önce yayınlanmış metni değiştirmeyi gerektirir.
+> - **Anonimleştirme dotted path ile DEĞİL, merge'li `set` ile:** uid veridir, yol değil;
+>   `"playerInfo.<uid>.name"` kurmak uid'i yol ayrıştırıcısına teslim ederdi. (Ara adımda
+>   `FieldPath(...).toString()` denendi — düz noktalı yol döndürdüğü için hiçbir koruma sağlamıyor,
+>   kaldırıldı.)
+> - Testte kullanılan yardımcı ile üretimde çalışan kod **aynı olsun diye** `isPastRetention`
+>   `retentionCutoffMs`'e çevrildi (öncekini zamanlanmış iş hiç çağırmıyordu — ölü koddu).
+>
+> **İstemci:** yeni `AccountService.deleteAccount()` → callable, ardından **yerel `signOut`**
+> (sunucuda hesap yokken elde token kalmasın). Ekranda: onay diyaloğu (**kırmızı**, varsayılan buton
+> değil) → **engelleyici** "siliniyor…" diyaloğu (iptal düğmesi yok; çağrı gittiyse iptal edilecek
+> bir şey kalmadı) → sonuç bildirimi. Hata halinde metin **"hiçbir şey değişmedi"** diyor, çünkü
+> sunucu tek geçişte çalışıp auth'u en sonda siliyor — bu doğru bir söz.
+>
+> **Metinler güncellendi:** eski "e-posta ile talep et / en geç 30 gün" ifadeleri kalktı; yerine
+> "Kalıcı olarak sil" + biten maçların rakip için 12 ay saklandığı açıklaması (TR+EN).
+> `docs/hesap-silme.html` **zaten** bu akışı anlatıyordu (uygulama içi yol + 12 ay) → **sayfa
+> değişmedi, kod sayfaya uydu.**
+>
+> **59 functions + 169 Flutter testi yeşil**, analyze temiz (bilinen 2 info lint), `tsc` temiz.
+> Native dosya değişmedi → iOS karşılığı yok. Commit `2cda65a`.
+>
+> **⚠️ DEPLOY EDİLMEDİ — bilerek.** Silme uç noktası canlıya alınmadan önce Mustafa'nın onayı
+> bekleniyor. **Test atılabilir bir Google hesabıyla yapılacak, Mustafa'nın hesabıyla ASLA.**
+> Claude hesap açamaz (kural) → atılabilir hesabı Mustafa cihazda açacak.
+>
+> **Deploy komutu (hazır):**
+> `npx firebase deploy --only functions:deleteAccount,functions:purgeExpiredMatchRecords
+> --project reversi-3a506 --account mustafakarakas1071@gmail.com`
 
 > **🪙 2026-08-21 (3. tur) — REV-109 BULUŞMA SAATİ + REV-110 BEKLEME İKRAMİYESİ CANLIDA
 > (⚠️ SUNUCU DEPLOY EDİLDİ, commit `e4b42bf`):**
