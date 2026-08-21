@@ -67,8 +67,12 @@ Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` �
 > senaryosunu kuran 8 mevcut test kırıldı. Doğru yeri **açılış**: tek seferlik göç mantığı bir
 > okuyucunun içinde değil, `main()` içinde olmalı. **163 Flutter testi yeşil** (3 yeni:
 > `test/onboarding_reset_test.dart`), analyze temiz, release APK derlendi (68,6 MB).
-> **Cihaz testi Mustafa'da:** tur bir kez çıkmalı, ikinci açılışta çıkmamalı. Cihazlar şu an bağlı
-> değil (`adb devices` boş).
+> **✅ CİHAZDA DOĞRULANDI (SM-G780G `RF8RA19VBBV`, release APK 15:09):** kurulumdan sonra ilk açılışta
+> tanıtım turu çıktı ("Reversi'ye hoş geldin", 4 kart); "Atla" → force-stop → tekrar açılışta
+> **doğrudan ana menü**, tur çıkmadı. **Veri korundu:** giriş duruyor, cüzdan 128 coin, ayarlar yerinde
+> (`adb install -r`, `pm clear` YOK). Doğrulama için tur "Atla" ile geçildiği için **Mustafa'nın
+> telefonunda tur tüketildi** — kendisi izlemek isterse bilet sabiti yeni bir tarihe çekilip APK
+> yeniden derlenecek. **Tablet (Sena) bağlı değil**, ona kurulmadı; orada tur el değmemiş çıkacak.
 
 > **📣 2026-08-21 — AZ OYUNCU PROBLEMİ: İKİ ÖDÜL İŞİ + BİLDİRİM/E-POSTA ALTYAPISI PLANLANDI (kod yazılmadı):**
 >
