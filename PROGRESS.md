@@ -5,7 +5,60 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **az oyuncu problemi planlandı** (REV-109/110 + proje 16 bildirim/e-posta)
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **az oyuncu problemi + bildirim/e-posta planlandı** (REV-109/110, proje 16, REV-117 rıza **yayın öncesi**)
+
+> **✉️ 2026-08-21 (2. tur) — BİLDİRİM/E-POSTA NETLEŞTİ: RIZA YAYIN ÖNCESİNE ALINDI:**
+>
+> **Mustafa'nın kararları:**
+> 1. **E-posta atabiliyor olmak şart.** İkinci/üçüncü oyun çıktığında eski kullanıcılara ulaşılacak.
+>    Kullanım çok nadir olacak ama yetenek var olmalı — *"veri topluyoruz ama kullanamıyoruz olmasın.
+>    Kullanım sıklığı ve tercihi farklı bir şey."*
+> 2. **Bildirim altyapısı olmalı**, istendiğinde gönderilebilmeli.
+> 3. **Yayıncı kimliği henüz belli değil** — her şey hazır olunca yayıncıyla görüşülecek; anlaşılırsa
+>    yayıncıyla, anlaşılamazsa **şahıs hesabıyla** çıkılacak. **Alan adı da bu karara bağlı**, çıkış
+>    öncesi verilecek kararlardan.
+> 4. **Rıza kutucuğu yayına yetişecek.** Ayrıca **bundan sonraki release APK'lar tester'da ilk açılış
+>    akışlarını geri getirsin** (ilk giriş + rıza istemi görülebilsin).
+>
+> **🔑 PLANI DEĞİŞTİREN TESPİT: rıza geriye dönük alınamaz.** Gönderim altyapısı iki yıl sonra da
+> kurulabilir, ama onay **kullanıcı kaydolurken** alınmış olmalı. İlk sürümde kutucuk yoksa, o kitleye
+> sonradan yalnız uygulamayı tekrar açan azınlık üzerinden ulaşılabilir. Bu yüzden iş **ikiye bölündü**:
+>
+> | # | İş | Ne zaman |
+> |---|---|---|
+> | **REV-117** 🚨 | Rıza toplama: ilk açılışta varsayılanı kapalı onay + `users/{uid}/consents` kaydı (proje 14) | **YAYIN ÖNCESİ** |
+> | **REV-115** | Gönderim altyapısı: sağlayıcı + alan adı + İYS | Yayıncı kararından sonra |
+> | **REV-112** | Daraltıldı → yalnız bildirim tercih ekranı | Altyapıdan sonra |
+> | **REV-118** | Test yapısında ilk-açılış sıfırlama (proje 14) | REV-117 ile birlikte |
+>
+> **Maliyet cevabı (Mustafa'nın sorusu):**
+> - **Push (FCM) ücretsiz ve sınırsız** — Firebase'in kendi ürünü, mesaj başına ücret yok, Console'dan
+>   gönderim kod bile gerektirmiyor. Ek maliyet yalnız Blaze'de kuruşluk Functions/Firestore kullanımı;
+>   iOS için Apple Developer $99/yıl zaten App Store için gerekli.
+> - **E-postayı Firebase göndermez.** Sağlayıcı gerekiyor: **Amazon SES ≈ $0,10 / 1.000 e-posta**
+>   (5.000 kişilik duyuru ≈ yarım dolar) + **alan adı ≈ $10-15/yıl**. Trigger Email eklentisi ücretsiz.
+>   **Para engel değil; engel alan adı + yayıncı kimliği + İYS.**
+> - **Gmail adresinden toplu mail atılamaz** — DMARC'a takılıp spam'e düşer, kimseye ulaşmaz. Yasal
+>   sayfalar da hâlâ `github.io`'da (CNAME yok); alan adı kararı ikisini birden çözecek.
+>
+> **E-posta adresini SAKLAMIYORUZ:** Google girişindeki adres zaten Firebase Auth'ta duruyor, gönderim
+> anında Admin SDK ile okunacak. Saklanacak tek şey **rıza kaydı**. Böylece gizlilik metnindeki
+> "e-posta oyun veritabanına yazılmaz" cümlesi bozulmadan kalıyor.
+>
+> **Yayıncı belirsizliğinin rızaya etkisi:** onay metninde **firma adı geçmeyecek** (kimlikten bağımsız
+> ifade), `policyVersion` alanı tutulacak; yayıncı belli olup veri sorumlusu değişirse sürüm artırılıp
+> gerekiyorsa rıza yenilenecek. Yayıncıya devir olursa KVKK'da **veri sorumlusu değişikliği** ayrıca
+> değerlendirilmeli.
+>
+> **⚠️ REV-118 — "release APK yerel hafızayı sıfırlasın" isteği DEĞİŞTİRİLEREK uygulanacak.** Koşulsuz
+> sıfırlama Play'e giderse **her güncellemede tüm kullanıcıların** ayarları, offline istatistikleri
+> (`game_stats_v1`) ve yarım kalan oyunu (`saved_game_v1`) silinir. Bunun yerine:
+> `--dart-define=TEST_BUILD=true` bayrağı + **build numarası değişince bir kez** sıfırlama + ekranda
+> "TEST YAPISI" rozeti + seçici anahtar temizliği (varsayılan: yalnız onboarding/rıza). **İki ek gerçek:**
+> (1) Firebase Auth oturumu SharedPreferences'ta değil → sıfırlama `signOut()` de yapmalı, yoksa "ilk
+> giriş" görünmez; (2) rıza kaydı sunucuda → silinmeyecek (hukuki geçmiş + kural), test yapısında istem
+> **yeniden gösterilecek**, cevap yeni kayıt olarak yazılacak. Bu aynı zamanda `pm clear` yasağının
+> güvenli alternatifi.
 
 > **📣 2026-08-21 — AZ OYUNCU PROBLEMİ: İKİ ÖDÜL İŞİ + BİLDİRİM/E-POSTA ALTYAPISI PLANLANDI (kod yazılmadı):**
 >
