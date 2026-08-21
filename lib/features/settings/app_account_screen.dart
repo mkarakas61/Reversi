@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/profile/profile_scope.dart';
+import '../../core/services/account_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/game_colors.dart'
@@ -168,9 +169,10 @@ class AppAccountScreen extends StatelessWidget {
     );
   }
 
-  /// Deletion is irreversible, so it asks first and says exactly what goes.
-  /// The request itself goes by e-mail from the account's own address — that
-  /// address is how the request is verified.
+  /// Deletion is irreversible, so it asks first and says exactly what goes —
+  /// including what does *not* go, since finished matches survive as the
+  /// opponent's record. The delete itself runs server-side (REV-90); this
+  /// screen only confirms, waits, and reports.
   Future<void> _confirmDelete(
     BuildContext context,
     AppStrings strings,
@@ -194,7 +196,12 @@ class AppAccountScreen extends StatelessWidget {
             },
             child: Text(strings.deleteAccountDetails),
           ),
+          // Destructive colour on the one button that cannot be undone; it is
+          // also not the dialog's default action.
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFE0312B),
+            ),
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(strings.deleteAccountSend),
           ),
@@ -203,12 +210,55 @@ class AppAccountScreen extends StatelessWidget {
     );
     if (confirmed != true || !context.mounted) return;
 
-    final subject = Uri.encodeComponent('Reversi — ${strings.deleteAccount}');
-    await _openUrl(
-      context,
-      'mailto:${LegalLinks.supportEmail}?subject=$subject',
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Modal while the server works: the account must not be tapped twice, and
+    // the call ends with a sign-out that rebuilds this screen underneath.
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _DeletingDialog(label: strings.deleteAccountWorking),
     );
+
+    final ok = await AccountService.instance.deleteAccount();
+    navigator.pop(); // the progress dialog
+
+    messenger.showSnackBar(SnackBar(
+      content: Text(
+        ok ? strings.deleteAccountDone : strings.deleteAccountFailed,
+      ),
+    ));
+    // Signed out now, so this screen's account section is gone: step back to
+    // the menu rather than leave the player looking at a half-empty page.
+    if (ok) navigator.maybePop();
   }
+}
+
+/// The blocking "deleting…" dialog. Deliberately without a cancel button:
+/// once the server call is out there is nothing left to cancel.
+class _DeletingDialog extends StatelessWidget {
+  const _DeletingDialog({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+              const SizedBox(width: 16),
+              Expanded(child: Text(label)),
+            ],
+          ),
+        ),
+      );
 }
 
 /// Version and build number, read from the installed package rather than a

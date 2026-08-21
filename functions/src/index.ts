@@ -37,3 +37,7 @@ export {purchaseItem} from "./purchase";
 // Rematch: offers/answers a rematch on a finished game and opens the new one
 // through the server, so colours and rewards stay honest (REV-98).
 export {requestRematch, respondRematch} from "./rematch";
+
+// Account deletion (REV-90): the in-app deletion path Play requires, plus the
+// daily job that enforces the 12-month retention promise in the privacy policy.
+export {deleteAccount, purgeExpiredMatchRecords} from "./delete_account";

@@ -208,11 +208,16 @@ class AppStrings {
       'deleteAccountTitle': 'Delete your account?',
       'deleteAccountBody':
           'Your account, profile, trophies, coins and match history are '
-              'permanently deleted. This cannot be undone.\n\nSend the request '
-              'from the e-mail address you sign in with; it is completed within '
-              '30 days at the latest.',
-      'deleteAccountSend': 'Request by e-mail',
+              'permanently deleted. This cannot be undone.\n\nFinished matches '
+              'stay as a record for your opponents, with your name and photo '
+              'removed, for at most 12 months.',
+      'deleteAccountSend': 'Delete permanently',
       'deleteAccountDetails': 'What gets deleted',
+      'deleteAccountWorking': 'Deleting your account…',
+      'deleteAccountDone': 'Your account has been deleted.',
+      'deleteAccountFailed':
+          'Your account could not be deleted, nothing was changed. '
+              'Please try again.',
       'version': 'Version',
       'linkFailed': 'Could not open the link.',
       // Coin wallet (REV-102). The balance is server-written; these strings
@@ -459,11 +464,15 @@ class AppStrings {
       'deleteAccountTitle': 'Hesabın silinsin mi?',
       'deleteAccountBody':
           'Hesabın, profilin, kupaların, coinlerin ve maç geçmişin kalıcı '
-              'olarak silinir. Bu işlem geri alınamaz.\n\nTalebini giriş '
-              'yaptığın e-posta adresinden gönder; en geç 30 gün içinde '
-              'tamamlanır.',
-      'deleteAccountSend': 'E-posta ile talep et',
+              'olarak silinir. Bu işlem geri alınamaz.\n\nTamamlanmış maçlar '
+              'rakiplerin için kayıt olarak kalır; adın ve fotoğrafın '
+              'çıkarılır, kayıtlar en fazla 12 ay tutulur.',
+      'deleteAccountSend': 'Kalıcı olarak sil',
       'deleteAccountDetails': 'Neler siliniyor',
+      'deleteAccountWorking': 'Hesabın siliniyor…',
+      'deleteAccountDone': 'Hesabın silindi.',
+      'deleteAccountFailed':
+          'Hesabın silinemedi, hiçbir şey değişmedi. Lütfen tekrar dene.',
       'version': 'Sürüm',
       'linkFailed': 'Bağlantı açılamadı.',
       // Coin cüzdanı (REV-102). Bakiyeyi sunucu yazar; bu metinler yalnız adını
@@ -659,6 +668,9 @@ class AppStrings {
   String get deleteAccountBody => _get('deleteAccountBody');
   String get deleteAccountSend => _get('deleteAccountSend');
   String get deleteAccountDetails => _get('deleteAccountDetails');
+  String get deleteAccountWorking => _get('deleteAccountWorking');
+  String get deleteAccountDone => _get('deleteAccountDone');
+  String get deleteAccountFailed => _get('deleteAccountFailed');
   String get version => _get('version');
   String get linkFailed => _get('linkFailed');
 

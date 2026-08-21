@@ -40,7 +40,7 @@ void main() {
 
   group('HistoryEntry bonus fields', () {
     test('reads the breakdown the server wrote', () {
-      final entry = HistoryEntry.fromMap({
+      final entry = HistoryEntry.fromMap(const {
         'result': 'win',
         'coinDelta': 23,
         'coins': 151,
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('a row from before the bonuses shipped shows no breakdown', () {
-      final entry = HistoryEntry.fromMap({
+      final entry = HistoryEntry.fromMap(const {
         'result': 'loss',
         'coinDelta': 2,
         'coins': 118,
