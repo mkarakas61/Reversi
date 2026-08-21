@@ -1040,11 +1040,19 @@ class _CoinReward extends StatelessWidget {
   const _CoinReward({
     required this.delta,
     required this.balance,
+    required this.multiplier,
+    required this.waitBonus,
     required this.strings,
   });
 
   final int delta;
   final int balance;
+
+  /// The two launch bonuses folded into [delta] (REV-109/110). Named under the
+  /// total rather than shown as separate awards: the player earned one amount,
+  /// and these lines say why it was bigger than the usual result reward.
+  final int multiplier;
+  final int waitBonus;
   final AppStrings strings;
 
   @override
@@ -1056,6 +1064,22 @@ class _CoinReward extends StatelessWidget {
     return Column(
       children: [
         CoinAmount(text: '+$delta ${strings.coins}', fontSize: 16),
+        if (multiplier > 1 || waitBonus > 0) ...[
+          const SizedBox(height: 3),
+          Text(
+            [
+              if (multiplier > 1) strings.happyHourTag(multiplier),
+              if (waitBonus > 0) strings.waitBonusLine(waitBonus),
+            ].join(' · '),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+              color: GameColors.accent,
+            ),
+          ),
+        ],
         const SizedBox(height: 2),
         TweenAnimationBuilder<double>(
           tween: Tween(begin: 0.0, end: 1.0),
@@ -1147,6 +1171,8 @@ class _RewardSection extends StatelessWidget {
           _CoinReward(
             delta: entry.coinDelta,
             balance: entry.coins,
+            multiplier: entry.coinMultiplier,
+            waitBonus: entry.waitBonus,
             strings: strings,
           ),
         ],

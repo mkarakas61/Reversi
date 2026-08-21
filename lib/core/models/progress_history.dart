@@ -16,6 +16,8 @@ class HistoryEntry {
     this.trophies = 0,
     this.coinDelta = 0,
     this.coins = 0,
+    this.coinMultiplier = 1,
+    this.waitBonus = 0,
   });
 
   final DateTime ts;
@@ -39,6 +41,13 @@ class HistoryEntry {
   final int coinDelta;
   final int coins;
 
+  /// The breakdown behind [coinDelta] (REV-109/110): the happy-hour multiplier
+  /// in effect when the game finished, and the queue-wait bonus folded into it.
+  /// Rows written before these shipped read back as 1 and 0, so the result
+  /// screen simply shows no breakdown for them.
+  final int coinMultiplier;
+  final int waitBonus;
+
   bool get isWin => result == 'win';
 
   factory HistoryEntry.fromMap(Map<String, dynamic> data) {
@@ -53,6 +62,8 @@ class HistoryEntry {
       trophies: (data['trophies'] as num?)?.toInt() ?? 0,
       coinDelta: (data['coinDelta'] as num?)?.toInt() ?? 0,
       coins: (data['coins'] as num?)?.toInt() ?? 0,
+      coinMultiplier: (data['coinMultiplier'] as num?)?.toInt() ?? 1,
+      waitBonus: (data['waitBonus'] as num?)?.toInt() ?? 0,
     );
   }
 }

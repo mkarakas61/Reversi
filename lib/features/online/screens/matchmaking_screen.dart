@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/profile/profile_scope.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/models/wallet.dart';
 import '../../../core/services/matchmaking_service.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/sound_service.dart';
@@ -175,6 +176,39 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                                 fontWeight: FontWeight.w800,
                                 fontSize: 19,
                                 color: GameColors.ink,
+                              ),
+                            ),
+                            // Waiting is the worst moment of a thin player
+                            // pool, so it is also where the two coin bonuses
+                            // are explained (REV-109/110): the wait is not
+                            // wasted, and there is an hour when more people
+                            // are here. Both lines are text only — the server
+                            // owns every coin decision.
+                            const SizedBox(height: 14),
+                            Text(
+                              strings.waitBonusNote(CoinRewards.waitBonusCap),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: GameColors.inkSoft,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              HappyHour.isActive(DateTime.now())
+                                  ? strings.happyHourNow
+                                  : strings.happyHourWindow(
+                                      HappyHour.startLabel,
+                                      HappyHour.endLabel,
+                                    ),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: GameColors.accent,
                               ),
                             ),
                           ],

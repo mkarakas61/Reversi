@@ -61,6 +61,14 @@ export const onMatchmakingTicketWritten = onDocumentWritten(
 
       // --- writes ---
       const gameRef = db.collection("games").doc();
+      // How long each player waited in the queue (REV-110). Recorded here
+      // because this is the only place both tickets are in hand; the payout
+      // happens in finish_game.ts, and only if the game is actually played
+      // out. Sourced from the ticket's server `createdAt`, never the client.
+      const waitMs = {
+        [myUid]: waitedMs(mySnap.data()!, Date.now()),
+        [partnerId]: waitedMs(partnerSnap.data()!, Date.now()),
+      };
       const blackIsMe = Math.random() < 0.5;
       const blackUid = blackIsMe ? myUid : partnerId;
       const whiteUid = blackIsMe ? partnerId : myUid;
@@ -81,6 +89,7 @@ export const onMatchmakingTicketWritten = onDocumentWritten(
         winner: null,
         turnDeadline: Timestamp.fromMillis(Date.now() + TURN_SECONDS * 1000),
         createdAt: FieldValue.serverTimestamp(),
+        waitMs,
       });
       tx.update(myRef, {status: "matched", gameId: gameRef.id});
       tx.update(partnerRef, {status: "matched", gameId: gameRef.id});
@@ -98,6 +107,16 @@ export function initialBoard(): string {
   cells[4 * 8 + 3] = "b";
   cells[4 * 8 + 4] = "w";
   return cells.join("");
+}
+
+/// Milliseconds a ticket sat in the queue. Zero when the ticket carries no
+/// usable `createdAt` — the server timestamp of a just-created ticket can still
+/// be resolving when the trigger runs — and never negative, so a clock skew
+/// cannot turn into a reward.
+function waitedMs(ticket: DocumentData, now: number): number {
+  const createdAt = ticket.createdAt;
+  if (!(createdAt instanceof Timestamp)) return 0;
+  return Math.max(0, now - createdAt.toMillis());
 }
 
 /// The opponent-preview snapshot stored on the game so REV-45 can show basic

@@ -14,6 +14,7 @@ import '../../core/theme/game_colors.dart' show GameColors, bannerGradient;
 import '../../core/theme/wood_theme.dart';
 import '../online/screens/leaderboard_screen.dart';
 import '../help/how_to_play_screen.dart';
+import '../../core/models/wallet.dart';
 import '../help/welcome_tour.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
@@ -408,6 +409,23 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                           primary: true,
                           onTap: () => unawaited(_startOnline()),
                         ),
+                        // Happy hour (REV-109), shown only while it is on.
+                        // A line that sat here all day announcing an hour that
+                        // is still nine hours away would be wallpaper; this one
+                        // appears exactly when acting on it pays.
+                        if (HappyHour.isActive(DateTime.now())) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            strings.happyHourNow,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                              color: headingColor,
+                            ),
+                          ),
+                        ],
                         if (ProfileScope.of(context).profile != null) ...[
                           const SizedBox(height: 14),
                           MenuButton(

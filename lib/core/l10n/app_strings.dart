@@ -218,6 +218,13 @@ class AppStrings {
       // Coin wallet (REV-102). The balance is server-written; these strings
       // only name it and say where it comes from.
       'coins': 'Coins',
+      'happyHourWindow': 'Happy hour {start}–{end} · double coins',
+      'happyHourNow': 'Happy hour is on · double coins',
+      'happyHourTag': '×{multiplier} happy hour',
+      'waitBonusNote':
+          'Time spent waiting is added as a bonus when the match ends '
+              '(up to +{cap}).',
+      'waitBonusLine': 'Waiting bonus +{amount}',
       'wallet': 'Wallet',
       'walletRates': 'Win {win} · Draw {draw} · Loss {loss}',
       'walletSpendSoon': 'You will be able to spend these in the store.',
@@ -462,6 +469,13 @@ class AppStrings {
       // Coin cüzdanı (REV-102). Bakiyeyi sunucu yazar; bu metinler yalnız adını
       // ve nereden geldiğini söyler.
       'coins': 'Coin',
+      'happyHourWindow': 'Buluşma saati {start}–{end} · coin ×2',
+      'happyHourNow': 'Buluşma saati başladı · coin ×2',
+      'happyHourTag': '×{multiplier} buluşma saati',
+      'waitBonusNote':
+          'Beklediğin süre maç sonunda ikramiye olarak eklenecek '
+              '(en fazla +{cap}).',
+      'waitBonusLine': 'Bekleme ikramiyesi +{amount}',
       'wallet': 'Cüzdan',
       'walletRates': 'Galibiyet {win} · Beraberlik {draw} · Mağlubiyet {loss}',
       'walletSpendSoon': 'Mağaza açıldığında burada harcayabileceksin.',
@@ -657,6 +671,18 @@ class AppStrings {
       .replaceAll('{loss}', '$loss');
   String get walletSpendSoon => _get('walletSpendSoon');
   String get walletGuest => _get('walletGuest');
+
+  // Happy hour + waiting bonus (REV-109/110).
+  String happyHourWindow(String start, String end) => _get('happyHourWindow')
+      .replaceAll('{start}', start)
+      .replaceAll('{end}', end);
+  String get happyHourNow => _get('happyHourNow');
+  String happyHourTag(int multiplier) =>
+      _get('happyHourTag').replaceAll('{multiplier}', '$multiplier');
+  String waitBonusNote(int cap) =>
+      _get('waitBonusNote').replaceAll('{cap}', '$cap');
+  String waitBonusLine(int amount) =>
+      _get('waitBonusLine').replaceAll('{amount}', '$amount');
 
   // How to Play + first-launch tour (REV-103).
   String get help => _get('help');

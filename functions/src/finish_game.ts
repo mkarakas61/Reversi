@@ -12,6 +12,7 @@ import {replay, ReplayMove, Disc} from "./reversi";
 import {earnedCoins, GameOutcome} from "./xp_level";
 import {trophyDelta, rankFor} from "./trophy";
 import {isGuest} from "./guest";
+import {coinMultiplier, waitBonusCoins} from "./coin_bonus";
 import {weekId} from "./leaderboard";
 
 // The Admin app is initialized once in index.ts.
@@ -109,19 +110,28 @@ export const onGameFinished = onDocumentUpdated(
         isGuest(whiteUid),
       ]);
 
+      // Coin bonuses (REV-109/110). The multiplier is read once so both
+      // players are settled on the same window even if the transaction
+      // retries across the boundary; the queue wait is per player and is 0
+      // for a rematch, which never went through matchmaking.
+      const multiplier = coinMultiplier(new Date());
+      const waits = (g.waitMs as Record<string, unknown>) ?? {};
+
       // --- writes ---
       // Guests never get a users/{uid} doc — no reward, history or leaderboard
       // entry. Their signed-in opponent is still rewarded normally.
       if (!blackIsGuest) {
         applyReward(
           tx, blackRef, blackSnap.data(), "b",
-          winnerColor, scoreDiff, rep.flippedBy.b, whiteSnap.data(), gameId
+          winnerColor, scoreDiff, rep.flippedBy.b, whiteSnap.data(), gameId,
+          {coinMultiplier: multiplier, waitMs: waits[blackUid]}
         );
       }
       if (!whiteIsGuest) {
         applyReward(
           tx, whiteRef, whiteSnap.data(), "w",
-          winnerColor, scoreDiff, rep.flippedBy.w, blackSnap.data(), gameId
+          winnerColor, scoreDiff, rep.flippedBy.w, blackSnap.data(), gameId,
+          {coinMultiplier: multiplier, waitMs: waits[whiteUid]}
         );
       }
 
@@ -154,7 +164,8 @@ function applyReward(
   scoreDiff: number,
   myFlips: number,
   oppData: DocumentData | undefined,
-  gameId: string
+  gameId: string,
+  bonus: {coinMultiplier: number; waitMs: unknown}
 ): void {
   const coins = (data?.coins as number) ?? 0;
   const online = (data?.online as Record<string, number>) ?? {};
@@ -182,7 +193,12 @@ function applyReward(
   // own value so the history doc can carry it (REV-102) — the result screen
   // must not re-derive the reward from the outcome, or a change to the coin
   // table would show players a number the server never credited.
-  const gainedCoins = earnedCoins(outcome);
+  // Base reward, then the two launch bonuses (REV-109/110): the happy hour
+  // multiplies the result reward, the queue wait adds a flat, capped amount.
+  // Neither one touches trophies — the ladder stays self-balancing.
+  const baseCoins = earnedCoins(outcome);
+  const waitBonus = waitBonusCoins(bonus.waitMs);
+  const gainedCoins = baseCoins * bonus.coinMultiplier + waitBonus;
   const newCoins = coins + gainedCoins;
 
   tx.set(
@@ -227,6 +243,11 @@ function applyReward(
       // as the trophy pair above: the result screen reads, never computes.
       coinDelta: gainedCoins,
       coins: newCoins,
+      // The breakdown behind coinDelta, so the result screen can name the
+      // parts ("×2 buluşma saati", "bekleme ikramiyesi") without recomputing
+      // them. Absent on older rows, which read back as 1 and 0.
+      coinMultiplier: bonus.coinMultiplier,
+      waitBonus,
     },
     {merge: true}
   );
