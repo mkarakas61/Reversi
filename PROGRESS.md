@@ -5,7 +5,72 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1`
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **az oyuncu problemi planlandı** (REV-109/110 + proje 16 bildirim/e-posta)
+
+> **📣 2026-08-21 — AZ OYUNCU PROBLEMİ: İKİ ÖDÜL İŞİ + BİLDİRİM/E-POSTA ALTYAPISI PLANLANDI (kod yazılmadı):**
+>
+> **Mustafa'nın sorusu:** ilk çıkışta online oyuncu az olacak, insanlar eşleşemeyecek. "Rakip aranıyor"
+> ekranında bekleyene **dakikada 1 coin** verelim mi?
+>
+> **Cevap: düz dakika-başı ödül REDDEDİLDİ, üç somut sebeple** (bu gerekçe bir daha tartışılmasın diye
+> buraya yazılıyor):
+> 1. **Beklemek oynamaktan kârlı olurdu.** Galibiyet 10 coin / ~3-8 dk maç; boş bekleme saatte 60 coin.
+>    En çok kazandıran şey, oyuncuların en çok yapacağı şeydir.
+> 2. **Kuyruk oynamak istemeyen telefonlarla dolardı.** AFK bekleyen eşleşince uygulama önde olduğu için
+>    heartbeat gider → kopma sayılmaz (REV-108'in 30 sn kuralı işlemez), sunucuda hamle süresi zorlaması
+>    da yok (`turnDeadline` yazılıyor ama **hiçbir yerde uygulanmıyor** — 2026-08-20 cihaz deneyinde
+>    3 dakika dokunulmayan maç canlı kalmıştı). Karşısındaki gerçek oyuncu donuk tahtada kalır, o çıkar.
+> 3. **Pasif musluk mağazayı bozar** (REV-107 abonelik + coin paketi IAP henüz fiyatlanmadı) ve bekleyen
+>    ticket ping'i Firestore faturası yazar.
+>
+> **Onaylanan iki iş (Mustafa, bu oturum):**
+>
+> | # | İş | Özet |
+> |---|---|---|
+> | **REV-109** | **Buluşma saati** | Her gün sabit pencerede (öneri 20:00–22:00 TRT) coin **×2**. Yalnız coin, **kupa asla**. Pencere sunucu saatiyle (`Europe/Istanbul`), yeni saf `happy_hour.ts`. İstemci yalnız gösterim. |
+> | **REV-110** | **Kapılı bekleme ikramiyesi** | Bekleme süresi coin kazandırır ama **yalnız maç tamamlanırsa ödenir** → AFK çiftçi sıfır alır. `matchmaking.ts` eşleşirken ticket'ın sunucu `createdAt`'inden `waitMs`'i game dokümanına yazar, `finish_game.ts` `min(5, dakika×1)` ekler. Misafir hariç, rövanşta yok. |
+>
+> **Karar bekleyen (Mustafa):** buluşma saati aralığı + çarpan (×2/×3); bekleme oranı 1/dk + tavan 5.
+>
+> **📵 BİLDİRİM DURUMU — uygulama şu an hiç bildirim gönderemiyor** (kod tarandı): `pubspec.yaml`'da
+> `firebase_messaging` yok · Android manifestte **tek izin `INTERNET`** · iOS'ta APNs entitlement ve
+> `UIBackgroundModes` yok · `users/{uid}`'de token alanı yok · kural whitelist'i istemciye yalnız
+> `displayName`/`photoUrl`/`updatedAt` yazdırıyor. E-posta da yok: Google girişinden gelen e-posta
+> **Firebase Auth'ta duruyor**, Firestore'a hiç yazılmıyor; Firebase kendiliğinden e-posta atmaz.
+>
+> **Mustafa'nın "izin mi alınacak, uygulama mı değişecek" sorusunun cevabı: ÜÇÜ BİRDEN —**
+> (a) **teknik izin**: Android 13+ `POST_NOTIFICATIONS` çalışma-zamanı izni, iOS'ta her sürümde kullanıcı
+> onayı; (b) **uygulama değişikliği**: paket + token saklama + native tarafta APNs capability;
+> (c) **hukuki rıza + beyan**: pazarlama için **ayrı açık rıza**, gizlilik politikası, Play Data Safety,
+> Apple etiketi. E-posta ile ticari ileti Türkiye'de ayrıca **İYS** kapsamına girer.
+>
+> **Yeni Linear projesi: `16 · Bildirim & E-posta Altyapısı`** — REV-111 FCM altyapısı (paket, izin,
+> `users/{uid}/devices/{token}` alt koleksiyonu + **kural deploy'u**, iOS APNs `.p8` → Mustafa +
+> **ücretli Apple hesabı**) · REV-112 tercih ekranı + KVKK açık rıza kaydı · REV-113 toplu duyuru
+> (FCM topic + Console, **kod gerekmiyor**; ayda en fazla 2, sessiz saat kuralı) · REV-114 "rakip
+> bulundu" push = asenkron eşleşme (az oyuncu probleminin **tek yapısal çözümü**) · REV-115 e-posta +
+> İYS (yayın sonrası, öneri: duyuru için e-posta değil push) · REV-116 yasal beyan güncellemesi.
+>
+> **Mimari notu (delinmeyecek):** FCM token'ı `users/{uid}` dokümanına **alan olarak eklenmeyecek** —
+> o whitelist ekonominin güvenlik temeli. Token `users/{uid}/devices/{token}` alt koleksiyonuna,
+> kendi kural bloğuyla. Misafir token yazmaz (sunucuda iz bırakmama kuralı). **REV-90 hesap silme
+> bu alt koleksiyonu da silmeli.**
+>
+> **`play/data-safety.html` güncellendi:** "Bu beyanı sonra değiştirecek işler" listesi **dört → beş**
+> maddeye çıktı (REV-111 bildirim token'ı + REV-115 e-posta pazarlama amacı). Belge Artifact olarak da
+> yayınlanmıştı — Mustafa formu doldururken **güncel dosyaya** bakmalı.
+>
+> **Sıralama kararı:** bunların **hiçbiri yayın engeli değil**; sıradaki iş hâlâ **REV-90 hesap silme**.
+> Bildirim yayından önce girerse Data Safety formu ilk seferde doğru doldurulur, sonra girerse forma
+> geri dönülür — ikisi de olur, ama unutulursa politika ihlali doğar.
+>
+> **⚠️ Linear numara tutarsızlığı düzeltildi:** PROGRESS ve commit `0cd7467` "REV-108" diyordu ama
+> **Linear'da REV-108 hiç açılmamıştı** (en yüksek numara REV-107'ydi). Yeni açılan issue o numarayı
+> kapınca, git geçmişiyle uyuşsun diye REV-108 asıl sahibine verildi (kopma eşiği 30 sn + rövanş 30 sn,
+> **In Review**, cihaz testi Mustafa'da); buluşma saati REV-109 oldu.
+>
+> **Ayrıca not (task açılmadı, fikir):** 45-60 sn bekledikten sonra "AI ile oyna" teklifi — açıkça bot
+> olduğu söylenerek, kupa yok/az coin. Oyuncu ekrana bakarak beklemez. İkinci turda değerlendirilecek.
 
 > **🔚 2026-08-21 OTURUM KAPANIŞI — bekleyen iki cihaz testi yapıldı, bir saha hatası düzeltildi:**
 >
