@@ -50,15 +50,25 @@ Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` �
 > gerekiyorsa rıza yenilenecek. Yayıncıya devir olursa KVKK'da **veri sorumlusu değişikliği** ayrıca
 > değerlendirilmeli.
 >
-> **⚠️ REV-118 — "release APK yerel hafızayı sıfırlasın" isteği DEĞİŞTİRİLEREK uygulanacak.** Koşulsuz
-> sıfırlama Play'e giderse **her güncellemede tüm kullanıcıların** ayarları, offline istatistikleri
-> (`game_stats_v1`) ve yarım kalan oyunu (`saved_game_v1`) silinir. Bunun yerine:
-> `--dart-define=TEST_BUILD=true` bayrağı + **build numarası değişince bir kez** sıfırlama + ekranda
-> "TEST YAPISI" rozeti + seçici anahtar temizliği (varsayılan: yalnız onboarding/rıza). **İki ek gerçek:**
-> (1) Firebase Auth oturumu SharedPreferences'ta değil → sıfırlama `signOut()` de yapmalı, yoksa "ilk
-> giriş" görünmez; (2) rıza kaydı sunucuda → silinmeyecek (hukuki geçmiş + kural), test yapısında istem
-> **yeniden gösterilecek**, cevap yeni kayıt olarak yazılacak. Bu aynı zamanda `pm clear` yasağının
-> güvenli alternatifi.
+> **✅ REV-118 — TEK SEFERLİK YEREL SIFIRLAMA KODLANDI (In Review).** Mustafa'nın gerekçesi:
+> *"İlk girişte gördüğüm nasıl oynanır ekranlarını artık göremiyorum, tester ekibi de göremeyecek."*
+> İlk önerim (build bayrağı + "TEST YAPISI" rozeti + `signOut()` + sunucu rıza kaydı) **fazla
+> büyüktü ve Mustafa tarafından reddedildi** — istenen şey basit bir yerel temizlikti.
+>
+> **Yapılan (iki dosya):** `OnboardingStorage._resetTicket = '2026-08-21'` sabiti +
+> `applyPendingReset()`; cihazdaki bilet sabitle uyuşmuyorsa `onboarding_tour_seen` **bir kez**
+> silinir ve bilet yazılır, sonraki açılışlarda hiçbir şey yapmaz. `main.dart` açılışta çağırıyor.
+> **Yeni sıfırlama gerekirse tek iş: sabiti güncellemek.** Kod kalıcı olarak durabilir, zararsız.
+>
+> **Yalnız tur bayrağı siliniyor** — ayarlar, offline istatistik (`game_stats_v1`) ve kayıtlı oyun
+> (`saved_game_v1`) elleniyor bile değil (testle sabitlendi). Hesap/sunucu verisiyle ilgisi yok.
+>
+> **Tuzak (not düşülüyor):** sıfırlamayı önce `hasSeenTour()` içine koymuştum → "geri dönen oyuncu"
+> senaryosunu kuran 8 mevcut test kırıldı. Doğru yeri **açılış**: tek seferlik göç mantığı bir
+> okuyucunun içinde değil, `main()` içinde olmalı. **163 Flutter testi yeşil** (3 yeni:
+> `test/onboarding_reset_test.dart`), analyze temiz, release APK derlendi (68,6 MB).
+> **Cihaz testi Mustafa'da:** tur bir kez çıkmalı, ikinci açılışta çıkmamalı. Cihazlar şu an bağlı
+> değil (`adb devices` boş).
 
 > **📣 2026-08-21 — AZ OYUNCU PROBLEMİ: İKİ ÖDÜL İŞİ + BİLDİRİM/E-POSTA ALTYAPISI PLANLANDI (kod yazılmadı):**
 >

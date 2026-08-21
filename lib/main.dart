@@ -8,6 +8,7 @@ import 'app/reversi_app.dart';
 import 'core/auth/auth_scope.dart';
 import 'core/profile/profile_scope.dart';
 import 'core/services/analytics_service.dart';
+import 'core/services/onboarding_storage.dart';
 import 'core/services/settings_storage.dart';
 import 'core/services/sound_service.dart';
 import 'core/settings/app_settings.dart';
@@ -17,6 +18,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await SoundService.instance.init();
+
+  // One-off: gives devices that already saw the welcome tour one more look at
+  // it (OnboardingStorage._resetTicket). Self-limiting — see that comment.
+  await const OnboardingStorage().applyPendingReset();
 
   final settingsStorage = SettingsStorage();
   final settings = await settingsStorage.load();
