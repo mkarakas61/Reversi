@@ -5,7 +5,46 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-90 hesap silme CANLIDA** (⚠️ deploy edildi; atılabilir Google hesabıyla cihaz testi bekliyor)
+Son güncelleme: **2026-08-21** · Son commit: `0cd7467` · Sürüm: `0.1.0+1` · Son iş: **REV-117 e-posta rızası kodlandı** (⚠️ kural deploy edildi) · 7 iş Done'a çekildi
+
+> **✅📧 2026-08-21 (5. tur) — LINEAR TEMİZLİĞİ + REV-117 RIZA KODLANDI (⚠️ KURAL DEPLOY EDİLDİ):**
+>
+> **Mustafa'nın kararı: silme testi şimdilik atlandı, test edilen/onaylanan her şey Done'a çekildi.**
+> Done: REV-90 · REV-91 · REV-98 · REV-108 · REV-109 · REV-110 · REV-118.
+> **In Review'da tek iş kaldı: REV-92** (AD_ID kararı verildi ama Data Safety formu hâlâ Play
+> Console'da Mustafa'yı bekliyor — Done'a çekmek gerçek bir bekleyen işi gizlerdi).
+>
+> **⚠️ Done'a çekilirken CİHAZDA DOĞRULANMAMIŞ kalanlar** (kaybolmasın diye, REV-105 QA turunda
+> koşturulacak): (1) **REV-90** silme akışı hiç denenmedi — atılabilir Google hesabı gerekiyor,
+> **Play'in şart koştuğu yol bu, yayından önce bir kez çalıştığı görülmeli**; (2) **REV-108** dört
+> maddelik kopma/rövanş listesi; (3) **REV-109/110** ödülün gerçek maçta ödendiği (ekrandaki
+> metinler görüldü, ×2 ve ikramiye satırı görülmedi).
+>
+> **REV-117 — e-posta/duyuru rızası (commit `508a18f`):**
+> - **`ConsentService`:** `users/{uid}/consents/{tür}` **güncel** cevabı tutuyor (tek `get`, index
+>   yok), altındaki `log/` alt koleksiyonu **her** cevabı ekliyor. İkisi **tek batch**'te yazılıyor →
+>   ayrışamazlar.
+> - **`firestore.rules` (⚠️ DEPLOY EDİLDİ):** güncel cevabı **sahibi yazabilir** (kendi izni, bakiye
+>   değil), `log/` **APPEND-ONLY** (update/delete kapalı) ve `at == request.time` **zorunlu** —
+>   cihaz saatiyle geriye tarih atılamaz. İspat yükü bizde olduğu için geçmiş yeniden yazılamaz.
+> - **Tek seferlik istem** hesap başına bir kez, tanıtım turundan **sonra** menü üstünde açılıyor.
+>   Giriş ekranına kutucuk **koymadım**: o yol, önceki sürümlerde giriş yapmış **mevcut hesapların
+>   hiçbirine** sorulmaması demekti (test ekibi dahil).
+> - **Misafire hiç sorulmuyor** (adres yok, sunucuda kaydı yok). **Dışarı dokunup kapatmak cevap
+>   sayılmıyor**, hiçbir şey yazılmıyor — yalnız gerçek dokunuş rızadır.
+> - **Ayarlar → Uygulama & Hesap**'ta anahtar (her an geri alınabilir); yazma başarısız olursa
+>   anahtar eski değerine dönüyor — sunucunun demediğini iddia eden bir anahtar, anahtarsızlıktan
+>   kötüdür.
+> - **Onay metninde firma adı YOK** (yayıncı kimliği belirsiz, çıkış öncesi kararlaşacak);
+>   `LegalLinks.policyVersion = '2026-08-20'` her kayda damgalanıyor → metin değişirse ayırt edilir.
+> - **Gönderim altyapısı burada YOK** (REV-115). Bugünden itibaren yalnız **onay birikiyor** — zaten
+>   bu işin yayına yetişme sebebi bu.
+> - **174 Flutter testi yeşil** (5 yeni: `test/consent_test.dart`), analyze temiz.
+>
+> **Cihaza kurulamadı:** APK derlendi ama telefon kablodan çıkarılmıştı (`adb devices` boş).
+> **Sıradaki bağlantıda kurulup istem gözle görülecek** — Mustafa'nın hesabında henüz rıza kaydı
+> yok, yani istem ona da çıkacak. **Cevabı ben vermeyeceğim** (kendi kişisel tercihi);
+> doğrulamak için dışarı dokunup kapatmak yeterli, o da kayıt yazmıyor.
 
 > **🗑️ 2026-08-21 (4. tur) — REV-90 HESAP SİLME KODLANDI (son yayın engeli) — ⚠️ HENÜZ DEPLOY EDİLMEDİ:**
 >
