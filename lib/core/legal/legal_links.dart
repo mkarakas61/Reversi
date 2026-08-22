@@ -20,7 +20,7 @@ class LegalLinks {
   /// Stamped onto every consent record (REV-117) so consent given under this
   /// text can be told apart from consent given under a later one. Bump it in
   /// the same commit that changes the policy pages, never on its own.
-  static const String policyVersion = '2026-08-20';
+  static const String policyVersion = '2026-08-23';
 
   static String privacy(String languageCode) =>
       languageCode == 'tr' ? '$_base/gizlilik.html' : '$_base/privacy.html';

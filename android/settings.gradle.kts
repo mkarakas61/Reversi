@@ -22,6 +22,8 @@ plugins {
     id("com.android.application") version "9.0.1" apply false
     id("org.jetbrains.kotlin.android") version "2.3.20" apply false
     id("com.google.gms.google-services") version "4.4.4" apply false
+    // Uploads R8 mapping files so Crashlytics stacks stay readable (REV-94).
+    id("com.google.firebase.crashlytics") version "3.0.6" apply false
 }
 
 include(":app")

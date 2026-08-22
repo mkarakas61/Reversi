@@ -13,6 +13,9 @@ plugins {
 
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
+    // Crashlytics rides on google-services: without that config file there is
+    // no project to report to, so it is applied under the same guard (REV-94).
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 // Release signing is read from android/key.properties (not committed).

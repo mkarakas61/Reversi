@@ -10,7 +10,7 @@
 <header>
   <p class="nav"><a href="index.html">Home</a><a href="gizlilik.html">Türkçe</a></p>
   <h1>Privacy Policy</h1>
-  <p class="meta">Reversi (Android) · Last updated: 20 August 2026</p>
+  <p class="meta">Reversi (Android) · Last updated: 23 August 2026</p>
 </header>
 <main>
 
@@ -76,7 +76,14 @@ part of the measurement library.</p>
 <p>You can reset or delete your advertising ID in Android under
 <em>Settings → Google → Ads</em>.</p>
 
-<h3>3.5 Data that stays on your device</h3>
+<h3>3.5 Crash reports</h3>
+<p>If the app closes unexpectedly or hits an error, a report is sent to Firebase Crashlytics so we can
+fix it. The report contains the error itself, the list of code lines it came from (the stack trace),
+your device model, operating system version and app version. If you are signed in, <strong>only your
+user id (uid)</strong> is attached — your name, e-mail address and photo are <strong>never</strong>
+included in a crash report. These reports are used solely to fix the problem.</p>
+
+<h3>3.6 Data that stays on your device</h3>
 <p>The following never leaves your phone: language choice, theme, board and disc selections, sound and
 music settings, game speed, your saved offline game, your offline statistics, your guest nickname and
 whether you have seen the intro tour. Uninstalling the app removes them.</p>
@@ -98,6 +105,7 @@ services, which process the data on our behalf:</p>
   <tr><td>Cloud Firestore</td><td>Storing profile, match and leaderboard data</td></tr>
   <tr><td>Cloud Functions</td><td>Server-side score, trophy and coin calculations</td></tr>
   <tr><td>Google Analytics for Firebase</td><td>Usage measurement and diagnostics</td></tr>
+  <tr><td>Firebase Crashlytics</td><td>Crash and error reports</td></tr>
   <tr><td>Google Sign-In</td><td>Signing in with a Google account</td></tr>
 </table>
 <p>The game database and server functions are hosted in the European Union (Belgium,

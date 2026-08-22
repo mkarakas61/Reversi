@@ -203,6 +203,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				710F3BA13ABC9D8E3413044A /* [CP] Embed Pods Frameworks */,
 				C50FD2201A90C3D6BA63E007 /* [CP] Copy Pods Resources */,
+				9F3C1A2B4D5E6F708192A3B4 /* [Firebase] Crashlytics dSYM upload */,
 			);
 			buildRules = (
 			);
@@ -328,6 +329,22 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		9F3C1A2B4D5E6F708192A3B4 /* [Firebase] Crashlytics dSYM upload */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+				"$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "[Firebase] Crashlytics dSYM upload";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# REV-94: without the dSYM the iOS stacks reach Crashlytics as raw\n# addresses. Skipped quietly when the pod is absent so a checkout without\n# `pod install` still builds.\nif [ -f \"${PODS_ROOT}/FirebaseCrashlytics/run\" ]; then\n  \"${PODS_ROOT}/FirebaseCrashlytics/run\"\nelse\n  echo \"warning: FirebaseCrashlytics pod not found; dSYM upload skipped.\"\nfi\n";
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;

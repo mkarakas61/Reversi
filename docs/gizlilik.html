@@ -10,7 +10,7 @@
 <header>
   <p class="nav"><a href="index.html">Ana sayfa</a><a href="privacy.html">English</a></p>
   <h1>Gizlilik Politikası</h1>
-  <p class="meta">Reversi (Android) · Son güncelleme: 20 Ağustos 2026</p>
+  <p class="meta">Reversi (Android) · Son güncelleme: 23 Ağustos 2026</p>
 </header>
 <main>
 
@@ -78,7 +78,15 @@ kütüphanesinin standart parçası olarak bulunur.</p>
 <p>Reklam kimliğini Android ayarlarından sıfırlayabilir veya silebilirsin:
 <em>Ayarlar → Google → Reklamlar</em>.</p>
 
-<h3>3.5 Yalnız cihazında kalanlar</h3>
+<h3>3.5 Kilitlenme raporları</h3>
+<p>Uygulama beklenmedik biçimde kapanır veya bir hatayla karşılaşırsa, hatayı bulabilmemiz için
+Firebase Crashlytics'e bir rapor gönderilir. Raporda hatanın kendisi, oluştuğu kod satırlarının
+listesi (yığın izi), cihaz modeli, işletim sistemi sürümü ve uygulama sürümü bulunur. Girişliysen
+rapora <strong>yalnız kullanıcı kimliğin (uid)</strong> eklenir — adın, e-postan veya fotoğrafın
+kilitlenme raporlarına <strong>hiçbir zaman</strong> yazılmaz. Bu raporlar yalnızca hatayı gidermek
+için kullanılır.</p>
+
+<h3>3.6 Yalnız cihazında kalanlar</h3>
 <p>Şu veriler telefonunun kendi depolamasında tutulur, sunucuya gönderilmez: dil seçimi, tema, tahta ve
 taş seçimleri, ses ve müzik ayarları, oyun hızı, kaydedilmiş offline oyunun, offline istatistiklerin,
 misafir takma adın ve tanıtım turunu görüp görmediğin. Uygulamayı sildiğinde bunlar cihazdan gider.</p>
@@ -100,6 +108,7 @@ misafir takma adın ve tanıtım turunu görüp görmediğin. Uygulamayı sildi�
   <tr><td>Cloud Firestore</td><td>Profil, maç, lider tablosu verilerinin saklanması</td></tr>
   <tr><td>Cloud Functions</td><td>Sunucu tarafı puan, kupa ve coin hesapları</td></tr>
   <tr><td>Google Analytics for Firebase</td><td>Kullanım ölçümü ve hata tespiti</td></tr>
+  <tr><td>Firebase Crashlytics</td><td>Kilitlenme ve hata raporları</td></tr>
   <tr><td>Google Sign-In</td><td>Google hesabıyla giriş</td></tr>
 </table>
 <p>Oyun veritabanı ve sunucu fonksiyonları Avrupa Birliği'nde (Belçika, <code>europe-west1</code>)

@@ -1,6 +1,7 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,6 +9,7 @@ import 'app/reversi_app.dart';
 import 'core/auth/auth_scope.dart';
 import 'core/profile/profile_scope.dart';
 import 'core/services/analytics_service.dart';
+import 'core/services/crash_reporting_service.dart';
 import 'core/services/onboarding_storage.dart';
 import 'core/services/settings_storage.dart';
 import 'core/services/sound_service.dart';
@@ -41,9 +43,22 @@ Future<void> main() async {
     firebaseAnalytics = null;
   }
 
+  // Crash reporting is installed as early as Firebase allows, so a crash in
+  // the first frames is still reported (REV-94).
+  final crashReporting = CrashReportingService(
+    crashlytics: firebaseReady ? FirebaseCrashlytics.instance : null,
+  );
+  crashReporting.install();
+
   final authController =
       AuthController(firebaseReady ? FirebaseAuth.instance : null);
   final profileController = ProfileController(authController);
+
+  // Reports carry the uid and nothing else about the player. Signing out
+  // clears it, so nobody inherits the previous account's identifier.
+  void syncCrashUser() => crashReporting.setUser(authController.user?.uid);
+  syncCrashUser();
+  authController.addListener(syncCrashUser);
 
   runApp(ReversiApp(
     analytics: AnalyticsService(analytics: firebaseAnalytics),
