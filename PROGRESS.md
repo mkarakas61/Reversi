@@ -45,10 +45,12 @@ Son güncelleme: **2026-08-23** · Son commit: `7dee719` · Sürüm: `0.1.0+1` �
 > ayarlar `"status":"activated"`, `crashlyticsreports-pa.googleapis.com` → **200**. Geçici kod geri
 > alındı, temiz release yeniden kuruldu; telefon **girişli** ve cüzdan (580) yerinde.
 >
-> **Mustafa'da:** (1) **Firebase Console → Crashlytics**'te iki raporun göründüğünü teyit et
-> (ilk rapor geldiği için panel artık açılmış olmalı). (2) **REV-92 Data Safety formuna
-> "Kilitlenme günlükleri / Teşhis" eklenmeli** — artık gerçekten topluyoruz, form bunu söylemezse
-> beyan eksik olur.
+> **✅ MUSTAFA TEYİT ETTİ:** Firebase Console'da Crashlytics ekranı açılmış ve **iki farklı hata
+> raporu** görünüyor. Kilitlenme raporlama işi **Linear'da Done**; commit'ler GitHub'a push edildi.
+>
+> **Sırada bekleyen (Mustafa'da):** Play Console'daki veri güvenliği formuna (REV-92) **"Kilitlenme
+> günlükleri / Tanılama bilgileri"** eklenmeli — artık gerçekten topluyoruz ve rapora uid yazılıyor;
+> form bunu söylemezse beyan eksik kalır. Gerekli metin Linear'da REV-92'ye yorum olarak bırakıldı.
 
 > **🖼️ 2026-08-23 — LİDER TABLOSUNDA TAÇLI ÇERÇEVE HİZASI DÜZELTİLDİ (REV-106 hatası) + REV-109 DOĞRULANDI:**
 >
