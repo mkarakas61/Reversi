@@ -65,6 +65,12 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // Release derlemesi R8'den geçiyor; proguard-rules.pro'daki kural
+            // olmadan Firebase bileşenleri yansımayla kurulamıyor (REV-94).
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
