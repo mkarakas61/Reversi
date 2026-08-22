@@ -5,7 +5,43 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `16ad1a4` · Sürüm: `0.1.0+1` · Sıradaki iş: **mağaza — satın alma akışı (sunucu) veya mağaza ekranı tasarımı**
+Son güncelleme: **2026-08-23** · Son commit: `6f281af` · Sürüm: `0.1.0+1` · Sıradaki iş: **mağaza — ayarlarda kilit görünümü + satın alma diyaloğu (cihazda gerçek satın alma testi)**
+
+> **💰 2026-08-23 — TEK TEK SATIŞ + SATIN ALMA CANLIDA (⚠️ SUNUCU DEPLOY EDİLDİ):**
+>
+> **⚠️ KARAR DEĞİŞTİ — paket YOK, her şey tek tek satılıyor** (Mustafa): "birimleri tek tek satalım,
+> tahta ayrı taşlar ayrı… harcama kazanma hissi erişilebilir olmalı ama tüketilip bitmemeli hemen."
+> Bir önceki turda kararlaşan mermer/çiçek **paketleri iptal**; yerine 8 ayrı ürün:
+>
+> | Ürün | Fiyat |
+> |---|---|
+> | Mermer tahta · Çiçek tahta | **300** coin (≈30 galibiyet) |
+> | Ceviz · Akağaç · Siyah mermer · Beyaz mermer · Mor çiçek · Pembe çiçek taşları | **100** coin (≈10 galibiyet) |
+>
+> **Taşların hepsi aynı fiyat** — oyuncu ucuz olanı değil beğendiğini seçsin. Vitrinin tamamı
+> **1200 coin ≈ 120 galibiyet**: ilk satın alma birkaç günde gelir, vitrin bir haftada bitmez.
+>
+> **⚠️ SUNUCU DEPLOY EDİLDİ (Mustafa onayı):** `purchaseItem` **update**
+> (`--only functions:purchaseItem`). **Yeni fonksiyon değil** — `purchaseItem` aylardır canlıydı ama
+> `catalog.ts` **boştu**, yani her çağrı "not-found" dönüyordu; deploy kataloğu doldurdu.
+> **Kural değişikliği YOK:** istemci zaten yalnız ad/foto yazabiliyor, `coins` ve `ownedItems`a eli
+> değmiyor — satın almanın güvenliği mevcut kurallarla zaten sağlanmış durumda.
+>
+> **Fiyatlar yalnız sunucuda.** İstemci sadece **ürün kimliği** gönderiyor; bakiye kontrolü, tahsilat
+> ve sahiplik yazımı **tek transaction** → eksi bakiye ve çift satın alma imkânsız. Dart tarafındaki
+> katalog **yalnız vitrini çizmek için** ve sunucunun aynası: **id'ler oyuncunun `ownedItems`ında
+> durduğu için sonradan değiştirilemez** (değiştirmek sahip olan herkesten eşyayı almak demektir).
+> Testler iki tarafta da id listesini açıkça yazıyor, biri kayarsa test kırılır.
+>
+> `PurchaseService` bakiyeyi **yerelde düşürmüyor**: profil dokümanı zaten dinleniyor, sunucunun
+> yazdığı sayı geliyor. `Profile.ownedItems` + `entitlements` eklendi.
+> **196 Flutter + 63 functions testi yeşil**, analyze temiz, `tsc` temiz.
+>
+> **Doğrulama durumu:** deploy sonrası kimliksiz çağrı `UNAUTHENTICATED · "Sign in required."`
+> döndü → fonksiyon canlı ve doğru kodu çalıştırıyor. **Gerçek satın alma HENÜZ DENENMEDİ** —
+> uygulamada satın alacak bir ekran yok. Sıradaki iş bu: ayarlar ekranında kilitli görünüm + fiyat +
+> onay diyaloğu; sonra Mustafa'nın 580 coin'iyle cihazda gerçek bir taş alınıp bakiyenin 480'e
+> düştüğü görülecek.
 
 > **🛒 2026-08-23 — MAĞAZA VİTRİNİ KARARLAŞTI + KATALOG KODLANDI (ekran ve satın alma YOK):**
 >
