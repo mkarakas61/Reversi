@@ -16,6 +16,13 @@ import '../../core/models/rank.dart';
 /// * [RankFrameView.boxed] fits the whole frame into a fixed square. Use it for
 ///   previews in lists and cards, where every row must be the same height and
 ///   there is no avatar to line up with.
+///
+/// Whichever you ask for, the result is scaled down as a whole if the parent
+/// hands it less room than it asked for (the crowned frames outgrow small slots
+/// easily — Efsane needs 61pt of frame for a 30pt opening). Without that the
+/// frame art alone would shrink to the parent's box while the avatar kept the
+/// offsets computed for the bigger canvas, and the avatar would slide out of
+/// its opening — which is exactly what the leaderboard rows showed.
 class RankFrameView extends StatelessWidget {
   /// Frame sized so its opening is [openingDiameter] across; [child] is centred
   /// in that opening. The widget's own box is the frame's full extent.
@@ -50,45 +57,51 @@ class RankFrameView extends StatelessWidget {
     final frameSize = _boxSize ?? frame.frameSizeFor(_openingDiameter!);
     final opening = _openingDiameter ?? _boxSize! * frame.openingFraction;
 
-    return SizedBox(
-      width: frameSize,
-      height: frameSize,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // The opening is off-centre on the crowned frames, so the child is
-          // placed against the measured centre rather than the canvas centre.
-          Positioned(
-            left: frameSize * frame.centerX - opening / 2,
-            top: frameSize * frame.centerY - opening / 2,
-            width: opening,
-            height: opening,
-            child: ClipOval(
-              child: SizedBox(
-                width: opening,
-                height: opening,
-                child: child ?? const SizedBox.shrink(),
+    // Frame and avatar are laid out together at the frame's natural size and
+    // then scaled as one, so a tight parent can shrink the pair but can never
+    // pull them apart.
+    return FittedBox(
+      fit: BoxFit.contain,
+      child: SizedBox(
+        width: frameSize,
+        height: frameSize,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // The opening is off-centre on the crowned frames, so the child is
+            // placed against the measured centre rather than the canvas centre.
+            Positioned(
+              left: frameSize * frame.centerX - opening / 2,
+              top: frameSize * frame.centerY - opening / 2,
+              width: opening,
+              height: opening,
+              child: ClipOval(
+                child: SizedBox(
+                  width: opening,
+                  height: opening,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
-          ),
-          // Frame art last: the crown and wings are meant to overlap whatever
-          // sits in the opening.
-          Positioned.fill(
-            child: Image.asset(
-              frame.asset,
-              width: frameSize,
-              height: frameSize,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.medium,
-              // The art is 512², but most uses are thumbnail-sized. Without a
-              // cache hint all six decode at full size, which is ~6 MB of
-              // resident bitmap for the rank road's 56pt previews alone.
-              cacheWidth: (frameSize *
-                      MediaQuery.devicePixelRatioOf(context))
-                  .round(),
+            // Frame art last: the crown and wings are meant to overlap whatever
+            // sits in the opening.
+            Positioned.fill(
+              child: Image.asset(
+                frame.asset,
+                width: frameSize,
+                height: frameSize,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+                // The art is 512², but most uses are thumbnail-sized. Without a
+                // cache hint all six decode at full size, which is ~6 MB of
+                // resident bitmap for the rank road's 56pt previews alone.
+                cacheWidth: (frameSize *
+                        MediaQuery.devicePixelRatioOf(context))
+                    .round(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

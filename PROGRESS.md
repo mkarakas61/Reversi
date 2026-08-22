@@ -5,7 +5,39 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-21** · Son commit: `8c2a3c9` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-94 Crashlytics**
+Son güncelleme: **2026-08-23** · Son commit: `cc02dad` · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-94 Crashlytics**
+
+> **🖼️ 2026-08-23 — LİDER TABLOSUNDA TAÇLI ÇERÇEVE HİZASI DÜZELTİLDİ (REV-106 hatası) + REV-109 DOĞRULANDI:**
+>
+> **✅ REV-109 buluşma saati cihazda doğrulandı (Mustafa, 22 Ağustos 20:00–22:00):** gerçek maçta
+> **×2 ödül ödendi**, test başarılı. Geriye REV-110 (bekleme ikramiyesi satırı) ile REV-108'in
+> 4 maddesi ve REV-90 silme akışı kaldı — üçü de hâlâ cihazda görülmedi.
+>
+> **🐞 Hata (Mustafa fark etti):** Firestore'dan kendini **Efsane** yapınca lider tablosunda taçlı
+> çerçevenin içindeki avatar sağa-aşağı kayıp **halkanın dışına taşıyordu**. Profil ekranında aynı
+> çerçeve kusursuzdu → hata çerçevede değil, **dar kutuda**.
+>
+> **Sebep:** satırdaki `_RankedAvatar._slot = 46`, ama 30pt'lik açıklık için Efsane **~61**, Büyük
+> Usta **~68** boyunda çerçeve ister. `RankFrameView` çerçeve resmini ebeveynin 46'sına sıkıştırıyor,
+> avatarın yerini ise **sıkışmadan önceki** boya göre hesaplıyordu → ikisi ayrı ölçekte kalıyordu.
+> Sade rütbeler (41 < 46) sığdığı için Sena'nın satırı düzgün görünüyordu; hata yalnız taçlı iki
+> rütbede ve yalnız sıkıştıran kutularda çıkıyordu.
+>
+> **Düzeltme:** `RankFrameView` artık çerçeve + avatarı doğal boyda kurup **tek `FittedBox` ile
+> birlikte** ölçekliyor → ebeveyn ne kadar yer verirse versin ikisi asla ayrışamaz. Bu, yalnız lider
+> tablosunu değil **her çağrı yerini** (profil, maç ekranı, rakip önizleme, rütbe yolu) kalıcı olarak
+> korur.
+>
+> **Karar (Mustafa):** satır yüksekliği **aynı kalsın**. Taçlı çerçeve 46'lık kutuya oranı bozulmadan
+> sığdırılıyor: dıştan yine en büyük (46 > sade 41), içindeki avatar biraz küçülüyor (30 → ~23).
+> Alternatif — kutuyu 68'e çıkarıp avatarları eşit tutmak — **her satırı ~22pt uzatacağı** için
+> seçilmedi; gerekçe kodda yorum olarak duruyor.
+>
+> **175 Flutter testi yeşil** (1 yeni regresyon testi: dar kutuda çerçeve ve avatar aynı oranda
+> küçülüyor mu — eski kod bu testi geçemezdi), analyze temiz (bilinen 2 info lint).
+> **Native dosya değişmedi** → iOS karşılığı yok, `lib/` ortak. Release APK **telefona kuruldu**
+> (veri korundu, `pm clear` YOK) ve **cihazda gözle doğrulandı**: avatar halkanın tam içinde,
+> satır yükseklikleri değişmedi.
 
 > **🔚 2026-08-21 (2. OTURUM) KAPANIŞI — 8 iş Done, 4 sunucu deploy'u, telefon güncel:**
 >

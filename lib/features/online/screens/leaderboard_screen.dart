@@ -427,9 +427,16 @@ class _LeaderboardRow extends StatelessWidget {
 /// own profile — otherwise the reward is invisible to everyone but you.
 ///
 /// The opening is kept small enough that a row stays a row; the frames grow
-/// around it, so the crowned ranks take more vertical space and read as grander
-/// without pushing the avatars out of line. [trophies] is null on rows written
-/// before the server stamped the field, and those simply go unframed.
+/// around it, so the crowned ranks read as grander without pushing the avatars
+/// out of line. [trophies] is null on rows written before the server stamped
+/// the field, and those simply go unframed.
+///
+/// The crowned frames still want more than [_slot] (Efsane needs ~61 for a 30pt
+/// opening, Büyük Usta ~68), so [RankFrameView] scales the whole frame down to
+/// the slot: their outer ring fills the box — wider than the plain ranks' ~41 —
+/// and their avatar comes out a little smaller. That is the trade the row
+/// height buys; growing [_slot] to 68 instead would make every row taller for
+/// every player, crowned or not.
 class _RankedAvatar extends StatelessWidget {
   const _RankedAvatar({required this.photoUrl, required this.trophies});
 

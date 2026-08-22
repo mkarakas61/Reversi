@@ -107,6 +107,49 @@ void main() {
       }
     });
 
+    testWidgets('a slot too small shrinks the frame and the child together',
+        (tester) async {
+      const key = Key('child');
+      // REV-106 regression: the leaderboard row reserves a 46pt slot, but
+      // Efsane wants ~61pt of frame for a 30pt opening. The frame art used to
+      // shrink to the slot on its own while the avatar kept the offsets of the
+      // bigger canvas, so the avatar slid down-right and out of its ring.
+      final frame = kRanks.last.frame;
+      const slot = 46.0;
+      const opening = 30.0;
+      expect(frame.frameSizeFor(opening), greaterThan(slot),
+          reason: 'this test only means something for a frame that overflows');
+
+      await tester.pumpWidget(MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: slot,
+            height: slot,
+            child: Center(
+              child: RankFrameView.around(
+                frame: frame,
+                openingDiameter: opening,
+                child: Container(key: key, color: const Color(0xFF000000)),
+              ),
+            ),
+          ),
+        ),
+      ));
+
+      final frameRect = tester.getRect(find.byType(RankFrameView));
+      expect(frameRect.width, lessThanOrEqualTo(slot));
+
+      // Both shrank by the same factor, so the child still sits on the opening
+      // and still fits inside it.
+      final scale = frameRect.width / frame.frameSizeFor(opening);
+      final childRect = tester.getRect(find.byKey(key));
+      expect(childRect.width, closeTo(opening * scale, 0.01));
+      expect(childRect.center.dx - frameRect.left,
+          closeTo(frameRect.width * frame.centerX, 0.01));
+      expect(childRect.center.dy - frameRect.top,
+          closeTo(frameRect.height * frame.centerY, 0.01));
+    });
+
     testWidgets('the child sits on the measured opening, not the canvas centre',
         (tester) async {
       const key = Key('child');
