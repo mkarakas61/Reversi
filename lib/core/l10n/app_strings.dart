@@ -72,8 +72,6 @@ class AppStrings {
       'themeWood': 'Wood',
       'themeTurkuaz': 'Turquoise',
       'themeGece': 'Midnight Blue',
-      'themeAntrasit': 'Anthracite',
-      'themePetrol': 'Deep Petrol',
       'themeMermer': 'Marble',
       'themeCicek': 'Flower',
       'coinBlack': 'Black',
@@ -339,8 +337,6 @@ class AppStrings {
       'themeWood': 'Kahve rengi',
       'themeTurkuaz': 'Turkuaz',
       'themeGece': 'Gece Mavisi',
-      'themeAntrasit': 'Antrasit',
-      'themePetrol': 'Koyu Petrol',
       'themeMermer': 'Mermer',
       'themeCicek': 'Çiçek',
       'coinBlack': 'Siyah',
@@ -641,8 +637,6 @@ class AppStrings {
       case BoardTheme.wood: return _get('themeWood');
       case BoardTheme.turkuaz: return _get('themeTurkuaz');
       case BoardTheme.gece: return _get('themeGece');
-      case BoardTheme.antrasit: return _get('themeAntrasit');
-      case BoardTheme.petrol: return _get('themePetrol');
       case BoardTheme.mermer: return _get('themeMermer');
       case BoardTheme.cicek: return _get('themeCicek');
     }

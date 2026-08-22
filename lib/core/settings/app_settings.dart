@@ -3,7 +3,13 @@ import 'package:flutter/widgets.dart';
 import '../game/game_settings.dart';
 import '../services/settings_storage.dart';
 
-enum BoardTheme { wood, turkuaz, gece, antrasit, petrol, mermer, cicek }
+/// Selectable boards. Antrasit and Petrol were dropped when the store was
+/// designed: both were another shade of the turquoise family, and three tones
+/// of one colour read as the same board sold three times — which is exactly
+/// what makes a paid board look worthless. Stored settings naming a removed
+/// board fall back to [wood] on load (`_enumByName` returns null), so nobody
+/// ends up on a board that no longer exists.
+enum BoardTheme { wood, turkuaz, gece, mermer, cicek }
 
 /// Selectable disc skins. The first four are procedural coins (drawn from a
 /// [CoinPalette]); the rest are image discs (walnut/maple wood, marble, floral)

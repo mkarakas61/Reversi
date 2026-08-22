@@ -59,20 +59,6 @@ const Map<BoardTheme, BoardPalette> boardPalettes = {
     lineHi: Color.fromRGBO(190, 206, 255, 0.14),
     star: Color.fromRGBO(9, 14, 30, 0.82),
   ),
-  BoardTheme.antrasit: BoardPalette(
-    frame: [Color(0xFF15A99C), Color(0xFF0B6F66)],
-    surface: [Color(0xFF3A434F), Color(0xFF2C333D), Color(0xFF242A33)],
-    line: Color.fromRGBO(8, 11, 16, 0.52),
-    lineHi: Color.fromRGBO(205, 222, 235, 0.12),
-    star: Color.fromRGBO(8, 11, 16, 0.80),
-  ),
-  BoardTheme.petrol: BoardPalette(
-    frame: [Color(0xFF0D7268), Color(0xFF06433D)],
-    surface: [Color(0xFF0F8478), Color(0xFF0A655C), Color(0xFF074C45)],
-    line: Color.fromRGBO(2, 30, 27, 0.55),
-    lineHi: Color.fromRGBO(180, 255, 246, 0.13),
-    star: Color.fromRGBO(2, 30, 27, 0.82),
-  ),
   BoardTheme.mermer: BoardPalette(
     frame: [Color(0xFF9298A0), Color(0xFF595E66)],
     surface: [Color(0xFFA8AEB6), Color(0xFF8B9199), Color(0xFF6F757D)],
