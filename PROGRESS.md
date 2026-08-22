@@ -5,7 +5,36 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `7dee719` · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-92 Data Safety'ye kilitlenme günlükleri** (Mustafa'da) · sonra REV-95 AAB
+Son güncelleme: **2026-08-23** · Son commit: `16ad1a4` · Sürüm: `0.1.0+1` · Sıradaki iş: **mağaza — satın alma akışı (sunucu) veya mağaza ekranı tasarımı**
+
+> **🛒 2026-08-23 — MAĞAZA VİTRİNİ KARARLAŞTI + KATALOG KODLANDI (ekran ve satın alma YOK):**
+>
+> **Mustafa'nın kararı — ne satılacak:**
+> - **Ücretsiz:** Ahşap + Türkuaz + Gece tahtaları · dört çizim taşı (siyah/beyaz/türkuaz/turuncu) ·
+>   Orijinal tema. Ücretsiz set tek başına eksiksiz görünsün diye üç **birbirine benzemeyen** tahta.
+> - **🗑️ ELENDİ: Antrasit + Koyu Petrol.** İkisi de türkuazın tonuydu; aynı rengin üç tonu vitrinde
+>   "aynı tahtanın üç kez satılması" gibi okunur ve **ücretli olanın değerini düşürür**. Kayıtlı ayarı
+>   bu tahtalardan birini söyleyen cihaz açılışta kendiliğinden **Ahşap**'a düşüyor (kod zaten
+>   bilinmeyen adı null sayıyordu — ayrı bir göç koduna gerek kalmadı).
+> - **Coin ile:** ahşap taş ikilisi **150** · mermer paketi **400** · çiçek paketi **400**.
+>   Ölçek galibiyet = 10 coin (20:00–22:00 iki katı) → sırasıyla ~15 ve ~40 galibiyet.
+> - **Gerçek para:** Güzelsi teması + aylık abonelik. **Coin fiyatı bilerek YOK** — oynayarak
+>   alınabilen bir şey aboneliğin satış gerekçesini yok eder.
+> - **Kilitler herkese aynı uygulanacak; geçmişe dönük hediye yok** (Mustafa). Test ekibinde de
+>   ücretli tahtalar kilitlenecek — bunu kilit devreye girdiğinde onlara söylemek gerekiyor.
+>
+> **Kod (commit `16ad1a4`):** `store_catalog.dart` + `entitlements.dart`.
+> Satılan birim **"item"**: mermer tahtası ile mermer taşları **tek pakette**, çünkü yarısı alınmış
+> bir tema yarım kalmış görünür. **Item id'leri sunucudaki envantere yazılacak → asla değişmemeli**
+> (değiştirmek sahip olan herkesten o eşyayı almak demek). `Entitlements` yalnız **sorgu**:
+> ücretsiz set sunucu gerektirmiyor (misafir ve çevrimdışı çalışır), abonelik **kullanım hakkı**
+> verir eşyayı devretmez (abonelik biterse coin ile alınanlar durur), kilitli seçim boş ekran yerine
+> ücretsiz olana düşer. **191 test yeşil** (16 yeni), analyze temiz.
+>
+> **Sırada (henüz hiç yok):** (1) **satın alma sunucuda** — coin bakiyesi sunucu-sahipli olduğu için
+> satın alma da callable olmalı, istemci envantere yazamamalı (kural + deploy gerekir);
+> (2) mağaza ekranının **görsel tasarımı** ve kodu; (3) ayarlar ekranında kilitli görünüm +
+> mağazaya yönlendirme; (4) Play Billing (abonelik + coin paketi) — bu üçünden sonra.
 
 > **💥 2026-08-23 — REV-94 CRASHLYTICS CANLI + R8'İN FIREBASE'İ ÖLDÜRDÜĞÜ TUZAK YAKALANDI:**
 >
