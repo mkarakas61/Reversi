@@ -5,7 +5,50 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `cc02dad` · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-94 Crashlytics**
+Son güncelleme: **2026-08-23** · Son commit: `7dee719` · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-92 Data Safety'ye kilitlenme günlükleri** (Mustafa'da) · sonra REV-95 AAB
+
+> **💥 2026-08-23 — REV-94 CRASHLYTICS CANLI + R8'İN FIREBASE'İ ÖLDÜRDÜĞÜ TUZAK YAKALANDI:**
+>
+> **Kod (commit `0ff1d92`):** yeni `CrashReportingService`, `FirebaseCrashlytics`'i `AnalyticsService`
+> gibi **nullable** sarıyor → Firebase hiç başlamazsa uygulama yine çalışır. `install()` **iki**
+> kancayı birden kuruyor: `FlutterError.onError` (çerçeve içi hatalar) + `PlatformDispatcher.onError`
+> (kök zona kaçan async hatalar); `runZonedGuarded` ikincisinin eski karşılığı, **gerekmiyor**.
+> Önceki `FlutterError.onError` korunup **önce** çalıştırılıyor → debug'daki kırmızı ekran ve konsol
+> dökümü aynen duruyor. Rapora **yalnız uid** yazılıyor, çıkışta temizleniyor (sonraki oyuncu
+> öncekinin kimliğini taşımasın). Android: eklenti `google-services.json` koşulunun içinde.
+> **iOS: Runner hedefine dSYM yükleme adımı eklendi** (`project.pbxproj`); pod yoksa sessizce
+> atlıyor, Release yapılandırmalarında `dwarf-with-dsym` zaten açıktı. **iOS'ta Firebase hâlâ hiç
+> kurulu değil** (`GoogleService-Info.plist` yok, `firebase_options`'ta ios girişi yok) — bu REV-94'ün
+> eksiği değil, iOS'un tamamı için bekleyen ayrı iş.
+> Gizlilik politikası TR+EN: **"3.5 Kilitlenme raporları"** bölümü + hizmet tablosuna Crashlytics
+> satırı; metin değiştiği için `LegalLinks.policyVersion` **2026-08-23**'e yükseltildi (sabitin kendi
+> kuralı bunu şart koşuyor). **178 Flutter testi yeşil** (3 yeni), analyze temiz.
+>
+> **🚨 EN ÖNEMLİ BULGU (commit `7dee719`) — cihaz testi olmasaydı yayına bu hatayla giderdik:**
+> Crashlytics'li ilk release APK telefonda **Firebase'siz** açıldı:
+> `NullPointerException: FirebaseCrashlytics component is not present.` `Firebase.initializeApp`
+> tümden düştüğü için **giriş, online ve lider tablosu da çalışmıyordu** — hata Crashlytics ile
+> sınırlı değildi. Sebep: Firebase bileşenleri AndroidManifest'teki meta-data adlarından
+> **yansımayla** kuruluyor; kütüphanelerin getirdiği kural yalnız
+> `-keep class * implements ComponentRegistrar` — **sınıfı korur, üyelerini korumaz**. R8, kimsenin
+> çağırmadığı `CrashlyticsRegistrar.<init>()`'ı sildi (`build/app/outputs/mapping/release/usage.txt`
+> içinde açıkça görünüyor): sınıf duruyor ama örneklenemiyor. Çözüm: yeni
+> **`android/app/proguard-rules.pro`** tüm registrar'ların parametresiz yapıcısını koruyor, release
+> buildType'ı bu dosyayı kullanıyor.
+> **⚠️ REV-95 (AAB + obfuscation) için not:** R8/obfuscation ayarlarına dokunan her değişiklikten
+> sonra `usage.txt`'te `<init>` silinmiş mi diye bakmak **ve release APK'yı cihazda bir kez açıp**
+> "Firebase init failed" olmadığını görmek gerekiyor; testler ve analyze bu sınıf hatayı **hiç**
+> yakalamaz.
+>
+> **✅ CİHAZDA DOĞRULANDI (SM-G780G, release):** geçici bir yapıyla iki hata kasten üretildi —
+> yakalanmamış Dart hatası + native test çökmesi. Logcat: `Initializing Firebase Crashlytics 19.4.4`,
+> ayarlar `"status":"activated"`, `crashlyticsreports-pa.googleapis.com` → **200**. Geçici kod geri
+> alındı, temiz release yeniden kuruldu; telefon **girişli** ve cüzdan (580) yerinde.
+>
+> **Mustafa'da:** (1) **Firebase Console → Crashlytics**'te iki raporun göründüğünü teyit et
+> (ilk rapor geldiği için panel artık açılmış olmalı). (2) **REV-92 Data Safety formuna
+> "Kilitlenme günlükleri / Teşhis" eklenmeli** — artık gerçekten topluyoruz, form bunu söylemezse
+> beyan eksik olur.
 
 > **🖼️ 2026-08-23 — LİDER TABLOSUNDA TAÇLI ÇERÇEVE HİZASI DÜZELTİLDİ (REV-106 hatası) + REV-109 DOĞRULANDI:**
 >
