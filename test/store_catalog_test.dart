@@ -4,8 +4,9 @@ import 'package:reversi/core/store/entitlements.dart';
 import 'package:reversi/core/store/store_catalog.dart';
 
 // The store's shop window, decided 2026-08-23: free = wood + turquoise +
-// midnight and the four drawn discs; coins buy the wooden discs and the marble
-// and floral packs; the Güzelsi theme and the subscription are real money only.
+// midnight and the four drawn discs; every other board and every other disc is
+// sold **on its own** for coins (disc 100, board 300); the Güzelsi theme and
+// the subscription are real money only.
 //
 // These tests are about the catalogue staying honest — every board reachable,
 // no board both free and for sale, ids stable — because a mistake here either
@@ -71,6 +72,50 @@ void main() {
             reason: '${item.id} price');
       }
     });
+
+    test('every disc costs the same and a board costs more', () {
+      final discPrices = coinItems
+          .where((i) => i.kind == StoreItemKind.disc)
+          .map((i) => i.coinPrice)
+          .toSet();
+      final boardPrices = coinItems
+          .where((i) => i.kind == StoreItemKind.board)
+          .map((i) => i.coinPrice!)
+          .toSet();
+
+      expect(discPrices, hasLength(1),
+          reason: 'a cheap disc would be picked for its price, not its look');
+      expect(boardPrices.reduce((a, b) => a < b ? a : b),
+          greaterThan(discPrices.single!));
+    });
+
+    test('nothing is sold in bundles — one board or one disc per item', () {
+      for (final item in coinItems) {
+        expect(item.boards.length + item.discs.length, 1,
+            reason: '${item.id} hands over more than one thing');
+      }
+    });
+
+    test('ids match the ones the server charges for', () {
+      // Mirrors CATALOG in functions/src/catalog.ts. An id that drifts apart
+      // there either cannot be bought or unlocks nothing once bought.
+      expect(coinItems.map((i) => i.id).toSet(), {
+        'board_marble',
+        'board_flower',
+        'disc_walnut',
+        'disc_maple',
+        'disc_marble_black',
+        'disc_marble_white',
+        'disc_flower_purple',
+        'disc_flower_pink',
+      });
+    });
+
+    test('itemById finds a stored id and shrugs at an unknown one', () {
+      expect(itemById('board_marble')?.boards, [BoardTheme.mermer]);
+      expect(itemById('pack_marble'), isNull,
+          reason: 'an id from an older build must not silently match');
+    });
   });
 
   group('Entitlements', () {
@@ -84,12 +129,18 @@ void main() {
       expect(e.ownsTheme(AppThemeId.wood), isFalse);
     });
 
-    test('a bought pack unlocks its board and its discs together', () {
-      const e = Entitlements(ownedItemIds: {'pack_marble'});
+    test('an item unlocks only itself — boards and discs are sold apart', () {
+      const e = Entitlements(ownedItemIds: {'board_marble'});
       expect(e.ownsBoard(BoardTheme.mermer), isTrue);
-      expect(e.ownsDisc(CoinColor.marbleBlack), isTrue);
-      expect(e.ownsDisc(CoinColor.marbleWhite), isTrue);
+      expect(e.ownsDisc(CoinColor.marbleBlack), isFalse,
+          reason: 'the marble discs are their own purchase');
       expect(e.ownsBoard(BoardTheme.cicek), isFalse);
+    });
+
+    test('discs are owned one at a time', () {
+      const e = Entitlements(ownedItemIds: {'disc_walnut'});
+      expect(e.ownsDisc(CoinColor.walnut), isTrue);
+      expect(e.ownsDisc(CoinColor.maple), isFalse);
     });
 
     test('a subscription unlocks everything without owning it', () {
@@ -103,7 +154,7 @@ void main() {
     });
 
     test('coin purchases survive a lapsed subscription', () {
-      const lapsed = Entitlements(ownedItemIds: {'pack_marble'});
+      const lapsed = Entitlements(ownedItemIds: {'board_marble'});
       expect(lapsed.ownsBoard(BoardTheme.mermer), isTrue);
       expect(lapsed.ownsTheme(AppThemeId.wood), isFalse);
     });

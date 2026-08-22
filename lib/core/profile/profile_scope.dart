@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 
 import '../models/online_stats.dart';
+import '../store/entitlements.dart';
 import '../services/guest_identity_service.dart';
 import '../services/profile_service.dart';
 import '../auth/auth_scope.dart';
@@ -21,6 +22,7 @@ class Profile {
     this.photoUrl,
     this.online = OnlineStats.empty,
     this.coins = 0,
+    this.ownedItems = const {},
     this.isGuest = false,
   });
 
@@ -35,7 +37,18 @@ class Profile {
   /// balance is always 0 — they earn nothing (REV-57).
   final int coins;
 
+  /// Store items bought with coins, from the server-written `ownedItems`
+  /// array (REV-66). Like [coins] this is server-authoritative: `purchaseItem`
+  /// debits the balance and adds the id in one transaction, and the rules stop
+  /// the client from writing either. Guests have no document, so the set stays
+  /// empty and they play with the free set.
+  final Set<String> ownedItems;
+
   final bool isGuest;
+
+  /// What this player may use right now. The free set needs no server, so this
+  /// is meaningful for guests and offline sessions too.
+  Entitlements get entitlements => Entitlements(ownedItemIds: ownedItems);
 }
 
 /// Holds the player's [Profile]. On sign-in it shows the account's name/photo
@@ -113,6 +126,10 @@ class ProfileController extends ChangeNotifier {
           photoUrl: data['photoUrl'] as String? ?? user.photoURL,
           online: OnlineStats.fromMap(data['online'] as Map<String, dynamic>?),
           coins: (data['coins'] as num?)?.toInt() ?? 0,
+          ownedItems: {
+            for (final id in (data['ownedItems'] as List<dynamic>? ?? const []))
+              if (id is String) id,
+          },
         );
         notifyListeners();
       },
