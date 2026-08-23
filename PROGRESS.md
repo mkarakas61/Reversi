@@ -5,7 +5,44 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `23546c8` · Sürüm: `0.1.0+1` · Sıradaki iş: **bildirimler (push) veya eşleşmede otomatik başlangıç** — Play Billing yayıncı görüşmesini bekliyor
+Son güncelleme: **2026-08-23** · Son commit: `a74c29d` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1` · Sıradaki iş: **bildirimler (push) veya eşleşmede otomatik başlangıç** — Play Billing yayıncı görüşmesini bekliyor
+
+> **🔚 2026-08-23 (GECE OTURUMU) KAPANIŞI — 2 hata, 1 yeni özellik, 1 mağaza, 1 sunucu deploy'u:**
+>
+> **Canlı durum:** yerel `main` = `origin/main`, çalışma ağacı **temiz**.
+> **196 Flutter + 63 functions testi yeşil**, analyze temiz (bilinen 2 info lint), `tsc` temiz.
+> **Telefondaki kurulum (03:20) HEAD koduyla aynı** — sonrasında yalnız PROGRESS commit'leri var.
+> Geçici test kodu (kasten çöktürme) **geri alındı**, kod tabanında iz yok. Tablet bu oturumda hiç
+> bağlanmadı → **onda hâlâ eski sürüm var** (mağaza, kilitlenme raporlama, çerçeve düzeltmesi yok).
+>
+> | İş | Durum |
+> |---|---|
+> | Lider tablosunda taçlı çerçeve hizası | Düzeltildi · cihazda doğrulandı |
+> | Kilitlenme raporlama (Crashlytics) | Canlı · iki gerçek raporla doğrulandı · Linear'da Done |
+> | **R8 Firebase bileşenini siliyordu** | Düzeltildi · **yayını bozacak hataydı** |
+> | Mağaza: vitrin kararı + katalog + sahiplik | Bitti |
+> | Mağaza: satın alma (sunucu) | **Deploy edildi** · cihazda 3 gerçek satın alma |
+> | Mağaza ekranı + ayarlarda kilit + cila | Bitti · cihazda doğrulandı · Linear'da Done |
+> | Yayın paketi (AAB) | Derlendi · **YÜKLENMEDİ** (yayıncı kararı) |
+>
+> **⚠️ BU OTURUMDA SUNUCU 1 KEZ DEĞİŞTİ:** `purchaseItem` **update** (katalog dolduruldu).
+> Kural/index değişikliği **yok** — istemci zaten `coins` ve `ownedItems`a yazamıyordu.
+>
+> **Linear:** REV-94, REV-62, REV-69, REV-71 → **Done**. REV-92 (veri güvenliği formu), REV-95 (AAB),
+> REV-107 (abonelik), REV-63 (mağaza görsel tasarımı) → durum yorumları bırakıldı.
+>
+> **Mustafa'da bekleyenler:** **yayıncı görüşmesi** (Play'e yükleme ve dolayısıyla Play Billing buna
+> bağlı) · veri güvenliği formuna "kilitlenme günlükleri / tanılama" eklenmesi (metin Linear'da hazır)
+> · yayıncı kimliği + alan adı kararı · yasal sayfa adresindeki kullanıcı adı.
+>
+> **Cihazda hâlâ denenmemiş (yayın öncesi QA turu):** hesap silme akışı (atılabilir Google hesabı
+> gerekir) · kopma/rövanş sürelerinin 4 maddesi (tablet) · bekleme ikramiyesi satırı (tablet).
+>
+> **Sıradaki iş için hazır iki seçenek (ikisi de Play'e bağlı değil):** bildirim altyapısı (push izni +
+> token + tercihler ekranı) veya eşleşmede otomatik başlangıç.
+>
+> **Not (cüzdan):** test satın almalarıyla Mustafa'nın bakiyesi **580 → 280**. Eşyalar (Ceviz,
+> Akçaağaç, Mermer Siyah) hesapta; bakiye istenirse Console'dan düzeltilebilir.
 
 > **✨ 2026-08-23 — MAĞAZA CİLASI + PLAY BILLING DURDURULDU (yayıncı kararı):**
 >
