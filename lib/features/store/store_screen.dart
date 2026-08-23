@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/profile/profile_scope.dart';
 import '../../core/services/purchase_service.dart';
+import '../../core/services/sound_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/store/entitlements.dart';
 import '../../core/store/store_catalog.dart';
@@ -110,10 +111,114 @@ class StoreScreen extends StatelessWidget {
                             ],
                           ),
                         ),
+                        // What money will buy once Play Billing is wired up.
+                        // Shown rather than hidden: a shop window that quietly
+                        // omits the plan makes the coin items look like the
+                        // whole game, and the subscription arrives as a
+                        // surprise later.
+                        InfoCard(
+                          title: strings.storeComingTitle,
+                          child: Column(
+                            children: [
+                              for (final item in moneyItems)
+                                _ComingSoonTile(item: item),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A real-money item that cannot be bought yet: named, described, and clearly
+/// not for sale — no button that does nothing.
+class _ComingSoonTile extends StatelessWidget {
+  const _ComingSoonTile({required this.item});
+
+  final StoreItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final isTheme = item.kind == StoreItemKind.appTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Opacity(
+        opacity: 0.72,
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: coinGold.withValues(alpha: 0.14),
+              ),
+              child: Icon(
+                isTheme
+                    ? Icons.palette_rounded
+                    : Icons.workspace_premium_rounded,
+                color: coinGold,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isTheme
+                        ? strings.storeGuzelsiName
+                        : strings.storePremiumName,
+                    style: const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: GameColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isTheme
+                        ? strings.storeGuzelsiDesc
+                        : strings.storePremiumDesc,
+                    style: const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      color: GameColors.inkSoft,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: GameColors.inkSoft.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                strings.storeComingSoon,
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: GameColors.inkSoft,
+                ),
               ),
             ),
           ],
@@ -174,6 +279,11 @@ class _StoreTile extends StatefulWidget {
 class _StoreTileState extends State<_StoreTile> {
   bool _busy = false;
 
+  /// Set for a moment right after a successful purchase. A bought thing should
+  /// visibly arrive — a line that silently changes its button is a receipt,
+  /// not a reward.
+  bool _celebrating = false;
+
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
@@ -181,7 +291,20 @@ class _StoreTileState extends State<_StoreTile> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+      child: AnimatedScale(
+        scale: _celebrating ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutBack,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            color: _celebrating
+                ? coinGold.withValues(alpha: 0.14)
+                : Colors.transparent,
+          ),
+          child: Row(
         children: [
           SizedBox(width: 56, height: 56, child: _preview(item)),
           const SizedBox(width: 12),
@@ -214,6 +337,8 @@ class _StoreTileState extends State<_StoreTile> {
           const SizedBox(width: 8),
           _action(strings),
         ],
+          ),
+        ),
       ),
     );
   }
@@ -338,6 +463,7 @@ class _StoreTileState extends State<_StoreTile> {
       case null:
       case PurchaseFailure.alreadyOwned:
         _say(strings.storeBought(_label(strings, item)));
+        _celebrate();
       case PurchaseFailure.notEnoughCoins:
         _say(strings.storeNotEnough);
       case PurchaseFailure.notSignedIn:
@@ -346,6 +472,16 @@ class _StoreTileState extends State<_StoreTile> {
       case PurchaseFailure.failed:
         _say(strings.storeFailed);
     }
+  }
+
+  /// A short flourish: the game's win chime and a beat of gold on the row.
+  /// Deliberately brief — the player came to shop, not to watch an animation.
+  Future<void> _celebrate() async {
+    SoundService.instance.playSfx(Sfx.win);
+    setState(() => _celebrating = true);
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+    setState(() => _celebrating = false);
   }
 
   void _say(String message) {

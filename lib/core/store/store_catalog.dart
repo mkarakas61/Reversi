@@ -10,6 +10,9 @@ enum StoreItemKind {
 
   /// The app-wide look (menus, headers, page chrome).
   appTheme,
+
+  /// The monthly subscription: everything unlocked while it is active.
+  subscription,
 }
 
 /// One thing the store sells, or gives away.
@@ -155,6 +158,15 @@ const StoreItem _guzelsiTheme = StoreItem(
   theme: AppThemeId.wood,
 );
 
+/// The monthly subscription. Real money, and not yet buyable anywhere — Play
+/// Billing needs the app uploaded to Play Console first, which waits on the
+/// publisher decision. Listed so the store can show what is coming instead of
+/// pretending the shop window is the whole plan.
+const StoreItem _premium = StoreItem(
+  id: 'premium_monthly',
+  kind: StoreItemKind.subscription,
+);
+
 /// Everything the store knows about, in display order.
 const List<StoreItem> kStoreItems = [
   _starterSet,
@@ -167,7 +179,14 @@ const List<StoreItem> kStoreItems = [
   _flowerPurpleDisc,
   _flowerPinkDisc,
   _guzelsiTheme,
+  _premium,
 ];
+
+/// Items that cost real money — shown in the store as what is coming, never as
+/// something a coin balance can reach.
+List<StoreItem> get moneyItems => kStoreItems
+    .where((i) => !i.isFree && !i.buyableWithCoins)
+    .toList();
 
 /// Items a player can buy with coins, in display order.
 List<StoreItem> get coinItems =>

@@ -66,6 +66,12 @@ class AppStrings {
       'gameMode': 'Game mode',
       'settings': 'Settings',
       'storeTitle': 'Store',
+      'storeComingTitle': 'Coming soon',
+      'storeComingSoon': 'Soon',
+      'storeGuzelsiName': 'Güzelsi theme',
+      'storeGuzelsiDesc': 'The warm wood and parchment look, everywhere in the app',
+      'storePremiumName': 'Monthly subscription',
+      'storePremiumDesc': 'Every board and disc unlocked while it lasts',
       'storeBoards': 'Boards',
       'storeDiscs': 'Discs',
       'storeOpen': 'Open the store',
@@ -349,6 +355,12 @@ class AppStrings {
       'gameMode': 'Oyun modu',
       'settings': 'Ayarlar',
       'storeTitle': 'Mağaza',
+      'storeComingTitle': 'Yakında',
+      'storeComingSoon': 'Yakında',
+      'storeGuzelsiName': 'Güzelsi teması',
+      'storeGuzelsiDesc': 'Sıcak ahşap ve parşömen görünümü, uygulamanın her yerinde',
+      'storePremiumName': 'Aylık abonelik',
+      'storePremiumDesc': 'Sürdüğü sürece bütün tahtalar ve taşlar açık',
       'storeBoards': 'Tahtalar',
       'storeDiscs': 'Taşlar',
       'storeOpen': 'Mağazayı aç',
@@ -637,6 +649,12 @@ class AppStrings {
   // Store (REV-69/71). Locked items live here and nowhere else: settings shows
   // only what the player owns.
   String get storeTitle => _get('storeTitle');
+  String get storeComingTitle => _get('storeComingTitle');
+  String get storeComingSoon => _get('storeComingSoon');
+  String get storeGuzelsiName => _get('storeGuzelsiName');
+  String get storeGuzelsiDesc => _get('storeGuzelsiDesc');
+  String get storePremiumName => _get('storePremiumName');
+  String get storePremiumDesc => _get('storePremiumDesc');
   String get storeBoards => _get('storeBoards');
   String get storeDiscs => _get('storeDiscs');
   String get storeOpen => _get('storeOpen');

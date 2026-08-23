@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/profile/profile_scope.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../shared/widgets/coin_amount.dart';
-import '../../profile/profile_screen.dart';
+import '../../store/store_screen.dart';
 import 'pill_button.dart';
 
 /// Coin balance pill for the main menu, under the profile chip (REV-102).
@@ -12,8 +12,9 @@ import 'pill_button.dart';
 /// has no balance at all, so for both this renders nothing rather than a
 /// misleading zero. A balance of 0 for a signed-in player IS shown — that is a
 /// real balance, and hiding it would make the first coin look like a bug.
-/// Tapping opens the profile, where the card says how coins are earned; once
-/// the store lands (REV-69) this is its natural entry point.
+/// Tapping opens the store: a balance is a question ("what can I get for
+/// this?") and the shop window is the answer. The profile still explains how
+/// coins are earned, one tap further along.
 /// Whether the menu shows a balance for [profile]. Signed out there is nothing
 /// to show; a guest's balance is always 0 because guests earn nothing, and a
 /// zero that can never move reads as a broken counter rather than a wallet.
@@ -35,7 +36,7 @@ class WalletChip extends StatelessWidget {
         onTap: () {
           SoundService.instance.playSfx(Sfx.button);
           Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
+            MaterialPageRoute<void>(builder: (_) => const StoreScreen()),
           );
         },
         child: CoinAmount(text: '${profile!.coins}', fontSize: 14),
