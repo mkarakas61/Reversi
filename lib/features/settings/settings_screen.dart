@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../core/l10n/app_strings.dart';
+import '../../core/profile/profile_scope.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/game_colors.dart'
     show GameColors, bannerGradient, creamShellGradient;
+import '../../core/store/entitlements.dart';
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/info_card.dart';
 import '../help/how_to_play_screen.dart';
+import '../store/store_screen.dart';
 import '../menu/widgets/menu_button.dart';
 import 'app_account_screen.dart';
 import 'widgets/app_theme_row.dart';
@@ -26,6 +29,15 @@ class SettingsScreen extends StatelessWidget {
     final settings = controller.settings;
     final lang = Localizations.localeOf(context).languageCode;
     final wood = settings.appTheme == AppThemeId.wood;
+
+    // Settings offers only what the player owns; locked items live in the
+    // store and nowhere else (Mustafa, 2026-08-23). A picker full of padlocks
+    // would nag at someone every time they change a colour.
+    final entitlements =
+        ProfileScope.of(context).profile?.entitlements ?? Entitlements.freeOnly;
+    final ownedBoards =
+        BoardTheme.values.where(entitlements.ownsBoard).toList();
+    final ownedDiscs = CoinColor.values.where(entitlements.ownsDisc).toList();
 
     return Scaffold(
       backgroundColor: wood ? WoodTheme.surface : GameColors.creamTop,
@@ -75,14 +87,29 @@ class SettingsScreen extends StatelessWidget {
                                 controller.setLocale(Locale(code)),
                           ),
                         ),
+                        // The way into the shop window. It sits above the
+                        // pickers because that is where someone stands when
+                        // they notice they want more than they own.
+                        InfoCard(
+                          title: strings.storeTitle,
+                          child: MenuButton(
+                            label: strings.storeOpen,
+                            icon: Icons.storefront_rounded,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const StoreScreen(),
+                              ),
+                            ),
+                          ),
+                        ),
                         // Theme, board and coin are independent (REV-70): every
-                        // board and coin is selectable regardless of the app
-                        // theme. (Paid boards get a locked look once the store
-                        // ships — REV-69/71.)
+                        // board and coin the player owns is selectable
+                        // regardless of the app theme.
                         InfoCard(
                           title: strings.boardColor,
                           child: BoardThemeGrid(
                             selected: settings.board,
+                            themes: ownedBoards,
                             onSelect: controller.setBoard,
                           ),
                         ),
@@ -94,6 +121,7 @@ class SettingsScreen extends StatelessWidget {
                                 label: strings.yourCoin,
                                 selected: settings.yourCoin,
                                 disabled: settings.opponentCoin,
+                                colors: ownedDiscs,
                                 onSelect: controller.setYourCoin,
                               ),
                               const SizedBox(height: 14),
@@ -101,6 +129,7 @@ class SettingsScreen extends StatelessWidget {
                                 label: strings.opponentCoin,
                                 selected: settings.opponentCoin,
                                 disabled: settings.yourCoin,
+                                colors: ownedDiscs,
                                 onSelect: controller.setOpponentCoin,
                               ),
                             ],

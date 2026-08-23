@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/settings/app_settings.dart';
-import '../../../core/theme/coin_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../shared/widgets/disc_preview.dart';
 
 class CoinRow extends StatelessWidget {
   const CoinRow({
@@ -11,12 +11,18 @@ class CoinRow extends StatelessWidget {
     required this.selected,
     required this.disabled,
     required this.onSelect,
+    this.colors,
   });
 
   final String label;
   final CoinColor selected;
   final CoinColor disabled;
   final ValueChanged<CoinColor> onSelect;
+
+  /// Which skins to offer. Defaults to all of them; the settings screen passes
+  /// only the ones the player owns, so nothing locked is shown there at all
+  /// (the store is where locked items live).
+  final List<CoinColor>? colors;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,7 @@ class CoinRow extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final color in CoinColor.values)
+            for (final color in colors ?? CoinColor.values)
               _CoinSwatch(
                 color: color,
                 active: color == selected,
@@ -68,34 +74,8 @@ class _CoinSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = coinPalettes[color];
-    // Procedural coins draw a radial-gradient disc; image discs (walnut/marble/
-    // flower) show their PNG, which has its own shape + shading (REV-82).
-    final Widget coin = palette != null
-        ? Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: const Alignment(-0.24, -0.36),
-                radius: 0.95,
-                colors: [palette.faceTop, palette.faceMid, palette.faceBottom],
-                stops: const [0.0, 0.5, 1.0],
-              ),
-              boxShadow: const [
-                BoxShadow(
-                    color: Color(0x33000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2)),
-              ],
-            ),
-          )
-        : SizedBox(
-            width: 38,
-            height: 38,
-            child: Image.asset(coinAssets[color]!, fit: BoxFit.contain),
-          );
+    // Both looks live in DiscPreview so the store shows the same disc.
+    final Widget coin = DiscPreview(color: color);
 
     return Opacity(
       opacity: disabled ? 0.28 : 1.0,

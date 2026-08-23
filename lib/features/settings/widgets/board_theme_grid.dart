@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/game/reversi_game.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/settings/app_settings.dart';
-import '../../../core/theme/board_palette.dart';
 import '../../../core/theme/game_colors.dart';
+import '../../../shared/widgets/board_preview.dart';
 
 class BoardThemeGrid extends StatelessWidget {
   const BoardThemeGrid({
@@ -76,7 +75,7 @@ class _BoardTile extends StatelessWidget {
                 width: 3,
               ),
             ),
-            child: _BoardPreview(theme: theme),
+            child: BoardPreview(theme: theme),
           ),
           const SizedBox(height: 5),
           SizedBox(
@@ -98,90 +97,4 @@ class _BoardTile extends StatelessWidget {
       ),
     );
   }
-}
-
-class _BoardPreview extends StatelessWidget {
-  const _BoardPreview({required this.theme});
-
-  final BoardTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    // The floral board is a single baked-in image (border + grid included),
-    // so its preview is just the image, scaled to fill the tile.
-    if (theme == BoardTheme.cicek) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(11),
-        child: const Image(
-          image: AssetImage('assets/flower/flower-board.png'),
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    final palette = boardPalettes[theme];
-
-    final BoxDecoration frame = palette == null
-        ? BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
-            image: const DecorationImage(
-              image: AssetImage('assets/wood/wood-frame.png'),
-              fit: BoxFit.cover,
-            ),
-          )
-        : BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
-            gradient: palette.frameGradient,
-          );
-
-    final BoxDecoration surface = palette == null
-        ? BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            image: const DecorationImage(
-              image: AssetImage('assets/wood/wood-surface.png'),
-              fit: BoxFit.cover,
-            ),
-          )
-        : BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            gradient: palette.surfaceGradient,
-          );
-
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: frame,
-      child: DecoratedBox(
-        decoration: surface,
-        child: SizedBox.expand(
-          child: CustomPaint(painter: _MiniGridPainter(palette: palette)),
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniGridPainter extends CustomPainter {
-  _MiniGridPainter({required this.palette});
-
-  final BoardPalette? palette;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final n = ReversiGame.size;
-    final cell = size.width / n;
-    if (palette?.marble ?? false) paintMarbleVeins(canvas, size);
-    final paint = Paint()
-      ..color = palette == null
-          ? GameColors.gridLine
-          : palette!.line.withValues(alpha: 0.55)
-      ..strokeWidth = 0.6;
-    for (var i = 1; i < n; i++) {
-      final p = i * cell;
-      canvas.drawLine(Offset(p, 0), Offset(p, size.height), paint);
-      canvas.drawLine(Offset(0, p), Offset(size.width, p), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_MiniGridPainter old) => old.palette != palette;
 }

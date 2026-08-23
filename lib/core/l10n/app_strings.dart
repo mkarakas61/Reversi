@@ -65,6 +65,24 @@ class AppStrings {
       'newGameTitle': 'New Game',
       'gameMode': 'Game mode',
       'settings': 'Settings',
+      'storeTitle': 'Store',
+      'storeBoards': 'Boards',
+      'storeDiscs': 'Discs',
+      'storeOpen': 'Open the store',
+      'storeHint': 'Boards and discs you can buy with coins',
+      'storeBuy': 'Buy',
+      'storeApply': 'Use',
+      'storeInUse': 'In use',
+      'storeOwned': 'Owned',
+      'storeConfirmTitle': 'Buy this?',
+      'storeConfirmBody': '{item} costs {price} coins. Your balance: {balance}.',
+      'storeBought': '{item} is yours.',
+      'storeNotEnough': 'Not enough coins.',
+      'storeSignInNeeded': 'Sign in to buy — a guest has no coin balance.',
+      'storeFailed': 'The purchase did not go through. Nothing was charged.',
+      'storeAppliedBoard': 'Board changed.',
+      'storeAppliedDisc': 'Your disc changed.',
+      'storeEmptyHint': 'You own everything here. Thank you!',
       'boardColor': 'Board color',
       'coinColor': 'Coin color',
       'yourCoin': 'Your coin',
@@ -330,6 +348,24 @@ class AppStrings {
       'newGameTitle': 'Yeni Oyun',
       'gameMode': 'Oyun modu',
       'settings': 'Ayarlar',
+      'storeTitle': 'Mağaza',
+      'storeBoards': 'Tahtalar',
+      'storeDiscs': 'Taşlar',
+      'storeOpen': 'Mağazayı aç',
+      'storeHint': 'Coin ile alabileceğin tahtalar ve taşlar',
+      'storeBuy': 'Al',
+      'storeApply': 'Kullan',
+      'storeInUse': 'Kullanımda',
+      'storeOwned': 'Sende',
+      'storeConfirmTitle': 'Alınsın mı?',
+      'storeConfirmBody': '{item} {price} coin. Bakiyen: {balance}.',
+      'storeBought': '{item} artık senin.',
+      'storeNotEnough': 'Yeterli coin yok.',
+      'storeSignInNeeded': 'Satın almak için giriş yap — misafirin coin bakiyesi olmuyor.',
+      'storeFailed': 'Satın alma tamamlanmadı. Hiçbir şey tahsil edilmedi.',
+      'storeAppliedBoard': 'Tahta değişti.',
+      'storeAppliedDisc': 'Taşın değişti.',
+      'storeEmptyHint': 'Buradaki her şey sende. Teşekkürler!',
       'boardColor': 'Tahta rengi',
       'coinColor': 'Taş rengi',
       'yourCoin': 'Senin taşın',
@@ -597,6 +633,33 @@ class AppStrings {
   String get newGameTitle => _get('newGameTitle');
   String get gameMode => _get('gameMode');
   String get settings => _get('settings');
+
+  // Store (REV-69/71). Locked items live here and nowhere else: settings shows
+  // only what the player owns.
+  String get storeTitle => _get('storeTitle');
+  String get storeBoards => _get('storeBoards');
+  String get storeDiscs => _get('storeDiscs');
+  String get storeOpen => _get('storeOpen');
+  String get storeHint => _get('storeHint');
+  String get storeBuy => _get('storeBuy');
+  String get storeApply => _get('storeApply');
+  String get storeInUse => _get('storeInUse');
+  String get storeOwned => _get('storeOwned');
+  String get storeConfirmTitle => _get('storeConfirmTitle');
+  String storeConfirmBody(String item, int price, int balance) =>
+      _get('storeConfirmBody')
+          .replaceAll('{item}', item)
+          .replaceAll('{price}', '$price')
+          .replaceAll('{balance}', '$balance');
+  String storeBought(String item) =>
+      _get('storeBought').replaceAll('{item}', item);
+  String get storeNotEnough => _get('storeNotEnough');
+  String get storeSignInNeeded => _get('storeSignInNeeded');
+  String get storeFailed => _get('storeFailed');
+  String get storeAppliedBoard => _get('storeAppliedBoard');
+  String get storeAppliedDisc => _get('storeAppliedDisc');
+  String get storeEmptyHint => _get('storeEmptyHint');
+
   String get boardColor => _get('boardColor');
   String get coinColor => _get('coinColor');
   String get yourCoin => _get('yourCoin');
