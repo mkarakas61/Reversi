@@ -5,7 +5,36 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `0a3de13` · Sürüm: `0.1.0+1` · Sıradaki iş: **Güzelsi teması kararı (aşağıda) · sonra abonelik/Play Billing veya bildirimler**
+Son güncelleme: **2026-08-23** · Son commit: `23546c8` · Sürüm: `0.1.0+1` · Sıradaki iş: **bildirimler (push) veya eşleşmede otomatik başlangıç** — Play Billing yayıncı görüşmesini bekliyor
+
+> **✨ 2026-08-23 — MAĞAZA CİLASI + PLAY BILLING DURDURULDU (yayıncı kararı):**
+>
+> **Güzelsi kararı (Mustafa): şimdilik ayarlarda kalsın.** Gerçek para ürünü ve satın alma altyapısı
+> yok; kilitlersek kimse alamadığı için kimse kullanamaz. Play Billing gelince kilitlenecek.
+>
+> **⛔ PLAY BILLING DURDURULDU:** Mustafa "yayıncı ile görüşmeden yüklemeyeceğiz" dedi. Billing'in
+> kodu yazılabilir ama **tek satırı bile çalıştırılamaz**: Play, Console'da tanımlı olmayan ürünü
+> döndürmez ve yüklenmemiş uygulamada satın alma akışı hiç başlamaz. Haftalarca denenmemiş kod
+> bırakmak, tam da sessizce bozulmasıyla bilinen bir alanda, kabul edilmedi. **Zincir:** imzalı AAB
+> (bizde) → Console'a iç test yüklemesi + Play App Signing (Mustafa) → ürün tanımları + lisans test
+> hesabı (Mustafa) → Play Developer API servis hesabı (Mustafa açar, kodu biz yazarız) → istemci +
+> sunucu kodu (bizde). **İlk halka hazır:** `flutter build appbundle --release` ile **AAB derlendi**
+> (69,6 MB, sürüm imzasıyla, R8 tuzağı tekrarlamadı) — **hiçbir yere yüklenmedi**.
+>
+> **Cila (commit `23546c8`):**
+> - **Menüdeki coin rozeti artık mağazayı açıyor** (eskiden profili). Bakiye bir sorudur ("bununla ne
+>   alabilirim?"), vitrin cevabı; coin'in nasıl kazanıldığını anlatan profil bir dokunuş ötede.
+> - **"Yakında" bölümü:** Güzelsi teması ve aylık abonelik, adı + kısa açıklamasıyla, satılık
+>   olmadığını söyleyen etiketle. Gizlemek, coin ürünlerini oyunun tamamı gibi gösterirdi.
+>   Katalogda `premium_monthly` tanımlandı (satın alınamaz).
+> - **Kutlama:** kazanma sesi + satırda bir anlık altın fon ve hafif büyüme (0,7 sn). Sessizce buton
+>   değiştiren satır ödül değil fiştir; kasten kısa.
+>
+> **✅ CİHAZDA DOĞRULANDI (SM-G780G, release):** rozet → mağaza açıldı · "Yakında" bölümü göründü ·
+> **iki satın alma daha** yapıldı (Akçaağaç, Mermer Siyah) → bakiye **480 → 380 → 280**, kutlama
+> karesi yakalandı ("Mermer Siyah artık senin." + altın fon). Test sırasında toplam 300 coin harcandı;
+> eşyalar hesapta duruyor, bakiye istenirse Console'dan düzeltilebilir.
+> **196 Flutter testi yeşil**, analyze temiz.
 
 > **🏪 2026-08-23 — MAĞAZA EKRANI ÇALIŞIYOR, CİHAZDA GERÇEK SATIN ALMA YAPILDI:**
 >
