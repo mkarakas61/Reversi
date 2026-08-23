@@ -5,7 +5,34 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `6f281af` · Sürüm: `0.1.0+1` · Sıradaki iş: **mağaza — ayarlarda kilit görünümü + satın alma diyaloğu (cihazda gerçek satın alma testi)**
+Son güncelleme: **2026-08-23** · Son commit: `0a3de13` · Sürüm: `0.1.0+1` · Sıradaki iş: **Güzelsi teması kararı (aşağıda) · sonra abonelik/Play Billing veya bildirimler**
+
+> **🏪 2026-08-23 — MAĞAZA EKRANI ÇALIŞIYOR, CİHAZDA GERÇEK SATIN ALMA YAPILDI:**
+>
+> **Mustafa'nın kararı:** ayrı mağaza ekranı · satın alınan hem mağazadan uygulanabilsin hem ayarlarda
+> görünsün · **satın alınmamış içerik ayarlarda HİÇ görünmesin** · ayarlara mağaza yönlendirmesi.
+>
+> - **`StoreScreen`:** bakiye üstte, "Tahtalar" ve "Taşlar" bölümleri, her satırda **gerçek önizleme**
+>   + fiyat. Sahip olunanda **"Kullan"**, o an seçili olanda **"Kullanımda"**. Onay diyaloğu fiyatı ve
+>   bakiyeyi **birlikte** gösteriyor — fiyat, bakiyesiz bir sayıdır.
+> - **Satın alınan mağazadan uygulanıyor:** parayı verdikten sonraki ilk düşünce "bakayım nasılmış";
+>   bunun için başka ekrana göndermek tuhaf olurdu. Taşta "Kullan" **senin** taşını değiştiriyor;
+>   rakip tarafı, iki tarafın birlikte göründüğü tek yer olan ayarlarda kalıyor.
+> - **Ayarlar yalnız sahip olunanı listeliyor.** Kilitli şeyi ayarlarda göstermek, renk değiştirmeye
+>   gelen oyuncuyu her seferinde dürtmek olurdu; kilit yalnız mağazada.
+> - Önizlemeler ortak parçaya taşındı (`BoardPreview`, `DiscPreview`) → mağazadaki tahta ile ayarlardaki
+>   **birebir aynı çizim**. Bakiye yerelde düşürülmüyor; sunucunun yazdığı sayı geliyor.
+>
+> **✅ CİHAZDA UÇTAN UCA (SM-G780G, release, Mustafa'nın gerçek hesabı):** mağaza açıldı → **Ceviz taşı
+> 100 coin'e alındı** → **bakiye 580 → 480**, satır "Sende / Kullan" oldu, "Ceviz artık senin"
+> bildirimi çıktı → "Kullan" ile taş uygulandı → **ayarlarda dört ücretsiz taşın yanına ceviz eklendi**,
+> alınmayanlar hâlâ görünmüyor. Satın alma zinciri (istemci → callable → transaction → profil akışı)
+> baştan sona çalışıyor. **196 Flutter testi yeşil**, analyze temiz. Commit `0a3de13`.
+>
+> **⚠️ AÇIK KALAN KARAR — Güzelsi teması:** kurala göre ("satın alınmamış ayarlarda görünmesin")
+> ayarlardaki tema satırından **kalkması** gerekir, ama Güzelsi **gerçek para** ürünü ve Play Billing
+> henüz yok → kaldırırsak şu an kimse alamaz ve test ekibi de kullanamaz. Şimdilik **ayarlarda açık
+> bırakıldı**; Mustafa'ya soruldu, karar bekliyor.
 
 > **💰 2026-08-23 — TEK TEK SATIŞ + SATIN ALMA CANLIDA (⚠️ SUNUCU DEPLOY EDİLDİ):**
 >
