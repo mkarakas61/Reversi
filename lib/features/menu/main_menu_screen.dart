@@ -19,6 +19,7 @@ import '../help/welcome_tour.dart';
 import '../settings/marketing_consent_prompt.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
+import '../store/store_screen.dart';
 import 'widgets/menu_button.dart';
 import 'widgets/menu_logo.dart';
 import 'widgets/pill_button.dart';
@@ -273,8 +274,12 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                   ),
                 ),
               ),
+              // Scrollable, not a fixed column: the menu grew a sixth button
+              // (the store), and on a short phone in landscape the logo plus
+              // six buttons no longer fits. It still centres itself whenever
+              // there is room, so nothing moves on a normal screen.
               Center(
-                child: Padding(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -448,6 +453,27 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                             ),
                           ),
                         ],
+                        // The store gets a button of its own, not only the
+                        // coin pill (Mustafa, 2026-08-24). The pill is for
+                        // someone already looking at their balance; a player
+                        // who has never earned a coin has no reason to read a
+                        // number in the corner, and would never learn the
+                        // boards and discs can be changed at all. Shown signed
+                        // out too — a shop window is worth seeing before you
+                        // have a wallet; buying is what asks for an account.
+                        const SizedBox(height: 14),
+                        MenuButton(
+                          label: strings.storeTitle,
+                          icon: Icons.storefront_rounded,
+                          onTap: () {
+                            SoundService.instance.playSfx(Sfx.button);
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const StoreScreen(),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ],
                   ),

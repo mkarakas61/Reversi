@@ -159,3 +159,47 @@ double rankProgress(int trophies) {
   final ceil = kRanks[idx + 1].minTrophies;
   return ((trophies - floor) / (ceil - floor)).clamp(0.0, 1.0);
 }
+
+/// The trophy rewards, mirrored from `functions/src/trophy.ts` for one purpose:
+/// telling the player how the ladder works (the "How to Play" screen).
+///
+/// Nothing in the app computes trophies — the server writes `online.trophies`
+/// and the client renders it, exactly like the coin balance. These numbers are
+/// **label only**. A mirror that drifts therefore misinforms rather than
+/// miscalculates, which is why `test/trophy_rules_test.dart` reads trophy.ts
+/// and compares.
+class TrophyRewards {
+  const TrophyRewards._();
+
+  /// Trophies for any win, before the margin bonus.
+  static const int winBase = 3;
+
+  /// Extra trophies for winning by a wide margin: the score difference divided
+  /// by [scoreDiffPerBonus] (rounded), capped at [maxWinBonus].
+  static const int maxWinBonus = 3;
+  static const int scoreDiffPerBonus = 8;
+
+  static const int drawGain = 1;
+
+  /// Trophies lost on a defeat, by the rank held **before** the game. The lower
+  /// ranks lose nothing: someone still learning the game should not be pushed
+  /// backwards. Higher up it grows, so holding a rank takes an ever-better win
+  /// rate — the ladder balances itself instead of being tuned by hand.
+  static const Map<RankId, int> lossPenalty = {
+    RankId.caylak: 0,
+    RankId.acemi: 0,
+    RankId.kalfa: 1,
+    RankId.usta: 2,
+    RankId.buyukusta: 4,
+    RankId.efsane: 6,
+  };
+
+  /// The win rate needed to hold a rank: below it the losses outweigh the wins,
+  /// above it the player climbs. `penalty / (winBase + penalty)` — the same
+  /// formula the server's comment states, shown as a whole percentage.
+  static int breakEvenWinRatePercent(RankId rank) {
+    final penalty = lossPenalty[rank] ?? 0;
+    if (penalty == 0) return 0;
+    return (penalty / (winBase + penalty) * 100).round();
+  }
+}

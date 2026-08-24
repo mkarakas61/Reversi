@@ -74,6 +74,13 @@ class AppStrings {
       'storePremiumDesc': 'Every board and disc unlocked while it lasts',
       'storeBoards': 'Boards',
       'storeDiscs': 'Discs',
+      'storeCoinPacks': 'Coin packs',
+      'storeCoinPackName': '{coins} coins',
+      'storeCoinPacksNote':
+          'Bought with real money. Play will show the price in your own '
+              'currency once the store connection is live.',
+      'storeCoinPacksUnavailable':
+          'Not on sale yet — the app has to be on Google Play first.',
       'storeOpen': 'Open the store',
       'storeHint': 'Boards and discs you can buy with coins',
       'storeBuy': 'Buy',
@@ -197,6 +204,26 @@ class AppStrings {
       'statsTotalPlayTime': 'Total play time',
       'statsWinRate': 'Win rate',
       'statsWinRateTrend': 'Win rate trend',
+      'statsResultCaption':
+          'Every finished game, by how it ended. {total} games so far.',
+      'statsByModeCaption':
+          'One bar per mode. The bar is filled left to right: wins, draws, '
+              'then losses.',
+      'statsRecordLine': '{wins} W · {draws} D · {losses} L',
+      'statsLegendWithCount': '{label} {count}',
+      'statsGamesCount': '{count} games',
+      'statsTrendCaption':
+          'Your win rate over the last {window} games, recalculated after each '
+              'one. A rising line means your recent games are going better.',
+      'statsTrendNeedsMore':
+          'The trend needs at least {needed} games to say anything. You have '
+              '{current}.',
+      'statsTrendLatest': 'Now: {percent}%',
+      'statsActivityCaption':
+          'The last {weeks} weeks, one bar each — this week on the right. The '
+              'number above a bar is how many games you played that week.',
+      'statsWeekNow': 'This week',
+      'statsWeeksAgo': '{weeks} weeks ago',
       'statsWins': 'Wins',
       'viewAll': 'View all',
       'youLost': 'You Lost',
@@ -244,6 +271,15 @@ class AppStrings {
               'removed, for at most 12 months.',
       'deleteAccountSend': 'Delete permanently',
       'deleteAccountDetails': 'What gets deleted',
+      'deleteAccountFinalTitle': 'Last step',
+      'deleteAccountFinalBody':
+          'Once this is done there is no way back — not for us either. Your '
+              'trophies, your rank and your coin balance go with the account.',
+      'deleteAccountFinalHint':
+          'The button waits a few seconds so this can never be a slip of the '
+              'thumb.',
+      'deleteAccountCountdown': 'Delete permanently ({seconds})',
+      'deleteAccountKeep': 'Keep my account',
       'deleteAccountWorking': 'Deleting your account…',
       'deleteAccountDone': 'Your account has been deleted.',
       'deleteAccountFailed':
@@ -263,7 +299,7 @@ class AppStrings {
       'waitBonusLine': 'Waiting bonus +{amount}',
       'wallet': 'Wallet',
       'walletRates': 'Win {win} · Draw {draw} · Loss {loss}',
-      'walletSpendSoon': 'You will be able to spend these in the store.',
+      'walletOpenStore': 'Spend them in the store',
       'walletGuest': 'Sign in to earn coins.',
       // How to Play + first-launch tour (REV-103).
       'help': 'Help',
@@ -289,6 +325,44 @@ class AppStrings {
       'htpCustomizeBody':
           'The board and both sets of discs are yours to choose — wood, marble, floral and plain colours, in any combination. Sound, music and language live in Settings too.',
       'htpOpenSettings': 'Open Settings',
+      'htpEarnTitle': 'Trophies and rank',
+      'htpEarnIntro':
+          'Trophies and coins are earned in online matches only. Single-player '
+              'and two-player games on this device change neither your rank nor '
+              'your balance.',
+      'htpTrophyWin': 'Win',
+      'htpTrophyWinValue': '+{base}, and up to +{bonus} more for a wide win',
+      'htpTrophyDraw': 'Draw',
+      'htpTrophyDrawValue': '+{draw}',
+      'htpTrophyLoss': 'Loss',
+      'htpTrophyLossValue': 'Depends on your rank — see the table',
+      'htpTrophyMargin':
+          'The margin bonus is one trophy for every {per} discs between the two '
+              'scores, up to +{bonus}. Winning 40–24 pays more than winning '
+              '33–31.',
+      'htpTrophyFloor': 'Trophies never fall below zero.',
+      'htpRankTableTitle': 'The ladder',
+      'htpRankColRank': 'Rank',
+      'htpRankColFrom': 'From',
+      'htpRankColLoss': 'A loss costs',
+      'htpRankColHold': 'To hold it',
+      'htpRankHoldNote':
+          '"To hold it" is the lowest win rate that keeps you where you are: '
+              'below it you slide back, above it you climb. The first two ranks '
+              'cost nothing to lose — nobody is pushed backwards while they are '
+              'still learning.',
+      'htpCoinsTitle': 'Coins',
+      'htpCoinsWinValue': '{coins} coins',
+      'htpCoinsHappy':
+          'Happy hour, {start}–{end} every evening: those amounts are '
+              'multiplied by {multiplier}.',
+      'htpCoinsWait':
+          'Waiting bonus: +{per} coin for every full minute you waited to be '
+              'matched, up to +{cap}. It is paid when the match ends, and the '
+              'happy-hour multiplier does not apply to it.',
+      'htpCoinsSpend':
+          'Coins buy boards and discs in the store. Nothing you buy is ever '
+              'taken away.',
       'htpOnlineTitle': 'Playing online',
       'htpOnlineBody':
           'Sign in and you can be matched with a real opponent, earn trophies, climb the ranks and appear on the leaderboard. You can also play as a guest.',
@@ -363,6 +437,13 @@ class AppStrings {
       'storePremiumDesc': 'Sürdüğü sürece bütün tahtalar ve taşlar açık',
       'storeBoards': 'Tahtalar',
       'storeDiscs': 'Taşlar',
+      'storeCoinPacks': 'Coin paketleri',
+      'storeCoinPackName': '{coins} coin',
+      'storeCoinPacksNote':
+          'Gerçek parayla alınır. Fiyatı, mağaza bağlantısı kurulduğunda '
+              'Play kendi para biriminde gösterecek.',
+      'storeCoinPacksUnavailable':
+          'Henüz satışta değil — önce uygulamanın Google Play\'de olması gerekiyor.',
       'storeOpen': 'Mağazayı aç',
       'storeHint': 'Coin ile alabileceğin tahtalar ve taşlar',
       'storeBuy': 'Al',
@@ -484,6 +565,27 @@ class AppStrings {
       'statsTotalPlayTime': 'Toplam oynama süresi',
       'statsWinRate': 'Galibiyet oranı',
       'statsWinRateTrend': 'Galibiyet oranı trendi',
+      'statsResultCaption':
+          'Bitirdiğin bütün maçlar, nasıl bittiklerine göre. Şu ana kadar '
+              '{total} maç.',
+      'statsByModeCaption':
+          'Her mod için bir çubuk. Çubuk soldan sağa doluyor: galibiyet, '
+              'beraberlik, sonra mağlubiyet.',
+      'statsRecordLine': '{wins} G · {draws} B · {losses} M',
+      'statsLegendWithCount': '{label} {count}',
+      'statsGamesCount': '{count} maç',
+      'statsTrendCaption':
+          'Son {window} maçtaki galibiyet oranın; her maçtan sonra yeniden '
+              'hesaplanıyor. Çizgi yükseliyorsa son maçların daha iyi gidiyor.',
+      'statsTrendNeedsMore':
+          'Trendin bir şey söyleyebilmesi için en az {needed} maç gerekiyor. '
+              'Şu an {current} maçın var.',
+      'statsTrendLatest': 'Şu an: %{percent}',
+      'statsActivityCaption':
+          'Son {weeks} hafta, her biri bir çubuk — en sağdaki bu hafta. '
+              'Çubuğun üstündeki sayı o hafta oynadığın maç sayısı.',
+      'statsWeekNow': 'Bu hafta',
+      'statsWeeksAgo': '{weeks} hafta önce',
       'statsWins': 'Galibiyet',
       'viewAll': 'Tümünü gör',
       'youLost': 'Kaybettin',
@@ -531,6 +633,14 @@ class AppStrings {
               'çıkarılır, kayıtlar en fazla 12 ay tutulur.',
       'deleteAccountSend': 'Kalıcı olarak sil',
       'deleteAccountDetails': 'Neler siliniyor',
+      'deleteAccountFinalTitle': 'Son adım',
+      'deleteAccountFinalBody':
+          'Bir kez silinince geri dönüşü yok — bizim için de yok. Kupaların, '
+              'rütben ve coin bakiyen hesapla birlikte gider.',
+      'deleteAccountFinalHint':
+          'Yanlışlıkla basılmasın diye düğme birkaç saniye bekliyor.',
+      'deleteAccountCountdown': 'Kalıcı olarak sil ({seconds})',
+      'deleteAccountKeep': 'Hesabım kalsın',
       'deleteAccountWorking': 'Hesabın siliniyor…',
       'deleteAccountDone': 'Hesabın silindi.',
       'deleteAccountFailed':
@@ -549,7 +659,7 @@ class AppStrings {
       'waitBonusLine': 'Bekleme ikramiyesi +{amount}',
       'wallet': 'Cüzdan',
       'walletRates': 'Galibiyet {win} · Beraberlik {draw} · Mağlubiyet {loss}',
-      'walletSpendSoon': 'Mağaza açıldığında burada harcayabileceksin.',
+      'walletOpenStore': 'Mağazada harca',
       'walletGuest': 'Coin kazanmak için giriş yap.',
       // Nasıl Oynanır + ilk açılış turu (REV-103).
       'help': 'Yardım',
@@ -575,6 +685,42 @@ class AppStrings {
       'htpCustomizeBody':
           'Tahta da, iki tarafın taşları da senin seçimin — ahşap, mermer, çiçekli ve düz renkler, istediğin bileşimde. Ses, müzik ve dil de Ayarlar\'da.',
       'htpOpenSettings': 'Ayarları aç',
+      'htpEarnTitle': 'Kupa ve rütbe',
+      'htpEarnIntro':
+          'Kupa da coin de yalnız online maçlarda kazanılır. Bu cihazda '
+              'oynanan tek oyuncu ve iki oyuncu maçları ne rütbeni ne bakiyeni '
+              'değiştirir.',
+      'htpTrophyWin': 'Galibiyet',
+      'htpTrophyWinValue': '+{base}, farkı açtıysan +{bonus} kupaya kadar ek',
+      'htpTrophyDraw': 'Beraberlik',
+      'htpTrophyDrawValue': '+{draw}',
+      'htpTrophyLoss': 'Mağlubiyet',
+      'htpTrophyLossValue': 'Rütbene göre değişir — tabloya bak',
+      'htpTrophyMargin':
+          'Fark ikramiyesi: iki skor arasındaki her {per} taş için +1 kupa, en '
+              'çok +{bonus}. 40–24 kazanmak, 33–31 kazanmaktan çok getirir.',
+      'htpTrophyFloor': 'Kupan hiçbir zaman sıfırın altına inmez.',
+      'htpRankTableTitle': 'Rütbe basamakları',
+      'htpRankColRank': 'Rütbe',
+      'htpRankColFrom': 'Kupa',
+      'htpRankColLoss': 'Yenilgi',
+      'htpRankColHold': 'Korumak için',
+      'htpRankHoldNote':
+          '"Korumak için", bulunduğun yerde kalmanı sağlayan en düşük galibiyet '
+              'oranıdır: altında düşersin, üstünde çıkarsın. İlk iki rütbede '
+              'yenilgi kupa götürmez — daha öğrenirken kimse geri itilmez.',
+      'htpCoinsTitle': 'Coin',
+      'htpCoinsWinValue': '{coins} coin',
+      'htpCoinsHappy':
+          'Buluşma saati, her akşam {start}–{end}: bu sayılar {multiplier} ile '
+              'çarpılır.',
+      'htpCoinsWait':
+          'Bekleme ikramiyesi: eşleşmeyi beklediğin her tam dakika için +{per} '
+              'coin, en çok +{cap}. Maç bitince ödenir; buluşma saati çarpanı '
+              'buna işlemez.',
+      'htpCoinsSpend':
+          'Coinlerle mağazadan tahta ve taş alırsın. Aldığın hiçbir şey elinden '
+              'geri alınmaz.',
       'htpOnlineTitle': 'Online oynamak',
       'htpOnlineBody':
           'Giriş yaptığında gerçek bir rakiple eşleşir, kupa kazanır, rütbe atlar ve lider tablosunda yer alırsın. İstersen misafir olarak da oynayabilirsin.',
@@ -657,6 +803,11 @@ class AppStrings {
   String get storePremiumDesc => _get('storePremiumDesc');
   String get storeBoards => _get('storeBoards');
   String get storeDiscs => _get('storeDiscs');
+  String get storeCoinPacks => _get('storeCoinPacks');
+  String storeCoinPackName(int coins) =>
+      _get('storeCoinPackName').replaceAll('{coins}', '$coins');
+  String get storeCoinPacksNote => _get('storeCoinPacksNote');
+  String get storeCoinPacksUnavailable => _get('storeCoinPacksUnavailable');
   String get storeOpen => _get('storeOpen');
   String get storeHint => _get('storeHint');
   String get storeBuy => _get('storeBuy');
@@ -761,6 +912,12 @@ class AppStrings {
   String get deleteAccountBody => _get('deleteAccountBody');
   String get deleteAccountSend => _get('deleteAccountSend');
   String get deleteAccountDetails => _get('deleteAccountDetails');
+  String get deleteAccountFinalTitle => _get('deleteAccountFinalTitle');
+  String get deleteAccountFinalBody => _get('deleteAccountFinalBody');
+  String get deleteAccountFinalHint => _get('deleteAccountFinalHint');
+  String deleteAccountCountdown(int seconds) =>
+      _get('deleteAccountCountdown').replaceAll('{seconds}', '$seconds');
+  String get deleteAccountKeep => _get('deleteAccountKeep');
   String get deleteAccountWorking => _get('deleteAccountWorking');
   String get deleteAccountDone => _get('deleteAccountDone');
   String get deleteAccountFailed => _get('deleteAccountFailed');
@@ -782,7 +939,7 @@ class AppStrings {
       .replaceAll('{win}', '$win')
       .replaceAll('{draw}', '$draw')
       .replaceAll('{loss}', '$loss');
-  String get walletSpendSoon => _get('walletSpendSoon');
+  String get walletOpenStore => _get('walletOpenStore');
   String get walletGuest => _get('walletGuest');
 
   // Happy hour + waiting bonus (REV-109/110).
@@ -815,6 +972,39 @@ class AppStrings {
   String get htpCustomizeTitle => _get('htpCustomizeTitle');
   String get htpCustomizeBody => _get('htpCustomizeBody');
   String get htpOpenSettings => _get('htpOpenSettings');
+  String get htpEarnTitle => _get('htpEarnTitle');
+  String get htpEarnIntro => _get('htpEarnIntro');
+  String get htpTrophyWin => _get('htpTrophyWin');
+  String htpTrophyWinValue(int base, int bonus) => _get('htpTrophyWinValue')
+      .replaceAll('{base}', '$base')
+      .replaceAll('{bonus}', '$bonus');
+  String get htpTrophyDraw => _get('htpTrophyDraw');
+  String htpTrophyDrawValue(int draw) =>
+      _get('htpTrophyDrawValue').replaceAll('{draw}', '$draw');
+  String get htpTrophyLoss => _get('htpTrophyLoss');
+  String get htpTrophyLossValue => _get('htpTrophyLossValue');
+  String htpTrophyMargin(int per, int bonus) => _get('htpTrophyMargin')
+      .replaceAll('{per}', '$per')
+      .replaceAll('{bonus}', '$bonus');
+  String get htpTrophyFloor => _get('htpTrophyFloor');
+  String get htpRankTableTitle => _get('htpRankTableTitle');
+  String get htpRankColRank => _get('htpRankColRank');
+  String get htpRankColFrom => _get('htpRankColFrom');
+  String get htpRankColLoss => _get('htpRankColLoss');
+  String get htpRankColHold => _get('htpRankColHold');
+  String get htpRankHoldNote => _get('htpRankHoldNote');
+  String get htpCoinsTitle => _get('htpCoinsTitle');
+  String htpCoinsWinValue(int coins) =>
+      _get('htpCoinsWinValue').replaceAll('{coins}', '$coins');
+  String htpCoinsHappy(String start, String end, int multiplier) =>
+      _get('htpCoinsHappy')
+          .replaceAll('{start}', start)
+          .replaceAll('{end}', end)
+          .replaceAll('{multiplier}', '$multiplier');
+  String htpCoinsWait(int per, int cap) => _get('htpCoinsWait')
+      .replaceAll('{per}', '$per')
+      .replaceAll('{cap}', '$cap');
+  String get htpCoinsSpend => _get('htpCoinsSpend');
   String get htpOnlineTitle => _get('htpOnlineTitle');
   String get htpOnlineBody => _get('htpOnlineBody');
   String get tourWelcomeTitle => _get('tourWelcomeTitle');
@@ -920,6 +1110,33 @@ class AppStrings {
   String get statsTotalPlayTime => _get('statsTotalPlayTime');
   String get statsWinRate => _get('statsWinRate');
   String get statsWinRateTrend => _get('statsWinRateTrend');
+  String statsResultCaption(int total) =>
+      _get('statsResultCaption').replaceAll('{total}', '$total');
+  String get statsByModeCaption => _get('statsByModeCaption');
+  String statsRecordLine(int wins, int draws, int losses) =>
+      _get('statsRecordLine')
+          .replaceAll('{wins}', '$wins')
+          .replaceAll('{draws}', '$draws')
+          .replaceAll('{losses}', '$losses');
+  String statsLegendWithCount(String label, int count) =>
+      _get('statsLegendWithCount')
+          .replaceAll('{label}', label)
+          .replaceAll('{count}', '$count');
+  String statsGamesCount(int count) =>
+      _get('statsGamesCount').replaceAll('{count}', '$count');
+  String statsTrendCaption(int window) =>
+      _get('statsTrendCaption').replaceAll('{window}', '$window');
+  String statsTrendNeedsMore(int needed, int current) =>
+      _get('statsTrendNeedsMore')
+          .replaceAll('{needed}', '$needed')
+          .replaceAll('{current}', '$current');
+  String statsTrendLatest(int percent) =>
+      _get('statsTrendLatest').replaceAll('{percent}', '$percent');
+  String statsActivityCaption(int weeks) =>
+      _get('statsActivityCaption').replaceAll('{weeks}', '$weeks');
+  String get statsWeekNow => _get('statsWeekNow');
+  String statsWeeksAgo(int weeks) =>
+      _get('statsWeeksAgo').replaceAll('{weeks}', '$weeks');
   String get statsWins => _get('statsWins');
   String get viewAll => _get('viewAll');
   String get youLost => _get('youLost');

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/l10n/app_strings.dart';
 import '../../core/profile/profile_scope.dart';
+import '../../core/services/billing_service.dart';
 import '../../core/services/purchase_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/settings/app_settings.dart';
+import '../../core/store/coin_packs.dart';
 import '../../core/store/entitlements.dart';
 import '../../core/store/store_catalog.dart';
 import '../../core/theme/game_colors.dart'
@@ -111,6 +113,7 @@ class StoreScreen extends StatelessWidget {
                             ],
                           ),
                         ),
+                        const _CoinPacksCard(),
                         // What money will buy once Play Billing is wired up.
                         // Shown rather than hidden: a shop window that quietly
                         // omits the plan makes the coin items look like the
@@ -129,6 +132,134 @@ class StoreScreen extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Coins for real money (REV-72), in three sizes.
+///
+/// Shown even though nothing here can be bought yet, for the same reason the
+/// subscription is shown: a shop window that hides the part a player is most
+/// likely to want makes the coin economy look like a grind with no way out.
+/// What it must not do is lie — so there is no price and no button, and the
+/// card says why in a sentence.
+///
+/// The card asks [BillingService] rather than assuming: the day Play Billing
+/// lands, this turns into a row of prices without another edit here.
+class _CoinPacksCard extends StatefulWidget {
+  const _CoinPacksCard();
+
+  @override
+  State<_CoinPacksCard> createState() => _CoinPacksCardState();
+}
+
+class _CoinPacksCardState extends State<_CoinPacksCard> {
+  bool _available = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+  }
+
+  Future<void> _check() async {
+    final available = await BillingService.instance.available();
+    if (mounted) setState(() => _available = available);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
+    return InfoCard(
+      title: strings.storeCoinPacks,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final pack in kCoinPacks)
+            _CoinPackTile(pack: pack, available: _available),
+          const SizedBox(height: 8),
+          Text(
+            _available
+                ? strings.storeCoinPacksNote
+                : strings.storeCoinPacksUnavailable,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w700,
+              fontSize: 11.5,
+              color: GameColors.inkSoft,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One pack. The coin amount is the product name — "500 coin" says everything
+/// a title like "Small pouch" would have to be decoded into.
+class _CoinPackTile extends StatelessWidget {
+  const _CoinPackTile({required this.pack, required this.available});
+
+  final CoinPack pack;
+
+  /// Whether Play Billing can actually sell it. False today, which is why the
+  /// row ends in a "soon" tag instead of a price.
+  final bool available;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Opacity(
+        opacity: available ? 1 : 0.72,
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: coinGold.withValues(alpha: 0.14),
+              ),
+              child: const Icon(Icons.monetization_on_rounded,
+                  color: coinGold, size: 26),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                strings.storeCoinPackName(pack.coins),
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  color: GameColors.ink,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: GameColors.inkSoft.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                strings.storeComingSoon,
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: GameColors.inkSoft,
+                ),
               ),
             ),
           ],

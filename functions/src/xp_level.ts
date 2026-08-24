@@ -62,9 +62,9 @@ const COIN_DRAW = 5;
 const COIN_LOSS = 2;
 
 /**
- * Coins earned for one online game. Currently NOT wired into the reward
- * function — coin awarding is disabled until the v1.1 IAP update (see
- * finish_game.ts). Kept and unit-tested so it's ready to switch back on.
+ * Coins earned for one online game, before the happy-hour multiplier and the
+ * waiting bonus in `coin_bonus.ts`. Live since REV-66 (2026-07-15):
+ * `finish_game.ts` credits this on every finished online game.
  */
 export function earnedCoins(outcome: GameOutcome): number {
   return outcome === "win"

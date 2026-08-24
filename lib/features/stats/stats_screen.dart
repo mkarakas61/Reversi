@@ -147,11 +147,13 @@ class _StatsBody extends StatelessWidget {
         ),
         _Section(
           title: strings.statsResultDistribution,
+          caption: strings.statsResultCaption(stats.overall.totalGames),
           child: _ResultPieChart(stats: stats),
         ),
         _Section(
           title: strings.statsByMode,
-          child: _ModeBarChart(stats: stats),
+          caption: strings.statsByModeCaption,
+          child: _ModeBreakdown(stats: stats),
         ),
         const SizedBox(height: 18),
         _ResetButton(onTap: onReset),
@@ -313,8 +315,14 @@ class _ResultPieChart extends StatelessWidget {
           runSpacing: 6,
           alignment: WrapAlignment.center,
           children: [
+            // The count next to the colour, not just the name: the slice
+            // already gives a percentage, and "43%" of an unknown total is not
+            // a fact anyone can use.
             for (final entry in entries)
-              _LegendItem(color: entry.color, label: entry.label),
+              _LegendItem(
+                color: entry.color,
+                label: strings.statsLegendWithCount(entry.label, entry.value),
+              ),
           ],
         ),
       ],
@@ -353,10 +361,16 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-/// Stacked bar chart of win/loss/draw counts for each [StatsMode] that has
-/// at least one recorded game.
-class _ModeBarChart extends StatelessWidget {
-  const _ModeBarChart({required this.stats});
+/// One line per mode played, each with its record drawn as a single bar.
+///
+/// This replaced a stacked column chart (2026-08-24). The columns had no axis,
+/// no legend and 9.5pt labels, so a bar could be read as "a tall thing" and
+/// nothing else — how many games it stood for, and which colour was which, were
+/// both unanswerable. A horizontal bar with the counts written beside it says
+/// the same thing in a form that survives a phone screen, and needs no chart
+/// library at all.
+class _ModeBreakdown extends StatelessWidget {
+  const _ModeBreakdown({required this.stats});
 
   final GameStats stats;
 
@@ -368,90 +382,128 @@ class _ModeBarChart extends StatelessWidget {
         .where((entry) => entry.record.totalGames > 0)
         .toList();
 
-    if (modes.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (modes.isEmpty) return const SizedBox.shrink();
 
-    final maxGames = modes
-        .map((e) => e.record.totalGames)
-        .reduce((a, b) => a > b ? a : b)
-        .toDouble();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final entry in modes)
+          _ModeRow(
+            label: strings.statsModeLabel(entry.mode),
+            record: entry.record,
+          ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 16,
+          runSpacing: 6,
+          children: [
+            _LegendItem(
+                color: _ResultPieChart._winColor, label: strings.statsWins),
+            _LegendItem(
+                color: _ResultPieChart._drawColor, label: strings.statsDraws),
+            _LegendItem(
+                color: _ResultPieChart._lossColor, label: strings.statsLosses),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
-    return SizedBox(
-      height: 200,
-      child: BarChart(
-        BarChartData(
-          maxY: maxGames + 1,
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index < 0 || index >= modes.length) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      strings.statsModeLabel(modes[index].mode),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 9.5,
-                        color: GameColors.inkSoft,
-                      ),
+class _ModeRow extends StatelessWidget {
+  const _ModeRow({required this.label, required this.record});
+
+  final String label;
+  final ModeRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final total = record.totalGames;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    color: GameColors.ink,
+                  ),
+                ),
+              ),
+              Text(
+                strings.statsGamesCount(total),
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  color: GameColors.inkSoft,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              height: 12,
+              // Flex weights, not measured widths: the bar is the *proportion*
+              // of the mode's own games, so a mode played twice and a mode
+              // played two hundred times are still comparable side by side.
+              //
+              // `stretch` is load-bearing: a childless ColoredBox takes the
+              // smallest height it is allowed, and Expanded only constrains the
+              // main axis — so with the default (centre) alignment every
+              // segment came out 12 wide and **zero high**, and the bar was
+              // invisible on the phone while every test still passed.
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (record.wins > 0)
+                    Expanded(
+                      flex: record.wins,
+                      child: const ColoredBox(
+                          color: _ResultPieChart._winColor),
                     ),
-                  );
-                },
+                  if (record.draws > 0)
+                    Expanded(
+                      flex: record.draws,
+                      child: const ColoredBox(
+                          color: _ResultPieChart._drawColor),
+                    ),
+                  if (record.losses > 0)
+                    Expanded(
+                      flex: record.losses,
+                      child: const ColoredBox(
+                          color: _ResultPieChart._lossColor),
+                    ),
+                ],
               ),
             ),
           ),
-          barGroups: [
-            for (var i = 0; i < modes.length; i++)
-              BarChartGroupData(
-                x: i,
-                barRods: [
-                  BarChartRodData(
-                    toY: modes[i].record.totalGames.toDouble(),
-                    width: 26,
-                    borderRadius: BorderRadius.circular(6),
-                    rodStackItems: [
-                      BarChartRodStackItem(
-                        0,
-                        modes[i].record.wins.toDouble(),
-                        _ResultPieChart._winColor,
-                      ),
-                      BarChartRodStackItem(
-                        modes[i].record.wins.toDouble(),
-                        (modes[i].record.wins + modes[i].record.draws)
-                            .toDouble(),
-                        _ResultPieChart._drawColor,
-                      ),
-                      BarChartRodStackItem(
-                        (modes[i].record.wins + modes[i].record.draws)
-                            .toDouble(),
-                        modes[i].record.totalGames.toDouble(),
-                        _ResultPieChart._lossColor,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-          ],
-        ),
+          const SizedBox(height: 5),
+          Text(
+            strings.statsRecordLine(
+              record.wins,
+              record.draws,
+              record.losses,
+            ),
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              color: GameColors.inkSoft,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -586,10 +638,17 @@ class _RoundButton extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+  const _Section({required this.title, required this.child, this.caption});
 
   final String title;
   final Widget child;
+
+  /// One line under the title saying what the reader is looking at.
+  ///
+  /// Added because the charts were unreadable without it (Mustafa,
+  /// 2026-08-24): a title like "By mode" names a chart but does not say what
+  /// its bars measure, and a reader who has to guess reads nothing.
+  final String? caption;
 
   @override
   Widget build(BuildContext context) {
@@ -620,6 +679,19 @@ class _Section extends StatelessWidget {
               color: GameColors.ink,
             ),
           ),
+          if (caption != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              caption!,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                height: 1.35,
+                color: GameColors.inkSoft,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           child,
         ],

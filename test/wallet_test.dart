@@ -60,7 +60,7 @@ void main() {
       for (final s in [tr, en]) {
         expect(s.coins, isNotEmpty);
         expect(s.wallet, isNotEmpty);
-        expect(s.walletSpendSoon, isNotEmpty);
+        expect(s.walletOpenStore, isNotEmpty);
       }
     });
 

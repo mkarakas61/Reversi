@@ -103,6 +103,7 @@ class _Body extends StatelessWidget {
         ),
         _Section(
           title: strings.statsResultDistribution,
+          caption: strings.statsResultCaption(stats.totalGames),
           child: _ResultPieChart(stats: stats, strings: strings),
         ),
         StreamBuilder<List<HistoryEntry>>(
@@ -114,10 +115,16 @@ class _Body extends StatelessWidget {
               children: [
                 _Section(
                   title: strings.statsWinRateTrend,
+                  caption: strings.statsTrendCaption(
+                    _WinRateTrendChart.window,
+                  ),
                   child: _WinRateTrendChart(history: history),
                 ),
                 _Section(
                   title: strings.statsActivity,
+                  caption: strings.statsActivityCaption(
+                    _ActivityChart.weeks,
+                  ),
                   child: _ActivityChart(history: history, strings: strings),
                 ),
               ],
@@ -272,7 +279,10 @@ class _ResultPieChart extends StatelessWidget {
           alignment: WrapAlignment.center,
           children: [
             for (final entry in entries)
-              _LegendItem(color: entry.color, label: entry.label),
+              _LegendItem(
+                color: entry.color,
+                label: strings.statsLegendWithCount(entry.label, entry.value),
+              ),
           ],
         ),
       ],
@@ -280,64 +290,164 @@ class _ResultPieChart extends StatelessWidget {
   }
 }
 
-/// Rolling win-rate trend across the player's recent games: at each point,
-/// the win rate over that game and up to the 19 before it (or all games so
-/// far, if fewer than 20 have been played).
+/// Rolling win-rate trend: at each game, the win rate over that game and the
+/// [window] − 1 before it.
+///
+/// The chart used to draw the line with `titlesData: show: false` — no scale,
+/// no zero, no hundred, and nothing saying the vertical axis was a percentage
+/// at all. A curve with no axis cannot be read, only admired, so this version
+/// labels 0 / 50 / 100, marks the halfway line, and prints where the line ends
+/// up (2026-08-24).
+///
+/// It also refuses to draw below [_minGames]. With three games played the
+/// "rolling window" is three games, and the line swings between 0% and 100% on
+/// every result — a shape that looks like a trend and is noise.
 class _WinRateTrendChart extends StatelessWidget {
   const _WinRateTrendChart({required this.history});
 
   final List<HistoryEntry> history;
 
-  static const int _window = 20;
+  /// How many games each point averages over, once there are that many.
+  static const int window = 20;
+
+  /// Fewest games a point may average over. The window fills up from the first
+  /// game, so without this the leftmost point is one game — always 0% or 100% —
+  /// and the line opens with a cliff that is an artefact, not a result.
+  static const int _minWindow = 5;
+
+  /// Below this there are too few points to draw a line at all.
+  static const int _minGames = 8;
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
+    if (history.length < _minGames) {
+      return Text(
+        strings.statsTrendNeedsMore(_minGames, history.length),
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
+          color: GameColors.inkSoft,
+        ),
+      );
+    }
+
     final spots = <FlSpot>[];
-    for (var i = 0; i < history.length; i++) {
-      final start = (i - _window + 1).clamp(0, history.length);
+    // Starts at the first game that has a full enough window behind it.
+    for (var i = _minWindow - 1; i < history.length; i++) {
+      final start = (i - window + 1).clamp(0, history.length);
       final windowGames = history.sublist(start, i + 1);
       final wins = windowGames.where((g) => g.isWin).length;
       spots.add(FlSpot(i.toDouble(), wins / windowGames.length * 100));
     }
 
-    return SizedBox(
-      height: 160,
-      child: LineChart(
-        LineChartData(
-          minY: 0,
-          maxY: 100,
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineTouchData: const LineTouchData(enabled: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              barWidth: 3,
-              color: GameColors.accent,
-              dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 170,
+          child: LineChart(
+            LineChartData(
+              minY: 0,
+              maxY: 100,
+              gridData: FlGridData(
                 show: true,
-                color: GameColors.accent.withValues(alpha: 0.14),
+                drawVerticalLine: false,
+                horizontalInterval: 50,
+                getDrawingHorizontalLine: (_) => FlLine(
+                  color: GameColors.inkSoft.withValues(alpha: 0.18),
+                  strokeWidth: 1,
+                ),
               ),
+              titlesData: FlTitlesData(
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                // The horizontal axis is "games, oldest to newest". Numbering
+                // them would invite the wrong question (which game was #7?);
+                // the caption says which way time runs, which is all the line
+                // needs.
+                bottomTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 50,
+                    // Wide enough for "%100" on one line: at 34 it wrapped, and
+                    // the axis read "%10" with a stray "0" under it.
+                    reservedSize: 44,
+                    getTitlesWidget: (value, meta) => Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Text(
+                        '%${value.round()}',
+                        textAlign: TextAlign.right,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: const TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10.5,
+                          color: GameColors.inkSoft,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              lineTouchData: const LineTouchData(enabled: false),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: true,
+                  barWidth: 3,
+                  color: GameColors.accent,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: GameColors.accent.withValues(alpha: 0.14),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        // The number the line ends on, spelled out. A reader who takes one
+        // thing from the chart should take this.
+        Text(
+          strings.statsTrendLatest(spots.last.y.round()),
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: GameColors.ink,
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Games played per week (bar height) with a win/loss/draw color breakdown
-/// (stacked segments), for the last 8 weeks that had any activity.
+/// Games played per week for the last [weeks] weeks, split by result.
+///
+/// The bars used to carry no labels at all: no counts, no axis, no idea which
+/// end was this week. Now each bar is capped with the number of games it stands
+/// for and the two ends of the range are named, so an empty column reads as
+/// "no games that week" instead of as a rendering fault (2026-08-24).
 class _ActivityChart extends StatelessWidget {
   const _ActivityChart({required this.history, required this.strings});
 
   final List<HistoryEntry> history;
   final AppStrings strings;
 
-  static const int _weeks = 8;
+  static const int weeks = 8;
   static const _winColor = GameColors.accent;
   static const _lossColor = GameColors.accent2;
   static const _drawColor = Color(0xFFFFC83D);
@@ -345,30 +455,54 @@ class _ActivityChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final buckets = List.generate(_weeks, (_) => <HistoryEntry>[]);
+    final buckets = List.generate(weeks, (_) => <HistoryEntry>[]);
     for (final entry in history) {
       final weeksAgo = now.difference(entry.ts).inDays ~/ 7;
-      if (weeksAgo >= 0 && weeksAgo < _weeks) {
-        buckets[_weeks - 1 - weeksAgo].add(entry);
+      if (weeksAgo >= 0 && weeksAgo < weeks) {
+        buckets[weeks - 1 - weeksAgo].add(entry);
       }
     }
 
     double maxGames = 1;
     for (final bucket in buckets) {
-      if (bucket.length.toDouble() > maxGames) maxGames = bucket.length.toDouble();
+      if (bucket.length.toDouble() > maxGames) {
+        maxGames = bucket.length.toDouble();
+      }
     }
 
     return Column(
       children: [
         SizedBox(
-          height: 140,
+          height: 150,
           child: BarChart(
             BarChartData(
-              maxY: maxGames,
+              // Headroom for the count printed above the tallest bar, which
+              // would otherwise be clipped by the top of the chart.
+              maxY: maxGames * 1.25,
               gridData: const FlGridData(show: false),
               titlesData: const FlTitlesData(show: false),
               borderData: FlBorderData(show: false),
-              barTouchData: const BarTouchData(enabled: false),
+              // Tooltips are how fl_chart draws a label on a bar; they are
+              // pinned open (see showingTooltipIndicators) rather than shown on
+              // touch, and stripped of their bubble so only the number is left.
+              barTouchData: BarTouchData(
+                enabled: false,
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (_) => Colors.transparent,
+                  tooltipPadding: EdgeInsets.zero,
+                  tooltipMargin: 2,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) =>
+                      BarTooltipItem(
+                    '${rod.toY.round()}',
+                    const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10.5,
+                      color: GameColors.inkSoft,
+                    ),
+                  ),
+                ),
+              ),
               barGroups: [
                 for (var i = 0; i < buckets.length; i++)
                   _weekBarGroup(i, buckets[i]),
@@ -376,7 +510,17 @@ class _ActivityChart extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
+        // Which end is which. Without it the row of bars has no direction, and
+        // a reader can as easily assume the newest week is on the left.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _AxisEnd(strings.statsWeeksAgo(weeks)),
+            _AxisEnd(strings.statsWeekNow),
+          ],
+        ),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 16,
           runSpacing: 6,
@@ -398,6 +542,9 @@ class _ActivityChart extends StatelessWidget {
     final total = (wins + losses + draws).toDouble();
     return BarChartGroupData(
       x: x,
+      // A week with no games gets no label: "0" over an empty column is noise,
+      // and the gap already says it.
+      showingTooltipIndicators: total > 0 ? const [0] : const [],
       barRods: [
         BarChartRodData(
           toY: total,
@@ -414,6 +561,24 @@ class _ActivityChart extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A label under one end of the activity chart.
+class _AxisEnd extends StatelessWidget {
+  const _AxisEnd(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w700,
+          fontSize: 10.5,
+          color: GameColors.inkSoft,
+        ),
+      );
 }
 
 class _LegendItem extends StatelessWidget {
@@ -473,10 +638,15 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+  const _Section({required this.title, required this.child, this.caption});
 
   final String title;
   final Widget child;
+
+  /// One line under the title saying what the chart below actually measures.
+  /// The charts on this page had no axes and no explanation, so a line and a
+  /// row of bars were shapes rather than information (Mustafa, 2026-08-24).
+  final String? caption;
 
   @override
   Widget build(BuildContext context) {
@@ -507,6 +677,19 @@ class _Section extends StatelessWidget {
               color: GameColors.ink,
             ),
           ),
+          if (caption != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              caption!,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                height: 1.35,
+                color: GameColors.inkSoft,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           child,
         ],

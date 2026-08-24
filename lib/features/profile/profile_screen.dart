@@ -6,6 +6,8 @@ import '../../core/models/online_stats.dart';
 import '../../core/models/rank.dart';
 import '../../core/models/wallet.dart';
 import '../online/screens/online_stats_screen.dart';
+import '../settings/delete_account_flow.dart';
+import '../store/store_screen.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/theme/game_colors.dart';
@@ -116,6 +118,8 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 28),
                               _SignOutButton(label: strings.signOut),
+                              const SizedBox(height: 6),
+                              const _DeleteAccountLink(),
                             ],
                     ),
                   ),
@@ -294,6 +298,11 @@ const TextStyle _bandLabelStyle = TextStyle(
 /// the balance grew on the server with nothing in the app showing it, so the
 /// card states the rates too — a reward the player cannot see or predict is not
 /// a reward. Read-only: [coins] comes straight from the profile stream.
+///
+/// Tapping it opens the store. The card used to end on "you will be able to
+/// spend these once the store opens"; the store is open, so the promise is now
+/// a door (Mustafa, 2026-08-24). The menu's coin pill leads to the same place —
+/// a balance is a question, and both places a balance is shown answer it.
 class _WalletCard extends StatelessWidget {
   const _WalletCard({required this.coins, required this.strings});
 
@@ -303,6 +312,12 @@ class _WalletCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Card(
+      onTap: () {
+        SoundService.instance.playSfx(Sfx.button);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const StoreScreen()),
+        );
+      },
       child: Row(
         children: [
           Container(
@@ -346,14 +361,21 @@ class _WalletCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  strings.walletSpendSoon,
-                  style: const TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11.5,
-                    color: GameColors.inkSoft,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      strings.walletOpenStore,
+                      style: const TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        color: GameColors.accent,
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded,
+                        size: 16, color: GameColors.accent),
+                  ],
                 ),
               ],
             ),
@@ -519,6 +541,52 @@ class _SignOutButton extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Deleting the account, offered where the account is (Mustafa, 2026-08-24).
+///
+/// It was only in App & Account before. That is the correct place for it and it
+/// is also a place nobody thinks to look: someone who wants to leave opens
+/// their profile, not a settings page about licences and versions. So the same
+/// action appears here too — the flow is shared, not copied
+/// (`delete_account_flow.dart`), and asks twice with a five-second wait either
+/// way.
+///
+/// A quiet link, not a red button. Sign-out already owns the red one above it,
+/// and two loud buttons side by side is how the wrong one gets pressed.
+class _DeleteAccountLink extends StatelessWidget {
+  const _DeleteAccountLink();
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    return Center(
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          foregroundColor: GameColors.inkSoft,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        ),
+        onPressed: () => _delete(context),
+        icon: const Icon(Icons.person_remove_outlined, size: 18),
+        label: Text(
+          strings.deleteAccount,
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// After a successful delete the player is signed out, so this screen has no
+  /// profile left to draw — step back to the menu instead of rebuilding it
+  /// empty.
+  Future<void> _delete(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    if (await confirmAndDeleteAccount(context)) navigator.maybePop();
   }
 }
 

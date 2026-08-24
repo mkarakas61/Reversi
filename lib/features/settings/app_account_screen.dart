@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/profile/profile_scope.dart';
-import '../../core/services/account_service.dart';
 import '../../core/services/consent_service.dart';
 import '../../core/services/sound_service.dart';
 import '../../core/settings/app_settings.dart';
@@ -16,6 +15,7 @@ import '../../core/theme/game_colors.dart'
 import '../../core/theme/wood_theme.dart';
 import '../../shared/widgets/info_card.dart';
 import '../menu/widgets/menu_button.dart';
+import 'delete_account_flow.dart';
 import 'widgets/settings_header.dart';
 
 /// Everything Play asks an app to expose about itself and the player's data
@@ -129,8 +129,7 @@ class AppAccountScreen extends StatelessWidget {
                                 MenuButton(
                                   label: strings.deleteAccount,
                                   icon: Icons.person_remove_outlined,
-                                  onTap: () =>
-                                      _confirmDelete(context, strings, lang),
+                                  onTap: () => _delete(context),
                                 ),
                               ],
                             ),
@@ -181,69 +180,12 @@ class AppAccountScreen extends StatelessWidget {
     );
   }
 
-  /// Deletion is irreversible, so it asks first and says exactly what goes —
-  /// including what does *not* go, since finished matches survive as the
-  /// opponent's record. The delete itself runs server-side (REV-90); this
-  /// screen only confirms, waits, and reports.
-  Future<void> _confirmDelete(
-    BuildContext context,
-    AppStrings strings,
-    String lang,
-  ) async {
-    SoundService.instance.playSfx(Sfx.button);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(strings.deleteAccountTitle),
-        content: Text(strings.deleteAccountBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(strings.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop(false);
-              _openUrl(context, LegalLinks.deleteAccount(lang));
-            },
-            child: Text(strings.deleteAccountDetails),
-          ),
-          // Destructive colour on the one button that cannot be undone; it is
-          // also not the dialog's default action.
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFE0312B),
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(strings.deleteAccountSend),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-
+  /// The shared two-step flow (see `delete_account_flow.dart`). Once the
+  /// account is gone this screen's account section is gone with it, so step
+  /// back to the menu rather than leave the player on a half-empty page.
+  Future<void> _delete(BuildContext context) async {
     final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-
-    // Modal while the server works: the account must not be tapped twice, and
-    // the call ends with a sign-out that rebuilds this screen underneath.
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _DeletingDialog(label: strings.deleteAccountWorking),
-    );
-
-    final ok = await AccountService.instance.deleteAccount();
-    navigator.pop(); // the progress dialog
-
-    messenger.showSnackBar(SnackBar(
-      content: Text(
-        ok ? strings.deleteAccountDone : strings.deleteAccountFailed,
-      ),
-    ));
-    // Signed out now, so this screen's account section is gone: step back to
-    // the menu rather than leave the player looking at a half-empty page.
-    if (ok) navigator.maybePop();
+    if (await confirmAndDeleteAccount(context)) navigator.maybePop();
   }
 }
 
@@ -330,30 +272,6 @@ class _MarketingConsentTileState extends State<_MarketingConsentTile> {
 
 /// The blocking "deleting…" dialog. Deliberately without a cancel button:
 /// once the server call is out there is nothing left to cancel.
-class _DeletingDialog extends StatelessWidget {
-  const _DeletingDialog({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.5),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: Text(label)),
-            ],
-          ),
-        ),
-      );
-}
-
 /// Version and build number, read from the installed package rather than a
 /// constant so it can never disagree with what the store shipped.
 class _VersionLine extends StatelessWidget {

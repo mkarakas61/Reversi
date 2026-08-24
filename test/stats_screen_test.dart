@@ -74,6 +74,37 @@ void main() {
     expect(find.text('Reset statistics'), findsOneWidget);
   });
 
+  testWidgets('the per-mode record bar is actually drawn', (tester) async {
+    // It was not, on the phone: a childless ColoredBox takes the smallest
+    // height allowed, and Expanded constrains only the width, so every segment
+    // laid out 736 wide and 0 high. The chart looked like a blank gap while
+    // "the screen renders" tests all passed — hence a test that measures.
+    SharedPreferences.setMockInitialValues({});
+    await StatsStorage().save(GameStats.empty.recordGame(
+      mode: StatsMode.singlePlayerEasy,
+      outcome: GameOutcome.win,
+      scoreDiff: 10,
+      flippedDiscs: 20,
+      durationSeconds: 90,
+    ));
+
+    await pumpScreen(tester);
+    await tester.dragUntilVisible(
+      find.text('Reset statistics'),
+      find.byType(ListView),
+      const Offset(0, -200),
+    );
+
+    final segments = find
+        .byType(ColoredBox)
+        .evaluate()
+        .map((e) => (e.renderObject! as RenderBox).size)
+        .where((size) => size.height > 0 && size.height <= 12)
+        .toList();
+    expect(segments, isNotEmpty, reason: 'the record bar has no height');
+    expect(segments.first.width, greaterThan(0));
+  });
+
   testWidgets('reset clears stats after confirmation', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final storage = StatsStorage();
@@ -93,6 +124,11 @@ void main() {
     );
     expect(find.text('Reset statistics'), findsOneWidget);
 
+    // dragUntilVisible stops the moment the button peeks into the viewport,
+    // which since the per-mode breakdown landed can leave it half off the
+    // bottom edge. ensureVisible scrolls it fully into view.
+    await tester.ensureVisible(find.text('Reset statistics'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Reset statistics'));
     await tester.pumpAndSettle();
 

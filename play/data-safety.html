@@ -356,7 +356,7 @@
 
 <section>
   <div class="sec-head"><span class="step">3</span><h2>Beyan edilecek veri türleri</h2></div>
-  <p class="sec-note">Yedi tür. Hiçbiri Play'in tanımıyla <b>paylaşılmıyor</b>: Google, veriyi bizim adımıza işleyen hizmet sağlayıcı, üçüncü taraf alıcı değil.</p>
+  <p class="sec-note">Dokuz tür. Hiçbiri Play'in tanımıyla <b>paylaşılmıyor</b>: Google, veriyi bizim adımıza işleyen hizmet sağlayıcı, üçüncü taraf alıcı değil.</p>
 
   <div class="types">
 
@@ -438,6 +438,28 @@
     </div>
 
     <div class="type">
+      <h3><span class="parent">Uygulama bilgileri ve performansı ·</span> Kilitlenme günlükleri</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">Zorunlu</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Analiz · Uygulama işlevi</span></div>
+      </div>
+      <p class="src">Uygulama beklenmedik şekilde kapanınca <b>Firebase Crashlytics</b>'e rapor gidiyor: hatanın kendisi, yığın izi (stack trace), cihaz modeli ve Android sürümü. Kapatma anahtarı yok, o yüzden <b>zorunlu</b>. Kaynak: <span class="mono">lib/core/services/crash_reporting_service.dart</span>.</p>
+    </div>
+
+    <div class="type">
+      <h3><span class="parent">Uygulama bilgileri ve performansı ·</span> Teşhis</h3>
+      <div class="grid">
+        <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
+        <div class="cell"><span class="k">Paylaşılıyor</span><span class="v neg">Hayır</span></div>
+        <div class="cell"><span class="k">Zorunlu mu</span><span class="v">Zorunlu</span></div>
+        <div class="cell"><span class="k">Amaç</span><span class="v">Analiz · Uygulama işlevi</span></div>
+      </div>
+      <p class="src">Çökmeyen ama yakalanan hatalar da (<span class="mono">recordError</span>) aynı yere gidiyor. Rapora <b>yalnız uid</b> iliştiriliyor — ad, e-posta, fotoğraf asla; çıkışta uid temizleniyor. Bu yüzden “Kişisel bilgiler” altına ayrıca bir şey eklenmiyor: uid zaten <b>Kullanıcı kimlikleri</b> olarak beyan edildi.</p>
+    </div>
+
+    <div class="type">
       <h3><span class="parent">Konum ·</span> Yaklaşık konum</h3>
       <div class="grid">
         <div class="cell"><span class="k">Toplanıyor</span><span class="v pos">Evet</span></div>
@@ -455,8 +477,8 @@
   <div class="sec-head"><span class="step">4</span><h2>İşaretlenmeyecekler</h2></div>
   <p class="sec-note">Fazla beyan da yanlış beyandır: olmayan bir toplama işaretlenirse politika ile form yine çelişir.</p>
   <ul class="excl">
-    <li><span class="mark">✕</span><span><b>Finansal bilgiler / Satın alma geçmişi</b> — uygulama içi satın alma yok. Coin sunucuda tutulan sanal birim, para değil. <span class="later">REV-72 (Play Billing) yayınlanınca eklenecek.</span></span></li>
-    <li><span class="mark">✕</span><span><b>Uygulama bilgileri ve performansı / Kilitlenme günlükleri</b> — çökme takibi henüz kurulmadı. <span class="later">REV-94 (Crashlytics) eklenince beyan edilecek.</span></span></li>
+    <li><span class="mark">✕</span><span><b>Finansal bilgiler / Satın alma geçmişi</b> — gerçek parayla satın alma <b>yok</b>. Coin sunucuda tutulan sanal birim, para değil; coin paketleri mağazada görünür ama satın alınamaz (Play Billing bağlı değil). <span class="later">REV-72 (Play Billing) yayınlanınca eklenecek — o gün bu satır beyana döner.</span></span></li>
+    <li><span class="mark">✕</span><span><b>Uygulama bilgileri ve performansı / Diğer uygulama performans verileri</b> — performans izleme (Firebase Performance) kurulu değil. Kilitlenme ve teşhis <b>işaretleniyor</b>, performans ölçümü işaretlenmiyor.</span></li>
     <li><span class="mark">✕</span><span><b>Fotoğraflar ve videolar</b> — galeriye, kameraya erişim yok. Saklanan şey Google profil fotoğrafının bağlantısı, o da “Diğer bilgiler” altında.</span></li>
     <li><span class="mark">✕</span><span><b>Kişiler, Mesajlar, Takvim, Sağlık, SMS, Arama kayıtları, Kesin konum, Dosyalar</b> — hiçbirine erişilmiyor; manifestte tek izin <span class="mono">INTERNET</span>.</span></li>
   </ul>
@@ -486,9 +508,8 @@
   <div class="sec-head"><span class="step">6</span><h2>Bu beyanı sonra değiştirecek işler</h2></div>
   <p class="sec-note">Play, veri davranışı değişince formun güncellenmesini şart koşuyor. Bunlar yayınlanırsa forma geri dönülecek.</p>
   <div class="callout">
-    <h3>Beş bağımlılık</h3>
+    <h3>Dört bağımlılık</h3>
     <p><b>REV-72 · Play Billing:</b> “Finansal bilgiler → Satın alma geçmişi” eklenir, koşullar metnindeki iade paragrafı gerçeğe döner.</p>
-    <p><b>REV-94 · Crashlytics:</b> “Kilitlenme günlükleri” ve “Teşhis” eklenir; politikaya da bir cümle girer.</p>
     <p><b>REV-78 · Reklamla coin:</b> “Uygulama reklam içeriyor mu?” <b>Evet</b> olur, reklam kimliğinin amacına “Reklamcılık” eklenir.</p>
     <p><b>REV-90 · Hesap silme akışı:</b> Uygulama içi silme yolu ve maç kayıtlarının 12 ay saklanması, politikada verilen sözle birebir aynı olmalı.</p>
     <p><b>REV-111 · Bildirim (FCM) altyapısı:</b> Cihaz bildirim token’ı saklanmaya başlar → “Cihaz veya diğer kimlikler” beyanı bunu da kapsamalı; gizlilik politikasına bildirim tercihinin nasıl geri alınacağı yazılır. <b>REV-115 · E-posta</b> pazarlamaya açılırsa e-postanın <i>amaç</i> listesine “Pazarlama/tanıtım” eklenir (Türkiye’de ayrıca İYS onayı gerekir).</p>
@@ -498,7 +519,8 @@
 <footer>
   Kaynak: Reversi kaynak kodu — <span class="mono">functions/src/finish_game.ts</span>,
   <span class="mono">lib/core/services/</span>, birleştirilmiş Android manifesti.
-  Hazırlandı 20 Ağustos 2026 · REV-92.
+  Hazırlandı 20 Ağustos 2026 · REV-92. Güncellendi 24 Ağustos 2026: Crashlytics canlıya alındı
+  (kilitlenme günlükleri + teşhis beyana eklendi), coin paketleri mağazaya girdi ama satılmıyor.
 </footer>
 
 </div>

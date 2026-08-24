@@ -34,6 +34,12 @@ export {sweepAbandonedGames} from "./sweep";
 // Store: buys a catalog item with coins, server-authoritative (REV-66).
 export {purchaseItem} from "./purchase";
 
+// Coin packs bought with real money (REV-72). NOT DEPLOYED and not callable:
+// verification refuses until Play Billing is configured, so the function
+// rejects every call before writing anything. Exported so the chain is
+// complete and compiled; see play_billing.ts for what turns it on.
+export {redeemCoinPack} from "./redeem_coin_pack";
+
 // Rematch: offers/answers a rematch on a finished game and opens the new one
 // through the server, so colours and rewards stay honest (REV-98).
 export {requestRematch, respondRematch} from "./rematch";

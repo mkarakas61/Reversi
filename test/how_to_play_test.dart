@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reversi/core/l10n/app_strings.dart';
+import 'package:reversi/core/models/rank.dart';
+import 'package:reversi/core/models/wallet.dart';
 import 'package:reversi/core/services/onboarding_storage.dart';
 import 'package:reversi/core/services/settings_storage.dart';
 import 'package:reversi/core/settings/app_settings.dart';
@@ -109,6 +111,67 @@ void main() {
     testWidgets('the diagram fits a narrow phone', (tester) async {
       await _pumpHowToPlay(tester);
       expect(tester.takeException(), isNull);
+    });
+
+    for (final lang in const ['tr', 'en']) {
+      testWidgets('spells out how trophies and coins are earned in $lang',
+          (tester) async {
+        await _pumpHowToPlay(tester, lang: lang);
+        final strings = AppStrings(Locale(lang));
+
+        // The rewards used to live only in the Cloud Functions source: a
+        // player watched their trophies move and had no way to learn why
+        // (Mustafa, 2026-08-24). Page order again — each lookup scrolls on.
+        await _expectOnPage(tester, strings.htpEarnTitle);
+        await _expectOnPage(tester, strings.htpRankTableTitle);
+        await _expectOnPage(tester, strings.htpCoinsTitle);
+      });
+    }
+
+    testWidgets('the ladder table names every rank with its real numbers',
+        (tester) async {
+      await _pumpHowToPlay(tester);
+      final strings = AppStrings(const Locale('tr'));
+
+      await _expectOnPage(tester, strings.htpRankTableTitle);
+      for (final rank in kRanks) {
+        expect(
+          find.text(strings.rankTitle(rank.id)),
+          findsOneWidget,
+          reason: '${rank.id} is missing from the ladder',
+        );
+      }
+      // The break-even column, which is the whole point of the table: losing
+      // costs more the higher you are.
+      expect(find.text('%${TrophyRewards.breakEvenWinRatePercent(RankId.usta)}'),
+          findsOneWidget);
+    });
+
+    testWidgets('the coin rates shown are the ones the server pays',
+        (tester) async {
+      await _pumpHowToPlay(tester);
+      final strings = AppStrings(const Locale('tr'));
+
+      await _expectOnPage(tester, strings.htpCoinsTitle);
+      expect(find.text(strings.htpCoinsWinValue(CoinRewards.win)),
+          findsOneWidget);
+      // The happy hour and the waiting bonus are the two rules a player is
+      // most likely to hit without being told.
+      expect(
+        find.text(strings.htpCoinsHappy(
+          HappyHour.startLabel,
+          HappyHour.endLabel,
+          HappyHour.multiplier,
+        )),
+        findsOneWidget,
+      );
+      expect(
+        find.text(strings.htpCoinsWait(
+          CoinRewards.waitBonusPerMinute,
+          CoinRewards.waitBonusCap,
+        )),
+        findsOneWidget,
+      );
     });
 
     testWidgets('points at the customisation nobody would find', (
