@@ -5,7 +5,98 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-23** · Son commit: `a74c29d` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1` · Sıradaki iş: **bildirimler (push) veya eşleşmede otomatik başlangıç** — Play Billing yayıncı görüşmesini bekliyor
+Son güncelleme: **2026-08-24** · Son commit: `58563b4` · Sürüm: `0.1.0+1` · Sıradaki iş: **cihazda gözle doğrulama** (7 maddelik tur), sonra **bildirim altyapısı** — Play Billing yayıncı görüşmesini bekliyor
+
+> **🧾 2026-08-24 — YEDİ MADDELİK TUR: mağaza butonu, coin paketleri, kurallar, grafikler, hesap silme:**
+>
+> Mustafa'nın listesi, sırayla. **221 Flutter + 73 functions testi yeşil**, analyze temiz (bilinen 2 info
+> lint), `tsc` temiz. **Sunucuya hiçbir şey deploy edilmedi.**
+>
+> **1. Veri güvenliği formu — Play Console'daki formu Claude dolduramaz.** Uygulama Console'a
+> yüklenmedi; form Mustafa'nın yayıncı hesabından açılan bir beyan. Yapılabilen yapıldı: cevap kâğıdı
+> `play/data-safety.html` **bayattı** — Crashlytics canlıdayken kâğıt "çökme takibi kurulmadı" diyordu,
+> o hâliyle doldurulan form politikayla çelişirdi. Artık **"Kilitlenme günlükleri" ve "Teşhis"
+> beyanda** (toplanıyor evet · paylaşılıyor hayır · zorunlu · Analiz+Uygulama işlevi), rapora yalnız
+> uid iliştiği notu düşüldü, yedi tür → **dokuz tür**. Form doldurmak artık düz kopyalama.
+>
+> **2. Profil cüzdan satırı:** "Mağaza açıldığında burada harcayabileceksin" **kalktı**. Söz artık bir
+> kapı: kart **mağazayı açıyor**, satırda "Mağazada harca ›" yazıyor.
+>
+> **3. Ana ekranda "Mağaza" butonu.** Coin rozeti zaten mağazaya gidiyordu ama o, bakiyesine bakan
+> oyuncu içindir; hiç coin kazanmamış biri köşedeki sayıyı okumaz ve tahta/taş değiştirilebildiğini
+> hiç öğrenmez. Giriş yapmayana da görünüyor — vitrini görmek cüzdan gerektirmez, satın almak
+> gerektirir. Menü sütunu **kaydırılabilir yapıldı** (altıncı buton dar/yatay ekranda taşardı).
+>
+> **4. Coin paketleri (500/1000/5000) — altyapı hazır, satış kapalı.** Kural: *test edilebilen her şey
+> yazıldı, edilemeyen tek noktaya hapsedildi.* Yazılan ve testli: `lib/core/store/coin_packs.dart` +
+> `functions/src/coin_packs.ts` (test TypeScript'i **okuyup** karşılaştırıyor, sessizce ayrışamazlar),
+> `redeem_coin_pack.ts` (coin miktarını istemci söylemiyor; aynı makbuz iki kez coin'e dönüşemiyor —
+> makbuz belgesi bakiyeyi yükleyen işlemin içinde oluşuyor; makbuz kimliği token'ın SHA-256'sı),
+> mağazada fiyatsız/düğmesiz "Coin paketleri" bölümü. Yazılamayan tek şey Google'a "bu satın alma
+> gerçek mi" diye sormak: `play_billing.ts` **her çağrıyı reddediyor** — `true` dönseydi uydurma
+> token'la 5000 coin basılırdı. **Fiyat hiçbir yere yazılmadı**; fiyatı Play kendi para biriminde
+> söyler. Ürün kimlikleri Play Console'da **`coins_500` / `coins_1000` / `coins_5000`** olmalı.
+>
+> **5. Nasıl oynanır: kazanç kuralları açık açık.** Kupa ve coin nasıl kazanılıyor, sunucunun kendi
+> sayılarıyla: galibiyet +3 kupa (+ her 8 taş farkı için +1, en çok +3), beraberlik +1, mağlubiyet
+> rütbeye göre; **rütbe tablosu** (başlangıç kupası · yenilgi bedeli · rütbeyi korumak için gereken
+> galibiyet oranı: Kalfa %25, Usta %40, Büyük Usta %57, Efsane %67). Coin: 10/5/2, buluşma saati
+> 20:00–22:00 ×2, bekleme ikramiyesi dakikada +1 (en çok +5, çarpan buna işlemez). "Kupa da coin de
+> **yalnız online**" cümlesi en başta. Sayılar `TrophyRewards`/`CoinRewards` aynalarından geliyor ve
+> `test/trophy_rules_test.dart` bunları **trophy.ts / xp_level.ts / coin_bonus.ts dosyalarını okuyarak**
+> doğruluyor — oyuncuya söylenen kural sunucununkinden sessizce ayrılamaz.
+>
+> **6. Grafikler.** Sorun etiketten fazlasıydı: **üçünün de ekseni kapalıydı** (`titlesData: show:
+> false`). Tek oyuncuda yığılmış mod sütunları **kaldırıldı** → mod başına yatay kayıt çubuğu +
+> "12 G · 3 B · 5 M"; pasta göstergesine sayılar eklendi. Online'da galibiyet trendine **%0/%50/%100
+> ekseni**, yarım çizgisi ve "Şu an: %62" satırı geldi; **5 maçtan azına çizilmiyor** (3 maçta "son 20
+> maçın oranı" gürültüdür). Aktivite çubuklarının üstüne **maç sayısı**, iki ucuna "8 hafta önce" /
+> "Bu hafta". Her bölüm başlığının altında ne ölçtüğünü söyleyen bir satır.
+>
+> **7. Profil altından hesap silme.** Ayarlardaki akış tek dosyaya çıkarıldı
+> (`delete_account_flow.dart`) ve **iki yerden** çağrılıyor: aynı eylemin iki odada iki farklı
+> güvenlik seviyesi olması, güvenli yolun hangi kapıdan girdiğine bağlı olması demekti. Akış:
+> uyarı → **ikinci onay, sil düğmesi 5 saniye ölü** (geri sayım düğmenin üstünde). Kolay düğme
+> "Hesabım kalsın" (dolu), silme kırmızı düz yazı. Profilde kırmızı çıkış butonunun altında **sessiz
+> bir bağlantı** — iki gür buton yan yana, yanlış olana basılmasının yoludur.
+>
+> **📱 CİHAZDA DOĞRULANDI (SM-G780G, release) — VE ÜÇ HATA CİHAZDA YAKALANDI.** Menüdeki Mağaza
+> butonu · mağazadaki coin paketleri (fiyatsız, "henüz satışta değil") · kurallar sayfasındaki rütbe
+> tablosu ve coin kuralları · profildeki "Mağazada harca ›" ve "Hesabımı sil" · iki aşamalı silme
+> diyaloğu (hesap **silinmedi**, "Hesabım kalsın" ile çıkıldı) · online trend + aktivite grafikleri ·
+> tek oyuncu mod çubukları. Tahta/pul/perspektif kodu **değişmedi**, `board-visual` turu gerekmedi.
+>
+> **Testler yeşilken cihazda çıkan üç hata — üçü de düzeltildi, üçüne de test yazıldı:**
+> 1. **Silme diyaloğu geri sayım bitince kendini yeniden diziyordu.** "Kalıcı olarak sil (4)" etiketi
+>    uzun olduğu için düğmeler alt alta diziliyor, etiket kısalınca tek satıra atlayıp **yer
+>    değiştiriyordu**. Yanlış dokunuşu önlemek için var olan diyaloğun parmağın altında kayması, tam
+>    da önlemek istediği şeydi. Düğmeler artık sabit genişlikte, sabit sırada.
+> 2. **Tek oyuncu mod çubukları görünmüyordu** — 736 piksel genişlik, **0 piksel yükseklik**.
+>    Çocuksuz bir `ColoredBox` izin verilen en küçük boyu alır ve `Expanded` yalnız yatayı zorlar;
+>    `crossAxisAlignment: stretch` eksikti. Ekran "çiziliyor" diyen testler bunu göremezdi, o yüzden
+>    yeni test **ölçüyor**.
+> 3. **Trend grafiğinde `%100` etiketi satıra sığmayıp "%10" + "0" diye bölünüyordu**; ayrıca çizgi
+>    ilk maçta tek maçlık pencereyle başladığı için hep %100 veya %0'dan uçuruma dalıyordu. Etiket
+>    genişletildi; çizgi artık **en az 5 maçlık pencereden** başlıyor ve grafik 8 maçtan önce hiç
+>    çizilmiyor.
+>
+> **Linear:** REV-72 (coin paketi altyapısı), REV-92 (veri güvenliği kâğıdı), REV-104 (grafik
+> etiketleri) → durum yorumları bırakıldı. REV-99 → Canceled (aşağıda).
+>
+> **Commit `58563b4`.** Telefondaki kurulum bu commit'le aynı. **Push edilmedi.**
+
+> **🛑 2026-08-24 — EŞLEŞMEDE OTOMATİK BAŞLANGIÇ İPTAL (Mustafa'nın kararı):**
+>
+> **"Rakip bulundu" onay ekranı kalıyor.** Rakibini gördüğün ve **Başla**'ya bastığın adım kasıtlı
+> bir duraklama: bu oyun düşük tempo ister. Otomatik geri sayım deneyimi **aşırı hızlandırır**; elle
+> onay ise yavaşlatmaz, daha kontrollü hissettirir. Dolayısıyla 3 saniyelik geri sayım da, iki taraf
+> için "Hazır" durumu da **yapılmayacak**. Linear'da **REV-99 → Canceled** (gerekçe yorum olarak
+> yazıldı). Sıradaki iş listesinden çıkarıldı — geriye **bildirim altyapısı** kaldı.
+>
+> **Açıkta kalan tek nokta:** bir taraf telefonu bırakırsa diğeri belirsiz süre bekliyor
+> (`opponent_preview_screen.dart`'ta zaman aşımı yok). Bekleyen oyuncu istediği an İptal'e basıp
+> kuyruğa dönebildiği ve kimse ceza almadığı için bu bir takılma değil, yalnızca boşa geçen zaman.
+> İstenirse ayrı bir kayıt açılır; otomatik başlangıç kararıyla birlikte gelmez.
 
 > **🔚 2026-08-23 (GECE OTURUMU) KAPANIŞI — 2 hata, 1 yeni özellik, 1 mağaza, 1 sunucu deploy'u:**
 >
