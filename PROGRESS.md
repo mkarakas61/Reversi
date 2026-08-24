@@ -5,7 +5,101 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-24** · Son commit: `58563b4` · Sürüm: `0.1.0+1` · Sıradaki iş: **cihazda gözle doğrulama** (7 maddelik tur), sonra **bildirim altyapısı** — Play Billing yayıncı görüşmesini bekliyor
+Son güncelleme: **2026-08-24** · Son commit: `220d02e` · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-112 bildirim tercih ekranı** veya hesap silme QA'i (atılabilir hesap gerek) — Play Billing yayıncı görüşmesini bekliyor
+
+> **🎯 2026-08-24 — REV-114: ASENKRON EŞLEŞME KODLANDI (kurallar canlıda, functions DEĞİL):**
+>
+> **244 Flutter + 89 functions testi yeşil**, analyze temiz, `tsc` temiz.
+> **`firestore.rules` DEPLOY EDİLDİ** (Mustafa onayı) → bildirim token'ı artık gerçekten saklanıyor:
+> temiz açılışta **sıfır PERMISSION_DENIED**, cihazda doğrulandı. **Functions deploy edilmedi.**
+>
+> **Mustafa'nın kararları (bu oturum):** tam asenkron · **katılım penceresi 60 sn** · **ticket ömrü 24 saat**.
+>
+> **Değişen temel kural: eşleşen maç artık `active` değil, `pending` açılıyor.** Eşleşme için iki
+> kişinin aynı anda ekranda olması gerekmiyor; biri uygulamayı kapatmış olabilir. Maç, **iki taraf da
+> "buradayım" deyince** başlıyor (`joinGame`). Bu ayrım aynı zamanda kopma mantığını dürüst tutuyor:
+> REV-108'in 30 sn kuralı da 2 dakikalık sweep de "canlı maç sustu" demek, ve hiçbiri henüz başlamamış
+> maç için doğru değil.
+>
+> | Parça | Ne yapıyor |
+> |---|---|
+> | `push.ts` | Oyuncunun bütün cihazlarına bildirim; **ölü token'ı siliyor** (yalnız Firebase "bu token yok" dediğinde — zaman aşımında silmek herkesi sessizce aboneliklerinden çıkarırdı). Metin cihazın diline göre. |
+> | `matchmaking.ts` | Maç `pending` + `joinDeadline` ile açılıyor, iki tarafa push. Push **transaction'ın dışında**: transaction tekrar çalışabilir, gönderilen bildirim geri alınamaz. |
+> | `joinGame` | "Buradayım." İkinci çağıran maçı başlatıyor; tur saati **o an** başlıyor (maç kurulduğunda değil — sonra katılan zaten geride olurdu). |
+> | `leavePendingGame` | Rakibi görüp vazgeçmek. Ceza yok, süre şartı yok — Mustafa onay ekranını bunun için istedi. Katılmış olan **kuyruğa geri konuyor**. |
+> | `abandonPendingGame` | Rakip gelmedi: maç iptal, **bekleyen cezasız kuyruğa dönüyor** ve beklediği süreyi (`carriedWaitMs`) yanında götürüyor. |
+> | `sweep.ts` | Kimsenin izlemediği bekleyen maçları ve **24 saati geçmiş ticket'ları** temizliyor. |
+>
+> **İstemci:** onay ekranı artık katılım ekranı — sunucunun yazdığı süreden **geri sayım** (yerel 60 sn
+> değil: bildirimi 40. saniyede açan 20 saniye görmeli), "Rakip bekleniyor…" durumu, süre dolunca
+> otomatik kuyruğa dönüş. Bildirime dokunmak maçı açıyor (**hem** arka plandaki uygulama **hem** soğuk
+> açılış — yalnız ikincisi yazılırsa bildirimle açılan uygulama oyuncuyu sebepsiz menüde bırakır).
+> Kuyruk ekranı **yalnız bildirime izin verene** "uygulamayı kapatabilirsin" diyor.
+>
+> **🚀 DEPLOY EDİLDİ (Mustafa onayı):** `joinGame`, `leavePendingGame`, `abandonPendingGame` **yeni**;
+> `onMatchmakingTicketWritten` ve `sweepAbandonedGames` **güncellendi**. Telefon **ve tablet** güncel
+> APK'ya çekildi (eski istemci `pending` maçı doğrudan tahtaya götürür ve maç hiç başlamazdı).
+> `redeemCoinPack` hâlâ **deploy edilmedi** — filtreye kasten alınmadı.
+>
+> **✅ İKİ CİHAZDA UÇTAN UCA DOĞRULANDI (telefon Mustafa / tablet Sena, release):**
+> 1. Telefon kuyruğa girdi, **uygulama arka plana alındı**.
+> 2. Tablet kuyruğa girdi → sunucu eşleştirdi (`Matched … -> game 9n4lzg2rF5aOtP2VokkW`).
+> 3. **`push: delivered to 1/1 device(s)` — iki oyuncuya da.**
+> 4. Telefonda bildirim çıktı: **"Rakip bulundu! · Maça katılmak için 60 saniyen var."**, kendi
+>    ikonumuz, kendi turkuazımız (`0xff13a99c`), `reversi_general` kanalında.
+> 5. **Bildirime dokunmak maçı açtı.**
+> 6. Süresi dolmuş bir maçta: **"Rakip katılmadı. Kuyruğa geri kondun — hiçbir şey kaybetmedin."**
+>    → iptal + cezasız kuyruğa dönüş.
+> 7. İki taraf da zamanında **Başla**'ya bastı → geri sayım (47 sn) → **maç başladı**, tahta canlı.
+>
+> **Yol boyunca eklenen teşhis (kalıcı):** sunucu artık "bu oyuncunun kayıtlı cihazı yok" ve
+> "kaç cihaza teslim edildi" diye log basıyor; istemci token alındı/yazıldı diye. İlk denemede push
+> gelmedi ve **kendi loglarım sebebi söyleyemedi** — "cihaz yok" ile "gönderim başarısız" dışarıdan
+> aynı görünüyordu. Sebep, telefonun o an henüz kayıtlı olmamasıydı.
+
+> **🔔 2026-08-24 — BİLDİRİM ALTYAPISI (REV-111) DÖŞENDİ; KURAL DEPLOY'U BEKLİYOR:**
+>
+> **234 Flutter + 76 functions testi yeşil**, analyze temiz, release APK derlendi ve **telefona kuruldu**.
+> **Sunucuya hiçbir şey deploy edilmedi** — ve tam da bu yüzden bildirim henüz çalışmıyor (aşağıda).
+>
+> **Ne yapıldı:**
+> - `firebase_messaging` eklendi. Android'e **`POST_NOTIFICATIONS`** izni, FCM'in varsayılan ikon/renk/
+>   kanal meta-data'sı, **vektör bildirim ikonu** (`ic_notification.xml` — Android yalnız alfa kanalını
+>   kullanır, uygulama ikonunu verirsek beyaz kare çıkar) ve **`reversi_general` kanalı** MainActivity'de
+>   oluşturuluyor (manifest kanalı *işaret eder*, oluşturmaz; yoksa bildirim sistemin "Çeşitli"
+>   kanalına düşer).
+> - **iOS karşılığı otomatik uygulandı:** `Runner.entitlements` (`aps-environment`), Info.plist'e
+>   `UIBackgroundModes → remote-notification`, üç Runner yapılandırmasına `CODE_SIGN_ENTITLEMENTS`.
+>   **APNs `.p8` anahtarı Mustafa'da** (ücretli Apple hesabı gerektiriyor); o yüklenene kadar iOS
+>   token alamaz — kod hazır, anahtar yok.
+> - **Token `users/{uid}/devices/{token}` alt koleksiyonunda.** Profil dokümanına alan olarak
+>   **eklenmedi**: oradaki yazma whitelist'i (displayName/photoUrl/updatedAt) coin ve kupayı sunucuya
+>   ait tutan şey, bir kolaylık için delinmiyor. Kural bloğu yazıldı; `createdAt` yazılıp bir daha
+>   değişemiyor, `lastSeenAt` sunucu saatiyle güncellenebiliyor.
+> - **Misafir token yazmaz** (sunucuda iz bırakmama kuralı). **Çıkışta token siliniyor** —
+>   `AuthService.signOut()` içinde, çağıranların unutamayacağı yerde: aynı telefonu başkası alırsa
+>   önceki hesabın bildirimleri ona gitmesin.
+> - **İzin açılışta sorulmuyor.** Kuyruğa girildiğinde, "Rakip aranıyor…" ekranının üstünde bir kez
+>   soruluyor — platform tek bir istem hakkı veriyor ve erken sorulan izin reddedilir, reddedilen izin
+>   bir daha sorulamaz.
+>
+> **⚠️ YOLDA BULUNAN AYRI BİR HATA — hesap silme alt koleksiyonları bırakıyordu.** Firestore bir
+> dokümanı silince alt koleksiyonlarını silmez; `deleteAccount` yalnız `history`'yi elle siliyordu, yani
+> **REV-117'den beri `users/{uid}/consents/*` silinen hesaplardan geriye kalıyordu.** Artık
+> `USER_SUBCOLLECTIONS = [history, devices, consents]` üzerinden hepsi (ve `consents/{type}/log/*`)
+> siliniyor. Yeni test **`firestore.rules`'u okuyup** istemcinin yazabildiği her alt koleksiyonun bu
+> listede olmasını şart koşuyor — aynı tuzak dördüncü koleksiyonda tekrarlanamaz.
+>
+> **📱 CİHAZDA DOĞRULANDI (SM-G780G, release):** izin sayfası "Rakip aranıyor…" üstünde çıktı ·
+> `POST_NOTIFICATIONS` **verildi** · **`reversi_general` kanalı oluştu** (Oyun bildirimleri, önem
+> DEFAULT, açıklamasıyla) · **FCM token alındı** (`dt6H5lPs…`) · token yazımı **PERMISSION_DENIED**
+> aldı ve uygulama bundan etkilenmedi. Yani istemci zinciri baştan sona çalışıyor; eksik olan tek
+> halka kuralların canlıya alınması.
+>
+> **✅ İKİ KARAR DA VERİLDİ:** kurallar deploy edildi; REV-114 hemen arkasından yapıldı (yukarıda).
+>
+> **`play/data-safety.html` güncellendi:** FCM token'ı "Cihaz veya diğer kimlikler" beyanına girdi
+> (misafir yazmaz, çıkışta ve hesap silmede silinir); bağımlılık listesi dörtten **üçe** indi.
 
 > **🧾 2026-08-24 — YEDİ MADDELİK TUR: mağaza butonu, coin paketleri, kurallar, grafikler, hesap silme:**
 >
