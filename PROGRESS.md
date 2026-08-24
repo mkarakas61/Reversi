@@ -5,7 +5,51 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-24** · Son commit: `220d02e` · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-112 bildirim tercih ekranı** veya hesap silme QA'i (atılabilir hesap gerek) — Play Billing yayıncı görüşmesini bekliyor
+Son güncelleme: **2026-08-24** · Son commit: `f5a31a5` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-112 bildirim tercih ekranı** — Play Billing yayıncı görüşmesini bekliyor
+
+> **🔚 2026-08-24 OTURUM KAPANIŞI — 1 iptal, 7 madde, 2 epic, 2 deploy:**
+>
+> **Canlı durum:** yerel `main` = `origin/main`, çalışma ağacı **temiz**.
+> **244 Flutter + 89 functions testi yeşil**, analyze temiz (bilinen 2 info lint), `tsc` temiz.
+> **Telefon ve tablet aynı sürümde** (bu oturumun son APK'sı).
+>
+> | İş | Durum |
+> |---|---|
+> | Eşleşmede otomatik başlangıç (REV-99) | **İptal** — onay ekranı kalıyor |
+> | Veri güvenliği cevap kâğıdı | Güncellendi · **form Play Console'da Mustafa'da** |
+> | Profil cüzdan satırı → mağaza kapısı | Bitti · cihazda |
+> | Ana ekranda Mağaza butonu | Bitti · cihazda |
+> | Coin paketleri (500/1000/5000) altyapısı | Bitti · **satış kapalı**, `redeemCoinPack` deploy edilmedi |
+> | Nasıl oynanır: kupa + coin kuralları | Bitti · cihazda |
+> | İstatistik grafikleri | Bitti · cihazda |
+> | Profilden hesap silme (5 sn'li ikinci onay) | Bitti · cihazda (silme **yapılmadı**) |
+> | Bildirim altyapısı (REV-111) | **Canlı** · kurallar deploy edildi |
+> | Asenkron eşleşme (REV-114) | **Canlı** · iki cihazda uçtan uca doğrulandı |
+>
+> **⚠️ BU OTURUMDA SUNUCU 2 KEZ DEĞİŞTİ:** (1) `firestore.rules` — `users/{uid}/devices` bloğu
+> eklendi; (2) functions — `joinGame`/`leavePendingGame`/`abandonPendingGame` **yeni**,
+> `onMatchmakingTicketWritten` + `sweepAbandonedGames` **güncellendi**. `redeemCoinPack` hâlâ **deploy
+> edilmedi** (kasten).
+>
+> **Cihazda yakalanan 4 hata** (testler yeşilken): silme diyaloğu geri sayım bitince yeniden
+> diziliyordu · mod çubukları 736×0 piksel çiziliyordu · `%100` ekseni ikiye bölünüyordu · push
+> gelmeyince **kendi loglarım sebebi söyleyemiyordu**. Dördü de düzeltildi, üçüne gerileme testi
+> yazıldı, dördüncüsü kalıcı teşhis logu oldu.
+>
+> **Ayrıca bulunan sessiz hata:** `deleteAccount` alt koleksiyonları bırakıyordu — REV-117'den beri
+> silinen hesapların `consents` kayıtları geride kalıyordu. Düzeltildi; yeni test `firestore.rules`'u
+> okuyup istemcinin yazabildiği her alt koleksiyonun silme listesinde olmasını şart koşuyor.
+>
+> **Mustafa'da bekleyenler:** **APNs `.p8`** (ücretli Apple hesabı; onsuz iOS token alamaz) · **Play
+> Console veri güvenliği formu** · **coin paketi ürünleri** (`coins_500`/`coins_1000`/`coins_5000`) ·
+> yayıncı görüşmesi · yayıncı kimliği + alan adı · yasal sayfa adresindeki kullanıcı adı.
+>
+> **Hâlâ denenmemiş:** **hesap silme akışının sonu** — atılabilir Google hesabı gerekiyor; Mustafa'nın
+> kendi hesabıyla yapılmadı (Efsane rütbesi, 1007 kupa, 610 coin ve satın alınan taşlar gider).
+> Tablette Sena'nın rıza istemi **Mustafa tarafından cevaplandı**.
+>
+> **Sıradaki iş: REV-112 (bildirim tercih ekranı).** Artık bildirim gönderebiliyoruz ama oyuncunun
+> bunu uygulama içinden kapatacağı bir yer yok.
 
 > **🎯 2026-08-24 — REV-114: ASENKRON EŞLEŞME KODLANDI (kurallar canlıda, functions DEĞİL):**
 >
