@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Push Notifications capability (REV-111). "development" is what a debug
+	     build signs with; Xcode rewrites it to "production" for a distribution
+	     build, so a release does not need a second file.
+
+	     This alone does not make push work on iOS: an APNs Authentication Key
+	     (.p8) has to be created in the Apple Developer account and uploaded to
+	     the Firebase project reversi-3a506. That needs a paid Apple Developer
+	     account and only Mustafa can do it. Until then the iOS build carries
+	     the capability and gets no token. -->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

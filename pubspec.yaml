@@ -25,6 +25,7 @@ dependencies:
   url_launcher: ^6.3.2
   package_info_plus: ^10.2.1
   firebase_crashlytics: ^4.3.10
+  firebase_messaging: ^15.2.10
 
 dev_dependencies:
   flutter_test:

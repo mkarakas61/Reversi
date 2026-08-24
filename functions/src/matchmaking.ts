@@ -7,12 +7,22 @@ import {
 import {logger} from "firebase-functions/v2";
 import {onDocumentWritten} from "firebase-functions/v2/firestore";
 
+import {JOIN_SECONDS} from "./match_join";
+import {opponentFoundText, sendToUser} from "./push";
+
 // The Admin app is initialized once in index.ts.
 
 /// Initial per-move window. The full disconnect/forfeit handling is REV-48.
 /// Shared with the rematch function (REV-98) so a rematch opens on the same
 /// clock as a matched game.
 export const TURN_SECONDS = 40;
+
+/// A pairing the transaction actually made, carried out of it so the
+/// notification can be sent after the commit.
+interface Pairing {
+  gameId: string;
+  uids: string[];
+}
 
 /// Pairs waiting players into a game. Triggered on any write to a matchmaking
 /// ticket (`matchmaking/{uid}`) — the initial create or a periodic client
@@ -30,6 +40,9 @@ export const onMatchmakingTicketWritten = onDocumentWritten(
 
     const db = getFirestore();
     const mm = db.collection("matchmaking");
+
+    // Set by the transaction when it is the attempt that actually paired.
+    let matched: Pairing | null = null;
 
     await db.runTransaction(async (tx) => {
       // --- reads (all reads must precede writes) ---
@@ -85,16 +98,45 @@ export const onMatchmakingTicketWritten = onDocumentWritten(
         lastMove: null,
         moves: [],
         moveCount: 0,
-        status: "active",
+        // `pending`, not `active` (REV-114). A match can now be made while one
+        // side has the app shut, so the game cannot start the moment it is
+        // created — the absent player would be losing a game they never saw.
+        // It becomes `active` in `joinGame`, once both have said they are here.
+        //
+        // The distinction also keeps the disconnect logic honest: REV-108's
+        // 30 s claim and the 2-minute sweep both mean "a live game has gone
+        // quiet", and neither is true of a game that has not begun.
+        status: "pending",
+        joined: {},
+        joinDeadline: Timestamp.fromMillis(Date.now() + JOIN_SECONDS * 1000),
         winner: null,
-        turnDeadline: Timestamp.fromMillis(Date.now() + TURN_SECONDS * 1000),
+        // No turn clock yet: it starts when the game does, so whoever joins
+        // second is not already seconds down.
+        turnDeadline: null,
         createdAt: FieldValue.serverTimestamp(),
         waitMs,
       });
       tx.update(myRef, {status: "matched", gameId: gameRef.id});
       tx.update(partnerRef, {status: "matched", gameId: gameRef.id});
       logger.info(`Matched ${myUid} vs ${partnerId} -> game ${gameRef.id}`);
+      matched = {gameId: gameRef.id, uids: [myUid, partnerId]};
     });
+
+    // Outside the transaction, and deliberately after it commits: a push is a
+    // side effect that cannot be rolled back, and a transaction may run more
+    // than once. Notifying inside it would send "opponent found" for a pairing
+    // that then lost the race and never existed.
+    // Re-read through the declared type: TypeScript's flow analysis assumes a
+    // callback may never run, so it narrows `matched` to `never` here.
+    const pairing = matched as Pairing | null;
+    if (pairing) {
+      const text = opponentFoundText(JOIN_SECONDS);
+      await Promise.all(
+        pairing.uids.map((uid) =>
+          sendToUser(uid, text, {type: "match_found", gameId: pairing.gameId}),
+        ),
+      );
+    }
   },
 );
 
@@ -114,9 +156,16 @@ export function initialBoard(): string {
 /// be resolving when the trigger runs — and never negative, so a clock skew
 /// cannot turn into a reward.
 function waitedMs(ticket: DocumentData, now: number): number {
+  // Time carried over from a match that fell through (REV-114): the player
+  // waited it, and losing it because someone else failed to show up would
+  // punish them for the other side's absence. The payout is capped either way.
+  const carried =
+    typeof ticket.carriedWaitMs === "number" && ticket.carriedWaitMs > 0
+      ? ticket.carriedWaitMs
+      : 0;
   const createdAt = ticket.createdAt;
-  if (!(createdAt instanceof Timestamp)) return 0;
-  return Math.max(0, now - createdAt.toMillis());
+  if (!(createdAt instanceof Timestamp)) return carried;
+  return carried + Math.max(0, now - createdAt.toMillis());
 }
 
 /// The opponent-preview snapshot stored on the game so REV-45 can show basic

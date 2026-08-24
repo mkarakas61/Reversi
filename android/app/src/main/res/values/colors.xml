@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#3A2419</color>
+    <!-- Accent behind the status-bar notification icon (REV-111). The game's
+         turquoise, so a notification is recognisable as this app before the
+         text is read. -->
+    <color name="notification_accent">#13A99C</color>
 </resources>

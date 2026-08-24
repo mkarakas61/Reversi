@@ -16,6 +16,13 @@ import '../features/settings/settings_screen.dart';
 final RouteObserver<PageRoute<dynamic>> routeObserver =
     RouteObserver<PageRoute<dynamic>>();
 
+/// Lets a notification tap open a screen (REV-114).
+///
+/// A push arrives outside the widget tree — sometimes before the first frame,
+/// when the app was launched *by* the notification — so there is no context to
+/// navigate from. This key is the app's, and it is the only reason it exists.
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
 class ReversiApp extends StatelessWidget {
   const ReversiApp({
     super.key,
@@ -51,6 +58,7 @@ class ReversiApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Reversi',
             locale: locale,
+            navigatorKey: appNavigatorKey,
             navigatorObservers: [routeObserver],
             supportedLocales: AppStrings.supportedLocales,
             localizationsDelegates: const [

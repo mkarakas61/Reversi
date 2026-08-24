@@ -130,15 +130,23 @@ class OnlineGameService {
   /// Returns the id of an active game the player is currently in, or null if
   /// none. Used to redirect a reconnecting player back to their ongoing match
   /// instead of opening a new matchmaking session (REV-48).
-  Future<String?> findActiveGame(String uid) async {
+  Future<({String id, bool pending})?> findActiveGame(String uid) async {
     try {
+      // `pending` counts too (REV-114): a match made while the app was closed
+      // is waiting for this player, and reopening the app should take them to
+      // it rather than start a second search that can never pair.
       final snap = await _db
           .collection('games')
           .where('playerUids', arrayContains: uid)
-          .where('status', isEqualTo: 'active')
+          .where('status', whereIn: ['active', 'pending'])
           .limit(1)
           .get();
-      return snap.docs.isEmpty ? null : snap.docs.first.id;
+      if (snap.docs.isEmpty) return null;
+      final doc = snap.docs.first;
+      // The caller needs the difference: a pending game opens on the preview,
+      // where the player says they are here, and only an active one opens on
+      // the board.
+      return (id: doc.id, pending: doc.data()['status'] == 'pending');
     } catch (_) {
       return null;
     }

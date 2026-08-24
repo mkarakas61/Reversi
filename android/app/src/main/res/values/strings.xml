@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification channel shown in the system's app settings (REV-111).
+         Named for what the player would look for when they want it off. -->
+    <string name="notification_channel_general">Game notifications</string>
+    <string name="notification_channel_general_desc">Match invitations, results and occasional announcements.</string>
+</resources>

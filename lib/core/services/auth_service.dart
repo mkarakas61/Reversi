@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'notification_service.dart';
+
 /// Wraps Firebase Auth + Google Sign-In (google_sign_in v7). Best-effort: a
 /// user cancellation returns null, while real configuration/network failures
 /// rethrow so the UI can surface a message. Offline play never depends on this.
@@ -53,6 +55,13 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    // Before anything else, and before Firebase forgets who this was: the push
+    // token has to come off this account while the rules still recognise its
+    // owner (REV-111). A token left behind would send the next person to hold
+    // this phone the previous player's notifications. Doing it here rather than
+    // at the call sites means no future sign-out button can forget.
+    await NotificationService.instance.unregisterDevice();
+
     try {
       await _ensureGoogleReady();
       await GoogleSignIn.instance.signOut();

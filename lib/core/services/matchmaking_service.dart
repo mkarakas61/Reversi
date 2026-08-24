@@ -16,6 +16,11 @@ class MatchmakingService {
   DocumentReference<Map<String, dynamic>> _ticket(String uid) =>
       _db.collection('matchmaking').doc(uid);
 
+  /// Merged rather than overwritten (REV-114): when a match falls through the
+  /// server puts the player back in the queue with the time they had already
+  /// waited recorded on the ticket (`carriedWaitMs`). Re-entering the queue
+  /// from the app must refresh the snapshot without erasing that — otherwise
+  /// the player pays for the absent opponent a second time.
   Future<void> joinQueue(Profile profile, OnlineStats stats) {
     return _ticket(profile.uid).set({
       'uid': profile.uid,
@@ -29,7 +34,7 @@ class MatchmakingService {
       'isGuest': profile.isGuest,
       'status': 'waiting',
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   /// Re-stamps the waiting ticket so the pairing function re-runs (it listens to

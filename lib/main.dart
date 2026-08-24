@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,10 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app/reversi_app.dart';
+import 'features/online/screens/opponent_preview_screen.dart';
 import 'core/auth/auth_scope.dart';
 import 'core/profile/profile_scope.dart';
 import 'core/services/analytics_service.dart';
 import 'core/services/crash_reporting_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/services/onboarding_storage.dart';
 import 'core/services/settings_storage.dart';
 import 'core/services/sound_service.dart';
@@ -59,6 +63,39 @@ Future<void> main() async {
   void syncCrashUser() => crashReporting.setUser(authController.user?.uid);
   syncCrashUser();
   authController.addListener(syncCrashUser);
+
+  // Keeps this device's push token attached to whoever is signed in (REV-111).
+  // Nothing is *asked* here — permission is requested in context, where the
+  // player can see what it is for. This only acts on a yes that already
+  // exists, which is why it can run on every launch: a player who granted
+  // permission months ago is re-registered without a word, and one who never
+  // did is left alone.
+  void syncPushDevice() {
+    final profile = profileController.profile;
+    if (profile == null || profile.isGuest) return;
+    unawaited(NotificationService.instance.registerDevice(
+      uid: profile.uid,
+      isGuest: profile.isGuest,
+      lang: settingsController.settings.locale?.languageCode ??
+          WidgetsBinding.instance.platformDispatcher.locale.languageCode,
+    ));
+  }
+
+  syncPushDevice();
+  profileController.addListener(syncPushDevice);
+
+  // A tapped "opponent found" notification opens the match itself (REV-114).
+  // Deferred to after the first frame because it navigates, and a cold start
+  // launched *by* a notification has no navigator until then.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(NotificationService.instance.installTapHandling((gameId) {
+      final navigator = appNavigatorKey.currentState;
+      if (navigator == null) return;
+      navigator.push(MaterialPageRoute<void>(
+        builder: (_) => OpponentPreviewScreen(gameId: gameId),
+      ));
+    }));
+  });
 
   runApp(ReversiApp(
     analytics: AnalyticsService(analytics: firebaseAnalytics),

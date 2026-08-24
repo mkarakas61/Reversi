@@ -59,6 +59,35 @@ service cloud.firestore {
         }
       }
 
+      // Push device tokens (REV-111). A subcollection, not a field on the
+      // profile: the update whitelist above is what keeps coins and trophies
+      // server-owned, and it is not being widened so a token can sit next to
+      // them. The owner may add and remove their own devices — they are the
+      // only one who can produce a token for a device they hold — but may not
+      // read another player's, and nothing here can name a recipient.
+      //
+      // Both timestamps must be the server's clock, for the same reason the
+      // consent record's is: a device with a wrong date must not be able to
+      // claim a token was last used tomorrow. `createdAt` is write-once — the
+      // update rule cannot touch it — so "first registered" stays true across
+      // every later launch.
+      match /devices/{token} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(
+               ['platform', 'lang', 'createdAt', 'lastSeenAt'])
+          && request.resource.data.platform is string
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.lastSeenAt == request.time;
+        // Re-registering on a later launch: the device says it is still here,
+        // and may correct its language. Nothing else moves.
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+               ['platform', 'lang', 'lastSeenAt'])
+          && request.resource.data.lastSeenAt == request.time;
+        allow delete: if isOwner(uid);
+      }
+
       // Per-game progress history (REV-54), used for the online stats
       // trend charts (REV-58). Written exclusively by Cloud Functions.
       match /history/{gameId} {

@@ -56,6 +56,15 @@
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Android'deki POST_NOTIFICATIONS + FCM meta-data'sının iOS karşılığı
+	     (REV-111). iOS'ta bildirim izni ayrı bir manifest satırı değil, her
+	     kurulumda kullanıcıdan alınan onaydır; burada beyan edilmesi gereken
+	     tek şey, uygulama kapalıyken gelen sessiz bildirimin işlenebilmesi.
+	     Push'un asıl anahtarı `Runner.entitlements`'taki aps-environment. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

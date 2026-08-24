@@ -65,6 +65,21 @@ class AppStrings {
       'newGameTitle': 'New Game',
       'gameMode': 'Game mode',
       'settings': 'Settings',
+      'joinFailed': 'Could not join right now. Try again.',
+      'joinCountdown': 'Starting in {seconds}s',
+      'joinWaitingOpponent': 'Waiting for your opponent…',
+      'joinExpired':
+          'Your opponent did not join. You are back in the queue — nothing was '
+              'lost.',
+      'queueCloseHint':
+          'You can close the app. We will let you know when an opponent turns '
+              'up.',
+      'notifyAskTitle': 'Put the phone down while you wait?',
+      'notifyAskBody':
+          'With notifications on we can reach you when a match is made, and '
+              'for the rare announcement. Never for advertising.',
+      'notifyAskAccept': 'Allow notifications',
+      'notifyAskDecline': 'Not now',
       'storeTitle': 'Store',
       'storeComingTitle': 'Coming soon',
       'storeComingSoon': 'Soon',
@@ -428,6 +443,19 @@ class AppStrings {
       'newGameTitle': 'Yeni Oyun',
       'gameMode': 'Oyun modu',
       'settings': 'Ayarlar',
+      'joinFailed': 'Şu an katılınamadı. Tekrar dene.',
+      'joinCountdown': 'Başlamak için {seconds} sn',
+      'joinWaitingOpponent': 'Rakip bekleniyor…',
+      'joinExpired':
+          'Rakip katılmadı. Kuyruğa geri kondun — hiçbir şey kaybetmedin.',
+      'queueCloseHint':
+          'Uygulamayı kapatabilirsin. Rakip bulununca haber veririz.',
+      'notifyAskTitle': 'Beklerken telefonu bırakabilesin diye',
+      'notifyAskBody':
+          'Bildirimlere izin verirsen eşleşme olduğunda ve seyrek duyurularda '
+              'sana ulaşabiliriz. Reklam için asla kullanmayız.',
+      'notifyAskAccept': 'Bildirimlere izin ver',
+      'notifyAskDecline': 'Şimdi değil',
       'storeTitle': 'Mağaza',
       'storeComingTitle': 'Yakında',
       'storeComingSoon': 'Yakında',
@@ -794,6 +822,20 @@ class AppStrings {
 
   // Store (REV-69/71). Locked items live here and nowhere else: settings shows
   // only what the player owns.
+  // The join window (REV-114).
+  String get joinFailed => _get('joinFailed');
+  String joinCountdown(int seconds) =>
+      _get('joinCountdown').replaceAll('{seconds}', '$seconds');
+  String get joinWaitingOpponent => _get('joinWaitingOpponent');
+  String get joinExpired => _get('joinExpired');
+  String get queueCloseHint => _get('queueCloseHint');
+
+  // Push permission, asked in context (REV-111) — never at launch.
+  String get notifyAskTitle => _get('notifyAskTitle');
+  String get notifyAskBody => _get('notifyAskBody');
+  String get notifyAskAccept => _get('notifyAskAccept');
+  String get notifyAskDecline => _get('notifyAskDecline');
+
   String get storeTitle => _get('storeTitle');
   String get storeComingTitle => _get('storeComingTitle');
   String get storeComingSoon => _get('storeComingSoon');

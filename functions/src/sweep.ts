@@ -2,6 +2,12 @@ import {getFirestore, FieldValue} from "firebase-admin/firestore";
 import {logger} from "firebase-functions/v2";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 
+import {
+  cancelPendingGame,
+  joinWindowExpired,
+  TICKET_TTL_MS,
+} from "./match_join";
+
 // The Admin app is initialized once in index.ts.
 
 /// A value with a `.toMillis()` accessor — i.e. a Firestore Timestamp, but
@@ -80,4 +86,62 @@ export const sweepAbandonedGames = onSchedule("every 5 minutes", async () => {
   if (swept > 0) {
     logger.info(`sweep: cancelled ${swept} abandoned game(s)`);
   }
+
+  await sweepPendingGames(now);
+  await sweepStaleTickets(now);
 });
+
+/// Cancels matches whose join window closed with nobody watching (REV-114).
+///
+/// The player left waiting normally cancels these themselves the moment the
+/// countdown runs out — they are looking at the screen. This is for the case
+/// where nobody is: both sides were notified, neither opened the app, and the
+/// game would otherwise sit `pending` forever, blocking both players'
+/// `findActiveGame` lookup and so barring them from ever matching again.
+async function sweepPendingGames(now: number): Promise<void> {
+  const db = getFirestore();
+  const snap = await db
+    .collection("games")
+    .where("status", "==", "pending")
+    .get();
+
+  let cancelled = 0;
+  for (const doc of snap.docs) {
+    const g = doc.data();
+    if (!joinWindowExpired(g.joinDeadline, now)) continue;
+    await cancelPendingGame(doc.id, g);
+    cancelled++;
+  }
+  if (cancelled > 0) {
+    logger.info(`sweep: cancelled ${cancelled} un-joined match(es)`);
+  }
+}
+
+/// Drops queue tickets nobody could be matched with inside [TICKET_TTL_MS]
+/// (REV-114, 24 hours).
+///
+/// The ticket outliving the session is the whole point of notified
+/// matchmaking — queue in the evening, get matched in the morning. But it has
+/// to end somewhere: "an opponent is waiting" about a queue joined last week
+/// is not a welcome surprise, it is a stranger's alarm clock.
+async function sweepStaleTickets(now: number): Promise<void> {
+  const db = getFirestore();
+  const snap = await db
+    .collection("matchmaking")
+    .where("status", "==", "waiting")
+    .get();
+
+  let dropped = 0;
+  for (const doc of snap.docs) {
+    const createdAt = doc.data().createdAt;
+    // A ticket whose server timestamp has not resolved yet is brand new, not
+    // ancient: never sweep what cannot be dated.
+    if (!createdAt || typeof createdAt.toMillis !== "function") continue;
+    if (now - createdAt.toMillis() < TICKET_TTL_MS) continue;
+    await doc.ref.delete();
+    dropped++;
+  }
+  if (dropped > 0) {
+    logger.info(`sweep: dropped ${dropped} stale queue ticket(s)`);
+  }
+}

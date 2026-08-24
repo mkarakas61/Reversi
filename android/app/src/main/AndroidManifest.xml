@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Push notifications (REV-111). On Android 13+ this is a *runtime*
+         permission: declaring it here only makes it askable, and a player who
+         says no never receives a single notification. It is therefore asked in
+         context (when joining the matchmaking queue), never at launch — an
+         early ask gets refused, and a refused ask cannot be repeated. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Android 11+ paket görünürlüğü: url_launcher, bu intent'leri
          çözebilmek için burada beyan edilmelerini şart koşuyor. Gizlilik
          politikası / koşullar bağlantıları (https) ve destek + hesap silme
@@ -40,5 +47,21 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- How a notification that arrives while the app is closed is drawn.
+             Without the icon entry Android falls back to the launcher icon and
+             renders it as a white square; without the channel entry the
+             notification lands in a system-made "Miscellaneous" channel the
+             player cannot recognise. The channel itself is created in
+             MainActivity — declaring an id here does not create it. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="reversi_general" />
     </application>
 </manifest>

@@ -8,7 +8,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/online_stats.dart';
 import '../../../core/models/rank.dart';
 import '../../../shared/widgets/rank_frame_view.dart';
-import '../../../core/services/online_game_service.dart';
+import '../../../core/services/match_join_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
@@ -33,24 +33,107 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
   // cancel a match that is actually starting.
   bool _left = false;
 
+  /// Set once this player has told the server they are here and is waiting for
+  /// the other side (REV-114). "Start" becomes "waiting for your opponent".
+  bool _joined = false;
+  bool _joining = false;
+
+  /// Seconds left in the join window, from the game's server-set deadline.
+  /// Null until the game document arrives.
+  int? _secondsLeft;
+  Timer? _countdown;
+  DateTime? _deadline;
+
+  @override
+  void dispose() {
+    _countdown?.cancel();
+    super.dispose();
+  }
+
+  /// Starts the countdown once, from the deadline the server wrote. Driven by
+  /// the server's clock rather than a local 60-second timer: the player who
+  /// opened the notification forty seconds late has twenty seconds left, not
+  /// sixty, and only the deadline knows that.
+  void _armCountdown(Timestamp? deadline) {
+    if (deadline == null || _deadline != null) return;
+    _deadline = deadline.toDate();
+    _tick();
+    _countdown = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+  }
+
+  void _tick() {
+    final deadline = _deadline;
+    if (deadline == null || !mounted) return;
+    final left = deadline.difference(DateTime.now()).inSeconds;
+    setState(() => _secondsLeft = left < 0 ? 0 : left);
+    if (left <= 0) {
+      _countdown?.cancel();
+      unawaited(_expire());
+    }
+  }
+
+  /// The window closed with the opponent still absent. The match is cancelled
+  /// and this player goes back into the queue — unpenalised, and keeping the
+  /// time they had already waited.
+  Future<void> _expire() async {
+    if (_left) return;
+    _left = true;
+    final messenger = ScaffoldMessenger.of(context);
+    final strings = AppStrings.of(context);
+    await MatchJoinService.instance.abandon(widget.gameId);
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(content: Text(strings.joinExpired)));
+    Navigator.of(context).pop();
+  }
+
   Future<void> _leaveToMenu() async {
     if (_left) return;
     _left = true;
+    _countdown?.cancel();
     SoundService.instance.playSfx(Sfx.button);
-    unawaited(OnlineGameService.instance.cancel(widget.gameId));
+    // Through the server (REV-114): the rules only let a client write an
+    // `active` game, and an opponent who had already joined has to be put back
+    // in the queue rather than dropped.
+    unawaited(MatchJoinService.instance.leave(widget.gameId));
     if (mounted) Navigator.of(context).pop();
   }
 
   void _bounceCancelled() {
     if (_left) return;
     _left = true;
+    _countdown?.cancel();
     if (mounted) Navigator.of(context).pop();
   }
 
-  void _start() {
+  /// "I'm here." The second player to press this starts the game; the first
+  /// waits, and is carried into the game by the status stream below.
+  Future<void> _start() async {
+    if (_left || _joining || _joined) return;
+    setState(() => _joining = true);
+    SoundService.instance.playSfx(Sfx.button);
+
+    final outcome = await MatchJoinService.instance.join(widget.gameId);
+    if (!mounted) return;
+    setState(() => _joining = false);
+
+    switch (outcome) {
+      case JoinOutcome.started:
+        _enterGame();
+      case JoinOutcome.waiting:
+        setState(() => _joined = true);
+      case JoinOutcome.gone:
+        _bounceCancelled();
+      case JoinOutcome.failed:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.of(context).joinFailed)),
+        );
+    }
+  }
+
+  void _enterGame() {
     if (_left) return;
     _left = true; // starting, not leaving — don't cancel on the way out
-    SoundService.instance.playSfx(Sfx.button);
+    _countdown?.cancel();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (_) => OnlineGameScreen(gameId: widget.gameId),
@@ -90,6 +173,13 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                   WidgetsBinding.instance
                       .addPostFrameCallback((_) => _bounceCancelled());
                 }
+                // The opponent joined after we did: the server flipped the
+                // game to active, and this is how the waiting side finds out.
+                if (data['status'] == 'active' && !_left) {
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((_) => _enterGame());
+                }
+                _armCountdown(data['joinDeadline'] as Timestamp?);
                 final playerInfo =
                     (data['playerInfo'] as Map<String, dynamic>? ?? {});
                 final uids =
@@ -148,26 +238,60 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
                         showRecord: true,
                       ),
                       const Spacer(),
+                      // The countdown, above the button it applies to. Shown
+                      // from the moment the screen opens: the match has a
+                      // deadline whether or not the player is looking at it,
+                      // and a limit nobody can see is a trap (REV-114).
+                      if (_secondsLeft != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            _joined
+                                ? strings.joinWaitingOpponent
+                                : strings.joinCountdown(_secondsLeft!),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: GameColors.onAccent,
+                            disabledBackgroundColor:
+                                Colors.white.withValues(alpha: 0.55),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          onPressed: _start,
-                          child: Text(
-                            strings.startGame,
-                            style: const TextStyle(
-                              fontFamily: 'Baloo2',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                            ),
-                          ),
+                          // Dead once we have said we are here: pressing it
+                          // again would tell the server nothing it does not
+                          // already know.
+                          onPressed: (_joined || _joining) ? null : _start,
+                          child: _joining
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.4),
+                                )
+                              : Text(
+                                  _joined
+                                      ? strings.joinWaitingOpponent
+                                      : strings.startGame,
+                                  style: const TextStyle(
+                                    fontFamily: 'Baloo2',
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 12),

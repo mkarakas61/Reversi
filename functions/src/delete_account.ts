@@ -47,6 +47,17 @@ export function retentionCutoffMs(
 /// Order matters: data first, auth user last. If anything fails in between the
 /// account still exists and the player can try again; deleting auth first would
 /// orphan the rest with no signed-in caller left to clean it up.
+/**
+ * Every subcollection under `users/{uid}`, because Firestore will not tell us.
+ *
+ * Deleting a document leaves its subcollections in place — they stay live,
+ * addressable by the uid of an account that no longer exists. There is no API
+ * that enumerates them from a client SDK worth trusting here, so the list is
+ * written down, and `delete_account.test.ts` guards it against the day someone
+ * adds a fourth one and forgets this file.
+ */
+export const USER_SUBCOLLECTIONS = ["history", "devices", "consents"] as const;
+
 export const deleteAccount = onCall(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) {
@@ -99,16 +110,36 @@ export const deleteAccount = onCall(async (request) => {
     await flush();
   }
 
-  // 3. Match history (users/{uid}/history/*).
-  const history = await db
-    .collection("users")
-    .doc(uid)
-    .collection("history")
-    .get();
-  for (const doc of history.docs) {
-    batch.delete(doc.ref);
-    writes++;
-    await flush();
+  // 3. Everything under users/{uid}. Deleting a document does NOT delete its
+  //    subcollections — they survive as orphans, reachable by uid — so each
+  //    one has to be listed and emptied by hand. USER_SUBCOLLECTIONS is that
+  //    list, and `consents/log` is nested one deeper again.
+  //
+  //    `devices` joined it with push (REV-111): a token left behind would be a
+  //    deleted account still addressable by notification.
+  let subDocs = 0;
+  for (const name of USER_SUBCOLLECTIONS) {
+    const docs = await db
+      .collection("users")
+      .doc(uid)
+      .collection(name)
+      .get();
+    for (const doc of docs.docs) {
+      // consents/{type}/log/* sits under a consent document; deleting the
+      // parent would leave the log behind exactly as deleting the profile
+      // would leave the consent behind.
+      const nested = await doc.ref.collection("log").get();
+      for (const entry of nested.docs) {
+        batch.delete(entry.ref);
+        writes++;
+        subDocs++;
+        await flush();
+      }
+      batch.delete(doc.ref);
+      writes++;
+      subDocs++;
+      await flush();
+    }
   }
 
   // 4. Every week's leaderboard row. Listed rather than queried: the rows live
@@ -131,9 +162,9 @@ export const deleteAccount = onCall(async (request) => {
 
   logger.info(
     `Deleted account ${uid}: ${games.size} game(s) anonymized, ` +
-      `${history.size} history row(s), ${weeks.length} leaderboard week(s)`
+      `${subDocs} subcollection doc(s), ${weeks.length} leaderboard week(s)`
   );
-  return {ok: true, games: games.size, history: history.size};
+  return {ok: true, games: games.size, subDocs};
 });
 
 /// Enforces the 12-month promise: once a match has carried a deleted player's

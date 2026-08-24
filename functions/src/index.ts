@@ -40,6 +40,11 @@ export {purchaseItem} from "./purchase";
 // complete and compiled; see play_billing.ts for what turns it on.
 export {redeemCoinPack} from "./redeem_coin_pack";
 
+// The join window (REV-114): a matched game opens `pending` and starts only
+// once both players are present, so a player who was notified with the app
+// closed does not lose a game they never saw.
+export {joinGame, leavePendingGame, abandonPendingGame} from "./match_join";
+
 // Rematch: offers/answers a rematch on a finished game and opens the new one
 // through the server, so colours and rewards stay honest (REV-98).
 export {requestRematch, respondRematch} from "./rematch";

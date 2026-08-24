@@ -7,10 +7,13 @@ import '../../../core/profile/profile_scope.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/models/wallet.dart';
 import '../../../core/services/matchmaking_service.dart';
+import '../../../core/services/notification_prefs.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/services/online_game_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
+import '../../menu/widgets/menu_button.dart';
 import 'online_game_screen.dart';
 import 'opponent_preview_screen.dart';
 
@@ -32,6 +35,10 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
   bool _matched = false;
   bool _error = false;
 
+  /// Whether this player has notifications on, so the queue can honestly say
+  /// the app may be closed (REV-114).
+  bool _canBeNotified = false;
+
   @override
   void initState() {
     super.initState();
@@ -48,12 +55,13 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
 
     // If the player has an ongoing active game (e.g. returned after a
     // disconnect), send them back instead of opening a new match (REV-48).
-    final existingGameId =
-        await OnlineGameService.instance.findActiveGame(_uid!);
-    if (existingGameId != null && mounted) {
+    final existing = await OnlineGameService.instance.findActiveGame(_uid!);
+    if (existing != null && mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => OnlineGameScreen(gameId: existingGameId),
+          builder: (_) => existing.pending
+              ? OpponentPreviewScreen(gameId: existing.id)
+              : OnlineGameScreen(gameId: existing.id),
         ),
       );
       return;
@@ -89,6 +97,59 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
         MatchmakingService.instance.touch(_uid!);
       }
     });
+
+    // Asked here and nowhere else (REV-111). This is the one moment in the app
+    // where a notification obviously earns its keep — the player is waiting
+    // with nothing to do — and the platform gives us exactly one prompt, so
+    // spending it at launch, before anyone knows what the app is, would waste
+    // it on a refusal that can never be revisited.
+    unawaited(_refreshNotifiable());
+    unawaited(_maybeAskForNotifications(profile));
+  }
+
+  /// Offers the permission, once, to a signed-in player who has not been asked.
+  ///
+  /// The in-app sheet comes first and the system prompt only follows a "yes":
+  /// the system dialog is the irreversible one, so the reversible question is
+  /// asked first. Declining here is remembered exactly like declining there —
+  /// see [NotificationPrefs.markAsked].
+  Future<void> _maybeAskForNotifications(Profile profile) async {
+    final asked = await const NotificationPrefs().hasAsked();
+    final granted = await NotificationService.instance.isGranted();
+    if (!shouldAskForNotifications(
+      signedIn: true,
+      isGuest: profile.isGuest,
+      alreadyAsked: asked,
+      alreadyGranted: granted,
+    )) {
+      return;
+    }
+    if (!mounted || _matched) return;
+
+    final wants = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _NotificationAskSheet(),
+    );
+    // Closing the sheet without answering is not an answer: nothing is
+    // recorded, and the question can come back on a later queue.
+    if (wants != true || !mounted) return;
+
+    final ok = await NotificationService.instance.requestPermission();
+    if (!ok || !mounted) return;
+    await NotificationService.instance.registerDevice(
+      uid: profile.uid,
+      isGuest: profile.isGuest,
+      lang: Localizations.localeOf(context).languageCode,
+    );
+    if (mounted) setState(() => _canBeNotified = true);
+  }
+
+  /// Checked on open so the "you can close the app" line reflects reality for a
+  /// player who granted permission on an earlier visit.
+  Future<void> _refreshNotifiable() async {
+    final granted = await NotificationService.instance.isGranted();
+    if (mounted) setState(() => _canBeNotified = granted);
   }
 
   Future<void> _leave() async {
@@ -184,6 +245,24 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> {
                             // wasted, and there is an hour when more people
                             // are here. Both lines are text only — the server
                             // owns every coin decision.
+                            // The headline change of REV-114: the queue no
+                            // longer needs anyone to sit and watch it. Shown
+                            // only to players who can actually be reached —
+                            // telling someone with notifications off that they
+                            // may close the app would be a lie.
+                            if (_canBeNotified) ...[
+                              const SizedBox(height: 14),
+                              Text(
+                                strings.queueCloseHint,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  color: GameColors.accent,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 14),
                             Text(
                               strings.waitBonusNote(CoinRewards.waitBonusCap),
@@ -258,6 +337,90 @@ class _CancelButton extends StatelessWidget {
               fontSize: 16,
               color: Colors.white,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The in-app half of the permission ask (REV-111).
+///
+/// A sheet before the system prompt, because the two are not the same kind of
+/// question: this one can be asked again, the system one cannot. It also says
+/// what the permission is *for*, which the platform dialog has no room to —
+/// and what it will not be used for, which is the part people actually want
+/// answered.
+class _NotificationAskSheet extends StatelessWidget {
+  const _NotificationAskSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final wood = isWoodTheme(context);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+          decoration: BoxDecoration(
+            color: wood ? WoodTheme.cardTop : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: wood ? Border.all(color: WoodTheme.gold, width: 1.2) : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.notifications_active_outlined,
+                size: 34,
+                color: wood ? WoodTheme.gold : GameColors.accent,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                strings.notifyAskTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: wood ? WoodTheme.displayFont : 'Baloo2',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: wood ? WoodTheme.inkTitle : GameColors.ink,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                strings.notifyAskBody,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                  height: 1.4,
+                  color: wood ? WoodTheme.inkName : GameColors.inkSoft,
+                ),
+              ),
+              const SizedBox(height: 20),
+              MenuButton(
+                label: strings.notifyAskAccept,
+                icon: Icons.notifications_none_rounded,
+                primary: true,
+                onTap: () => Navigator.of(context).pop(true),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(
+                  strings.notifyAskDecline,
+                  style: TextStyle(
+                    fontFamily: wood ? WoodTheme.bodyFont : 'Nunito',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: wood ? WoodTheme.inkName : GameColors.inkSoft,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
