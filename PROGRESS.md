@@ -83,7 +83,8 @@ Son güncelleme: **2026-08-24** · Son commit: `58563b4` · Sürüm: `0.1.0+1` �
 > **Linear:** REV-72 (coin paketi altyapısı), REV-92 (veri güvenliği kâğıdı), REV-104 (grafik
 > etiketleri) → durum yorumları bırakıldı. REV-99 → Canceled (aşağıda).
 >
-> **Commit `58563b4`.** Telefondaki kurulum bu commit'le aynı. **Push edilmedi.**
+> **Commit `58563b4`** (+ bu PROGRESS girdisi). Telefondaki kurulum bu commit'le aynı.
+> **GitHub main'e push edildi.**
 
 > **🛑 2026-08-24 — EŞLEŞMEDE OTOMATİK BAŞLANGIÇ İPTAL (Mustafa'nın kararı):**
 >
