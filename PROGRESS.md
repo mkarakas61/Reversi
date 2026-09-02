@@ -5,7 +5,32 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-08-24** · Son commit: `f5a31a5` · **Oturum kapandı** (GitHub main'e push edildi) · Sürüm: `0.1.0+1` · Sıradaki iş: **REV-112 bildirim tercih ekranı** — Play Billing yayıncı görüşmesini bekliyor
+Son güncelleme: **2026-09-02** · Son commit: `42a602a` · Sürüm: `0.1.0+1` · **Ekip test APK'sı derlendi ve dağıtıldı** · Sıradaki iş: **REV-105 ekip QA turu** (dönüşleri topla), ardından **REV-112 bildirim tercih ekranı**
+
+> **📦 2026-09-02 — EKİP TEST SÜRÜMÜ ÇIKARILDI (kod değişmedi):**
+>
+> Mustafa ekiple toplantı yapıp oyunu test ettirmek istedi. **`flutter build apk --release`** ile
+> `0.1.0+1` derlendi (**69,6 MB**, release keystore ile imzalı, alias `reversi`), çalışma ağacı
+> **temiz** — `42a602a` üzerinden birebir aynı kod. Kod, kural veya functions **değişmedi, deploy
+> yok**. APK masaüstü uygulamasından paylaşıldı (Remote Control'ün 30 MB sınırını aştığı için
+> telefon/web görünümüne düşmüyor).
+>
+> **Ekibe verilen brifing sayfası (Artifact):**
+> `https://claude.ai/code/artifact/b228e2b9-03f6-48e2-bc8f-fa90b86db085`
+> İçeriği: sürümde çalışan özellikler · toplantıda denenecek 7 başlık · yayına kadar 4 fazlık yol
+> haritası · kim neyi bekletiyor. Sayfa PROGRESS.md ve Linear'ın o günkü durumundan üretildi;
+> **tek gerçek kaynak yine bu dosya** — sayfa değişirse buradan güncellenir.
+>
+> **Ekip testinin hedefi (REV-105 QA turu):** cihazda hiç/yeterince denenmemiş yerler —
+> (1) **hesap silme akışının sonu** (atılabilir Google hesabı, Play'in şartı), (2) asenkron eşleşme
+> + bildirim, (3) kopma/rövanş, (4) coin ödülleri (×2 buluşma saati + bekleme ikramiyesi),
+> (5) lider tablosu + rütbe çerçeveleri (hiç gözle görülmedi), (6) "Güzelsi" terminoloji kararı,
+> (7) farklı ekran boyutları. Dönüşler geldikçe buraya işlenecek.
+>
+> **⚠️ Ekibe söylenen sınır:** mağazada **coin paketi satın alma kapalı** (`redeemCoinPack` kasten
+> deploy edilmedi) · iOS bildirimi **APNs `.p8` gelene kadar** çalışmaz · derlemede yalnız bilinen
+> **KGP uyarısı** çıktı (cloud_functions / firebase_analytics / shared_preferences_android),
+> hata yok.
 
 > **🔚 2026-08-24 OTURUM KAPANIŞI — 1 iptal, 7 madde, 2 epic, 2 deploy:**
 >
