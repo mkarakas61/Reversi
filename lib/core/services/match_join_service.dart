@@ -71,13 +71,22 @@ class MatchJoinService {
 
   /// "They never turned up." Called once the countdown reaches zero: cancels
   /// the match and puts *this* player back in the queue, unpenalised.
-  Future<void> abandon(String gameId) async {
+  ///
+  /// Returns false when the server did not take it — the match is then still
+  /// `pending`, and the caller must not tell the player they are back in the
+  /// queue. Swallowing this is what made a dead backend look like the app
+  /// quietly refusing to open online at all: the screen said the opponent had
+  /// not turned up, popped to the menu, and the same undead match sent the
+  /// player straight back out on every later attempt.
+  Future<bool> abandon(String gameId) async {
     try {
       await _functions
           .httpsCallable('abandonPendingGame')
           .call<dynamic>({'gameId': gameId});
+      return true;
     } catch (e) {
       debugPrint('abandonPendingGame failed: $e');
+      return false;
     }
   }
 }

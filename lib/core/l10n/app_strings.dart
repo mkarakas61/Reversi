@@ -71,6 +71,9 @@ class AppStrings {
       'joinExpired':
           'Your opponent did not join. You are back in the queue — nothing was '
               'lost.',
+      'onlineUnavailable':
+          'Could not reach the server. Online play is unavailable right now — '
+              'nothing was lost.',
       'queueCloseHint':
           'You can close the app. We will let you know when an opponent turns '
               'up.',
@@ -448,6 +451,9 @@ class AppStrings {
       'joinWaitingOpponent': 'Rakip bekleniyor…',
       'joinExpired':
           'Rakip katılmadı. Kuyruğa geri kondun — hiçbir şey kaybetmedin.',
+      'onlineUnavailable':
+          'Sunucuya ulaşılamadı. Online oyun şu an kullanılamıyor — hiçbir şey '
+              'kaybetmedin.',
       'queueCloseHint':
           'Uygulamayı kapatabilirsin. Rakip bulununca haber veririz.',
       'notifyAskTitle': 'Beklerken telefonu bırakabilesin diye',
@@ -828,6 +834,12 @@ class AppStrings {
       _get('joinCountdown').replaceAll('{seconds}', '$seconds');
   String get joinWaitingOpponent => _get('joinWaitingOpponent');
   String get joinExpired => _get('joinExpired');
+
+  /// Said when the backend itself is unreachable, instead of the expiry line.
+  /// The two look identical to the player but are not the same thing: one is
+  /// an opponent who did not turn up, the other is online being down, and
+  /// dressing the second as the first hides an outage for weeks.
+  String get onlineUnavailable => _get('onlineUnavailable');
   String get queueCloseHint => _get('queueCloseHint');
 
   // Push permission, asked in context (REV-111) — never at launch.

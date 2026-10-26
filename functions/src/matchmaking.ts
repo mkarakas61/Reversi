@@ -30,6 +30,13 @@ interface Pairing {
 /// self-heals on the next ping. Runs a transaction: either ticket may initiate,
 /// and because both attempts write the same two ticket docs, the loser retries,
 /// sees a now-"matched" ticket and bails — exactly one game is created.
+///
+/// If this ever returns "no available instance" for every event while other
+/// functions run fine, the container image behind it is gone — Artifact
+/// Registry's cleanup policy drops images while a project sits with billing
+/// disabled, and `firebase deploy` reuses the build when the source hash has
+/// not changed, so a plain redeploy fixes nothing. Change something in this
+/// file to force a real rebuild (2026-10-26).
 export const onMatchmakingTicketWritten = onDocumentWritten(
   "matchmaking/{uid}",
   async (event) => {

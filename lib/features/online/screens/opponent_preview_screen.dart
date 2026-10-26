@@ -12,6 +12,7 @@ import '../../../core/services/match_join_service.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/theme/game_colors.dart';
 import '../../../core/theme/wood_theme.dart';
+import 'matchmaking_screen.dart';
 import 'online_game_screen.dart';
 
 /// Shown once matched: the opponent's name, photo, level and basic online
@@ -61,12 +62,22 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
     _countdown = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
+  /// How far past the deadline the screen waits before telling the server the
+  /// window closed. The countdown runs on the device clock while the server
+  /// enforces the deadline on its own, and `inSeconds` rounds down — so the
+  /// moment the player sees "0" can still be most of a second early, and an
+  /// abandon the server considers premature is refused. That refusal left the
+  /// match `pending` forever, which is the bounce the player then hit on every
+  /// later attempt. Two seconds costs nobody anything.
+  static const Duration _expiryGrace = Duration(seconds: 2);
+
   void _tick() {
     final deadline = _deadline;
     if (deadline == null || !mounted) return;
-    final left = deadline.difference(DateTime.now()).inSeconds;
-    setState(() => _secondsLeft = left < 0 ? 0 : left);
-    if (left <= 0) {
+    final left = deadline.difference(DateTime.now());
+    final seconds = left.inSeconds;
+    setState(() => _secondsLeft = seconds < 0 ? 0 : seconds);
+    if (left + _expiryGrace <= Duration.zero) {
       _countdown?.cancel();
       unawaited(_expire());
     }
@@ -78,12 +89,33 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
   Future<void> _expire() async {
     if (_left) return;
     _left = true;
+    _countdown?.cancel();
     final messenger = ScaffoldMessenger.of(context);
     final strings = AppStrings.of(context);
-    await MatchJoinService.instance.abandon(widget.gameId);
+    final cancelled = await MatchJoinService.instance.abandon(widget.gameId);
     if (!mounted) return;
+    if (!cancelled) {
+      // The match is still pending, so the queue would find it and send us
+      // right back here. The menu is the only honest exit, and the player is
+      // told why rather than being dropped there without a word.
+      messenger
+          .showSnackBar(SnackBar(content: Text(strings.onlineUnavailable)));
+      Navigator.of(context).pop();
+      return;
+    }
     messenger.showSnackBar(SnackBar(content: Text(strings.joinExpired)));
-    Navigator.of(context).pop();
+    _backToQueue();
+  }
+
+  /// Back to the queue rather than the menu. The server puts an abandoning
+  /// player back in it, and the message says so — but this screen replaced the
+  /// queue on the way in, so popping left them queued with nothing listening
+  /// for the next match.
+  void _backToQueue() {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const MatchmakingScreen()),
+    );
   }
 
   Future<void> _leaveToMenu() async {
@@ -102,7 +134,14 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
     if (_left) return;
     _left = true;
     _countdown?.cancel();
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    // Cancelling re-queues the players who had already said they were here, so
+    // only someone who never joined belongs back on the menu.
+    if (_joined) {
+      _backToQueue();
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   /// "I'm here." The second player to press this starts the game; the first
@@ -122,7 +161,9 @@ class _OpponentPreviewScreenState extends State<OpponentPreviewScreen> {
       case JoinOutcome.waiting:
         setState(() => _joined = true);
       case JoinOutcome.gone:
-        _bounceCancelled();
+        // `deadline-exceeded` leaves the match pending — cancel it on the way
+        // out, or it is still there to bounce off next time.
+        unawaited(_expire());
       case JoinOutcome.failed:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppStrings.of(context).joinFailed)),

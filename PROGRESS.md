@@ -5,7 +5,70 @@
 > Her değişiklik, karar, fikir ve iptal buraya işlenir — sormadan, onay beklemeden.
 > Dosyayı güncellemek Claude'un sorumluluğudur; her anlamlı adımdan sonra güncellenir.
 
-Son güncelleme: **2026-09-02** · Son commit: `42a602a` · Sürüm: `0.1.0+1` · **Ekip test APK'sı derlendi ve dağıtıldı** · Sıradaki iş: **REV-105 ekip QA turu** (dönüşleri topla), ardından **REV-112 bildirim tercih ekranı**
+Son güncelleme: **2026-10-26** · Son commit: `e32186a` · Sürüm: `0.1.0+1` · **Online onarıldı** (fatura + ölü konteyner imajı) · Sıradaki iş: **Cloud Run kapasitesi oturunca eşleşmeyi tekrar doğrula**, sonra REV-105 ekip QA turu
+
+> **🔧 2026-10-26 — ONLINE ÇÖKTÜ VE ONARILDI: FATURALANDIRMA + ÖLÜ KONTEYNER İMAJI:**
+>
+> **Belirti:** Telefonda "Online Oyna" bir an açılıp **ana menüye geri atıyordu**; tablette
+> "rakip aranıyor" sonsuza kadar dönüyor, iki cihaz aynı anda arasa bile buluşmuyorlardı.
+>
+> **Kök sebep 1 — faturalandırma kapalı.** Firebase projesi `reversi-3a506` üzerinde **Blaze
+> kapanmıştı**; Cloud Functions'ın tamamı `The request failed because billing is disabled for this
+> project.` ile düşüyordu. Log'daki en eski hata **2026-10-16** → online en az on gündür ölüydü.
+> Eşleştirme çalışmadığı için kimse eşleşemiyor, süpürme çalışmadığı için asılı maçlar
+> temizlenemiyor, `abandonPendingGame` çalışmadığı için oyuncu asılı maçtan çıkamıyordu.
+> Firestore Spark'ta da çalıştığından menü/profil/coin/istatistik sorunsuz görünüyordu.
+> **Mustafa faturayı yeniden açtı** → süpürme 14:39'da çalışıp telefonu kilitleyen
+> `NVl82ExPu8WZoWV69AZR` maçını iptal etti, telefon kuyruğa girebilir hale geldi.
+>
+> **Kök sebep 2 — eşleştirme fonksiyonunun imajı yok olmuştu.** Fatura açıldıktan sonra
+> `onMatchmakingTicketWritten` **her olayda** `The request was aborted because there was no
+> available instance` veriyor, tek bir örnek bile başlatamıyordu (süpürme aynı anda çalışırken).
+> Sebep: **Artifact Registry'nin temizlik politikası, proje faturasız beklerken konteyner imajını
+> silmiş**; `firebase deploy` kaynak özeti değişmediği için derlemeyi atlayıp eski (artık var
+> olmayan) imajı gösteren revizyonu güncelliyordu — yani **düz yeniden deploy hiçbir şey
+> düzeltmiyordu**. `matchmaking.ts`'e bir açıklama eklenip kaynak özeti değiştirildi → gerçek
+> yeniden derleme → **eşleşme çalıştı** (telefon Mustafa/Efsane ↔ tablet Sena/Büyük Usta,
+> "RAKİP BULUNDU!" ekranı iki cihazda da göründü, 17:58).
+> Bu teşhis `matchmaking.ts` içine yorum olarak yazıldı — aynı tuzağa tekrar düşülmesin.
+>
+> **✅ İKİ CİHAZDA UÇTAN UCA DOĞRULANDI (telefon Mustafa / tablet Sena, release, 18:07):**
+> kuyruk → eşleşme ("RAKİP BULUNDU!", iki cihazda da) → iki taraf "Başla" → maç açıldı →
+> telefondan oynanan hamle **tabletde anında göründü** (skor 4-1, son hamle nişanı yerinde,
+> sıra karşıya geçti). Her oyuncu **kendi temasını** görüyor (telefon ahşap, tablet Güzelsi) —
+> REV-76 çalışıyor.
+>
+> **⚠️ Kalan durum:** Cloud Run kapasitesi askı sonrası **aralıklı** geliyor; eşleşme bazen
+> saniyeler içinde oluyor, bazen "no available instance" ile birkaç dakika düşüyor. Süpürme de
+> aynı şekilde (14:39 ✅, 14:44 ❌, 14:49 ❌, 14:54 ✅). Google tarafının toparlanması bekleniyor;
+> **kodda yapılacak bir şey yok**, bir süre sonra yeniden denenmeli.
+>
+> **Düzeltilen 3 istemci kusuru** (fatura açılsa da kalırdı — `opponent_preview_screen.dart`,
+> `match_join_service.dart`, `app_strings.dart`):
+> 1. **Sunucu hatası artık söyleniyor.** `abandon` `Future<bool>` döndürüyor; başarısızsa ekran
+>    "Rakip katılmadı" yalanı yerine **"Sunucuya ulaşılamadı. Online oyun şu an kullanılamıyor"**
+>    diyor. Arızanın on gün görünmemesinin sebebi tam olarak bu yutulan hataydı.
+> 2. **Geri sayım sunucunun 2 saniye gerisinden bitiyor** (`_expiryGrace`). Önceden istemci
+>    `inSeconds` ile aşağı yuvarlayıp sunucunun hâlâ açık saydığı pencerede iptal istiyordu;
+>    sunucu `failed-precondition` ile reddedince maç sonsuza dek `pending` kalıyordu.
+> 3. **Süre dolunca menüye değil kuyruğa dönülüyor** (`_backToQueue`). Sunucu oyuncuyu zaten
+>    kuyruğa koyuyordu; önizlemeye `pushReplacement` ile gelindiği için pop menüye düşüyor ve
+>    oyuncu "kuyruktasın" denip kuyruksuz bırakılıyordu. Rakip maçı iptal ettiğinde de, oyuncu
+>    "buradayım" demişse kuyruğa dönüyor (sunucu onu da kuyruğa koyuyor).
+>
+> **Test:** `flutter analyze` temiz (bilinen 2 info lint) · **249 Flutter testi yeşil** (önceki 244
+> + bu üç düzeltmeyi kilitleyen 5 yeni test, `test/join_window_test.dart`) · `tsc` temiz.
+> **Release APK derlendi ve telefon + tablete kuruldu.**
+>
+> **Alt ajan denetiminden gelen, acil olmayan 2 not:** eşleştirme adayı seçerken **tazelik filtresi
+> yok** (`matchmaking.ts:53` — `status=='waiting'` ilk 10 doküman, `pingAt`/`createdAt` bakılmıyor),
+> yani 24 saatlik hayalet bilet canlı oyuncunun önüne geçebiliyor; `cancelPendingGame` oyuncuları
+> kuyruğa geri koyarken `set` kullanıyor (merge değil), `uid`/`isGuest` alanlarını düşürüyor
+> (sunucu okumadığı için şu an zararsız).
+>
+> **Ders (yayın öncesi karar gerektirir):** faturalandırma kapanınca oyun sessizce öldü ve kimse
+> on gün boyunca fark etmedi. Yayından önce bir **bütçe/fatura uyarısı** ve tercihen basit bir
+> sağlık kontrolü şart.
 
 > **📦 2026-09-02 — EKİP TEST SÜRÜMÜ ÇIKARILDI (kod değişmedi):**
 >

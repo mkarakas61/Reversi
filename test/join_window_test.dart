@@ -81,6 +81,51 @@ void main() {
     });
   });
 
+  // The outage of 2026-10-26: the backend was dead for ten days and the app
+  // never said so once. Every failure below used to be dressed as "your
+  // opponent did not join", which is why nobody looked at the server.
+  group('a server that says no is not an opponent who did not turn up', () {
+    final service =
+        File('lib/core/services/match_join_service.dart').readAsStringSync();
+    final screen =
+        File('lib/features/online/screens/opponent_preview_screen.dart')
+            .readAsStringSync();
+
+    test('abandon reports whether the server took it', () {
+      expect(service.contains('Future<bool> abandon('), isTrue,
+          reason: 'a swallowed abandon leaves the match pending in silence');
+      expect(service.contains('return false;'), isTrue);
+    });
+
+    test('the screen acts on that answer', () {
+      expect(screen.contains('onlineUnavailable'), isTrue,
+          reason: 'a failed abandon must not claim the opponent was absent');
+    });
+
+    test('both languages have the words for it', () {
+      for (final lang in const ['tr', 'en']) {
+        expect(AppStrings(Locale(lang)).onlineUnavailable, isNotEmpty);
+      }
+    });
+
+    test('the countdown ends after the server deadline, never before', () {
+      // The client clock and `inSeconds` together can fire the abandon while
+      // the server still considers the window open; it refuses, and the match
+      // stays pending forever.
+      expect(screen.contains('_expiryGrace'), isTrue);
+      final server = serverSource;
+      expect(server.contains('The join window is still open.'), isTrue,
+          reason: 'the grace exists because the server rejects an early '
+              'abandon — if that check is gone, revisit the grace');
+    });
+
+    test('an expired window returns the player to the queue', () {
+      // The server re-queues them; popping to the menu made the message a lie.
+      expect(screen.contains('_backToQueue'), isTrue);
+      expect(screen.contains('MatchmakingScreen()'), isTrue);
+    });
+  });
+
   group('every state of the window has words', () {
     for (final lang in const ['tr', 'en']) {
       test('in $lang', () {
