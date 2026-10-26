@@ -1820,6 +1820,20 @@ Onaylı plan: `/Users/f/.claude/plans/imdi-yeni-bir-a-amaya-ethereal-map.md`. Mu
 ## 10. OTOMASYON
 
 - **`reversi-build-agent` (LOKAL scheduled task, çalışan):** cron `0 0,6,12,18 * * *` (günde 4 kez, 6 saatte bir — güncellendi 2026-07-15, önceki: `0 1,7,13 * * *`); her çalıştırmada ÖNCE bu PROGRESS.md'yi okur, sonra In Progress'teki **yalnız Mustafa'ya atanmış ve henüz In AI'da olmayan** issue'ları alır (Enes'inkilere, atanmamışlara veya zaten In AI'da olanlara dokunmaz), her birini işe başlamadan hemen önce **In AI**'a çeker (kilit), uygular, test eder, PROGRESS.md'yi güncelleyip aynı commit'e dahil eder, push'lar, **In AI → In Review**'a taşır. Opus 4.8 + Bypass permissions (masaüstü "Edit routine" penceresinden ayarlı; SKILL.md/MCP'de değil). Mac uyanık + Claude app açık olmalı. Bkz. §2.3 (In AI kilidi).
+- **`com.mustafakarakas.reversi.health` (LOKAL launchd işi, çalışıyor):** her gün **10:00**'da
+  online arka ucunun yaşayıp yaşamadığını sorar. Mac o saatte uykudaysa launchd uyanınca çalıştırır,
+  günü atlamaz. Kaynak `tool/online_health_check.sh`, kurulum `bash tool/install_health_check.sh`
+  (betiği değiştirdikten sonra tekrar çalıştır). Günlük: `~/Library/Logs/reversi-health.log`.
+  Elle: `launchctl kickstart -p gui/501/com.mustafakarakas.reversi.health`.
+  **Yoklama ölçütü `sweepAbandonedGames`**: zamanlanmış olduğu için sağlıklı bir arka uç kimse
+  oynamasa da 5 dakikada bir log bırakır. `ping`'i dışarıdan yoklamak işe yaramıyor — IAM auth
+  istiyor ve ayakta da ölü de olsa dışarıya 403 dönüyor. Son 3 saate bakar; çıkış kodları
+  **0 sağlam · 1 aksıyor · 2 çöktü · 3 belirsiz**, kötü haberde macOS bildirimi atar.
+  **Neden bütçe uyarısı değil:** bütçe uyarısı harcama ARTINCA tetiklenir, faturası kapanmış proje
+  ise hiç harcamaz — 2026-10-26 kesintisini bütçe uyarısı yakalamazdı. Bu yüzden kontrol Google'ın
+  **dışında**, Mustafa'nın Mac'inde çalışıyor. İki kurulum tuzağı koda yazıldı: launchd `~/Documents`
+  altını okuyamıyor (bu yüzden betik Application Support'a kopyalanıyor) ve sade PATH'te `node`
+  bulunamadığı için firebase CLI düşüyor.
 - **Cloud routine "Reversi Flutter build agent" (BLOKE, yedek):** GitHub yazma izni yok (403) + cloud'da Flutter SDK yok. İkisi çözülmeden kullanma.
 
 ## 11. BU DOSYANIN BAKIM KURALLARI
